@@ -24,53 +24,129 @@
         .body-medium { font-size: 14px; line-height: 20px; font-weight: 400; }
 
         /* -- Transitions -- */
-        .seasonal-card, .seasonal-accent, input[type="range"]::-webkit-slider-thumb, #seasonal-image {
+        .ventilation-card, .ventilation-accent, input[type="range"]::-webkit-slider-thumb, #status-image {
             transition: background-color 0.5s ease, color 0.5s ease, border-color 0.5s ease;
         }
 
-        /* -- M3 Seasonal Color Palettes -- */
-        .season-winter {
-            --surface: #1a1c1e;
-            --surface-container: #1e2022;
-            --surface-container-high: #292a2d;
-            --primary: #a1c9ff;
-            --on-primary: #00325a;
-            --on-surface: #e2e2e6;
-            --on-surface-variant: #c2c7ce;
+        /* -- M3 Ventilation-Based Color Palettes -- */
+        .ventilation-good {
+            --surface: #0f1b0f;
+            --surface-container: #1a251a;
+            --surface-container-high: #242f24;
+            --primary: #4caf50;
+            --on-primary: #ffffff;
+            --on-surface: #e8f5e8;
+            --on-surface-variant: #c8d6c8;
         }
-        .season-spring {
-            --surface: #1a1c19;
-            --surface-container: #1e201d;
-            --surface-container-high: #292b28;
-            --primary: #83d98f;
-            --on-primary: #003913;
-            --on-surface: #e2e3de;
-            --on-surface-variant: #c1c8be;
+        .ventilation-caution {
+            --surface: #1c1a0f;
+            --surface-container: #252218;
+            --surface-container-high: #2f2d20;
+            --primary: #ff9800;
+            --on-primary: #ffffff;
+            --on-surface: #f5f3e8;
+            --on-surface-variant: #d6d4c8;
         }
-        .season-summer {
-            --surface: #1e1b16;
-            --surface-container: #221f1a;
-            --surface-container-high: #2d2a24;
-            --primary: #efc149;
-            --on-primary: #3f2e00;
-            --on-surface: #e8e2d9;
-            --on-surface-variant: #ceca M-2-digit;
-        }
-        .season-autumn {
-            --surface: #201a18;
-            --surface-container: #241e1c;
-            --surface-container-high: #2f2826;
-            --primary: #ffb59c;
-            --on-primary: #55200c;
-            --on-surface: #ede0dc;
-            --on-surface-variant: #d6c3be;
+        .ventilation-danger {
+            --surface: #1c0f0f;
+            --surface-container: #251a1a;
+            --surface-container-high: #2f2424;
+            --primary: #f44336;
+            --on-primary: #ffffff;
+            --on-surface: #f5e8e8;
+            --on-surface-variant: #d6c8c8;
         }
 
         /* -- Applying Variables -- */
-        .seasonal-card { background-color: var(--surface-container); }
-        .seasonal-accent { color: var(--primary); }
-        .seasonal-text-secondary { color: var(--on-surface-variant); }
-        #seasonal-image { border-color: var(--primary); }
+        .ventilation-card { background-color: var(--surface-container); }
+        .ventilation-accent { color: var(--primary); }
+        .ventilation-text-secondary { color: var(--on-surface-variant); }
+        #status-image { border-color: var(--primary); }
+
+        /* -- Pulsing Animations -- */
+        @keyframes pulse-gentle {
+            0%, 100% { transform: scale(1); opacity: 1; }
+            50% { transform: scale(1.05); opacity: 0.9; }
+        }
+        
+        @keyframes pulse-moderate {
+            0%, 100% { transform: scale(1); opacity: 1; }
+            50% { transform: scale(1.08); opacity: 0.85; }
+        }
+        
+        @keyframes pulse-urgent {
+            0%, 100% { transform: scale(1); opacity: 1; }
+            50% { transform: scale(1.12); opacity: 0.8; }
+        }
+        
+        /* Apply pulsing based on ventilation status */
+        .ventilation-good #status-image {
+            animation: pulse-gentle 3s ease-in-out infinite;
+        }
+        
+        .ventilation-caution #status-image {
+            animation: pulse-moderate 2.5s ease-in-out infinite;
+        }
+        
+        .ventilation-danger #status-image {
+            animation: pulse-urgent 2s ease-in-out infinite;
+        }
+        
+        /* Subtle pulsing for recommendation box */
+        @keyframes card-glow-gentle {
+            0%, 100% { box-shadow: 0 4px 20px rgba(76, 175, 80, 0.1); }
+            50% { box-shadow: 0 4px 30px rgba(76, 175, 80, 0.2); }
+        }
+        
+        @keyframes card-glow-caution {
+            0%, 100% { box-shadow: 0 4px 20px rgba(255, 152, 0, 0.15); }
+            50% { box-shadow: 0 4px 30px rgba(255, 152, 0, 0.25); }
+        }
+        
+        @keyframes card-glow-danger {
+            0%, 100% { box-shadow: 0 4px 20px rgba(244, 67, 54, 0.2); }
+            50% { box-shadow: 0 4px 35px rgba(244, 67, 54, 0.3); }
+        }
+        
+        .ventilation-good #recommendation-box {
+            animation: card-glow-gentle 4s ease-in-out infinite;
+        }
+        
+        .ventilation-caution #recommendation-box {
+            animation: card-glow-caution 3s ease-in-out infinite;
+        }
+        
+        .ventilation-danger #recommendation-box {
+            animation: card-glow-danger 2.5s ease-in-out infinite;
+        }
+        
+        /* Subtle pulsing for key metrics */
+        @keyframes text-pulse-gentle {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.8; }
+        }
+        
+        .ventilation-danger #final-humidity {
+            animation: text-pulse-gentle 3s ease-in-out infinite;
+        }
+        
+        /* Subtle glow effect for status image */
+        #status-image {
+            transition: all 0.5s ease;
+            box-shadow: 0 0 20px rgba(var(--primary-rgb, 76, 175, 80), 0.3);
+        }
+        
+        .ventilation-good #status-image {
+            box-shadow: 0 0 25px rgba(76, 175, 80, 0.4);
+        }
+        
+        .ventilation-caution #status-image {
+            box-shadow: 0 0 25px rgba(255, 152, 0, 0.4);
+        }
+        
+        .ventilation-danger #status-image {
+            box-shadow: 0 0 25px rgba(244, 67, 54, 0.4);
+        }
 
         /* -- M3 Components -- */
         /* Switch */
@@ -98,19 +174,19 @@
 
     <div class="w-full max-w-md mx-auto">
         <header class="text-center mb-8">
-            <!-- New Seasonal Image Container -->
-            <div id="seasonal-image-container" class="mb-6 flex justify-center">
-                <img id="seasonal-image" src="" alt="Seasonal visual" class="w-32 h-32 rounded-full object-cover border-4 shadow-lg">
+            <!-- Ventilation Status Image -->
+            <div id="status-image-container" class="mb-6 flex justify-center">
+                <img id="status-image" src="" alt="Ventilation status" class="w-32 h-32 rounded-full object-cover border-4 shadow-lg">
             </div>
-            <h1 id="main-title" class="headline-medium seasonal-accent">Villa Kunterbunt Kellerlüftungsberater</h1>
-            <p class="mt-2 body-medium seasonal-text-secondary">Get smart advice on when to open your windows.</p>
+            <h1 id="main-title" class="headline-medium ventilation-accent">Villa Kunterbunt Kellerlüftungsberater</h1>
+            <p class="mt-2 body-medium ventilation-text-secondary">Get smart advice on when to open your windows.</p>
         </header>
 
         <!-- Input Controls Card -->
-        <div class="p-6 rounded-[28px] shadow-2xl seasonal-card">
+        <div class="p-6 rounded-[28px] shadow-2xl ventilation-card">
             <!-- Mode Switch -->
             <div class="flex items-center justify-center space-x-4 mb-6">
-                <span class="label-large seasonal-text-secondary">Manual</span>
+                <span class="label-large ventilation-text-secondary">Manual</span>
                 <label for="mode-switch" class="relative inline-flex items-center cursor-pointer">
                     <input type="checkbox" id="mode-switch" class="sr-only mode-switch">
                     <div class="switch">
@@ -124,23 +200,23 @@
             <div id="auto-mode" class="hidden">
                  <div class="text-center mb-4">
                     <p class="title-large" style="color: var(--on-surface);">Weather for Thun, Switzerland</p>
-                    <p id="loading-message" class="body-medium seasonal-accent">Fetching live weather data...</p>
+                    <p id="loading-message" class="body-medium ventilation-accent">Fetching live weather data...</p>
                  </div>
                  <div id="weather-data-container" class="hidden space-y-4">
                     <div class="bg-black/20 p-4 rounded-2xl">
                         <div class="grid grid-cols-3 gap-4 text-center">
-                             <div>
-                                <p class="display-small" style="color: var(--on-surface);"><span id="auto-temp-out">--</span>°</p>
-                                <p class="label-large seasonal-text-secondary">Temperature</p>
-                             </div>
-                             <div>
-                                <p class="display-small" style="color: var(--on-surface);"><span id="auto-rh-out">--</span>%</p>
-                                <p class="label-large seasonal-text-secondary">Humidity</p>
-                            </div>
-                             <div>
-                                <p class="display-small" style="color: var(--on-surface);"><span id="auto-dewpoint-out">--</span>°</p>
-                                <p class="label-large seasonal-text-secondary">Dew Point</p>
-                            </div>
+                        <div>
+                        <p class="display-small" style="color: var(--on-surface);"><span id="auto-temp-out">--</span>°</p>
+                        <p class="label-large ventilation-text-secondary">Temperature</p>
+                        </div>
+                        <div>
+                        <p class="display-small" style="color: var(--on-surface);"><span id="auto-rh-out">--</span>%</p>
+                        <p class="label-large ventilation-text-secondary">Humidity</p>
+                        </div>
+                        <div>
+                        <p class="display-small" style="color: var(--on-surface);"><span id="auto-dewpoint-out">--</span>°</p>
+                        <p class="label-large ventilation-text-secondary">Dew Point</p>
+                        </div>
                         </div>
                     </div>
                      <div>
@@ -180,34 +256,34 @@
         </div>
 
         <!-- Context Card -->
-        <div id="context-card" class="p-6 rounded-[28px] shadow-2xl mt-6 seasonal-card">
+        <div id="context-card" class="p-6 rounded-[28px] shadow-2xl mt-6 ventilation-card">
             <h2 class="title-large text-center mb-4" style="color: var(--on-surface);">Current Context</h2>
             <div class="flex justify-between text-center border-b pb-3 mb-3" style="border-color: var(--surface-container-high);">
                 <div>
-                    <p class="label-large seasonal-text-secondary">Time</p>
+                    <p class="label-large ventilation-text-secondary">Time</p>
                     <p id="current-time" class="font-semibold text-lg" style="color: var(--on-surface);">--:--</p>
                 </div>
                 <div>
-                    <p class="label-large seasonal-text-secondary">Season</p>
+                    <p class="label-large ventilation-text-secondary">Season</p>
                     <p id="current-season" class="font-semibold text-lg" style="color: var(--on-surface);">--</p>
                 </div>
                 <div>
-                    <p class="label-large seasonal-text-secondary">Temp Trend</p>
+                    <p class="label-large ventilation-text-secondary">Temp Trend</p>
                     <p id="expected-trend" class="font-semibold text-lg" style="color: var(--on-surface);">--</p>
                 </div>
             </div>
-            <div id="dynamic-advisor-container" class="flex items-start space-x-3 seasonal-text-secondary">
+            <div id="dynamic-advisor-container" class="flex items-start space-x-3 ventilation-text-secondary">
                 <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="flex-shrink-0 mt-0.5"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="16" x2="12" y2="12"></line><line x1="12" y1="8" x2="12.01" y2="8"></line></svg>
                 <p id="dynamic-advisor-text" class="body-medium">Loading dynamic advice...</p>
             </div>
         </div>
 
         <!-- Results Section -->
-        <div id="results-card" class="p-6 rounded-[28px] shadow-2xl mt-6 seasonal-card">
+        <div id="results-card" class="p-6 rounded-[28px] shadow-2xl mt-6 ventilation-card">
             <h2 class="title-large text-center mb-4" style="color: var(--on-surface);">Outcome</h2>
             <div class="text-center mb-4">
-                <p class="label-large seasonal-text-secondary">Expected Basement Humidity</p>
-                <p id="final-humidity" class="display-small seasonal-accent">--%</p>
+                <p class="label-large ventilation-text-secondary">Expected Basement Humidity</p>
+                <p id="final-humidity" class="display-small ventilation-accent">--%</p>
             </div>
             <div id="recommendation-box" class="flex items-center p-4 rounded-xl transition-all duration-300">
                 <div id="recommendation-icon" class="mr-4"></div>
@@ -225,7 +301,7 @@
     const modeSwitch = document.getElementById('mode-switch');
     const autoModeDiv = document.getElementById('auto-mode');
     const manualModeDiv = document.getElementById('manual-mode');
-    const seasonalImage = document.getElementById('seasonal-image');
+    const statusImage = document.getElementById('status-image');
     
     // Manual Inputs
     const tempInSlider = document.getElementById('temp-in');
@@ -307,17 +383,27 @@
         finalHumidityDisplay.textContent = `${finalHumidity}%`;
 
         let rec = {};
-        if (dewPointOut >= tempIn - 1.5) { // Slightly more sensitive buffer
+        let ventilationStatus = 'good'; // default
+        
+        if (dewPointOut >= tempIn - 1.5) {
             rec = { title: "Do Not Ventilate!", summary: `High condensation risk. The outside air is too moist (${dewPointOut.toFixed(1)}°C dew point).`, color: 'bg-red-500/20 text-red-300', icon: ICONS.bad };
+            ventilationStatus = 'danger';
         } else if (tempOut > tempIn) {
             rec = { title: "Do Not Ventilate!", summary: `The outside air is warmer. This will heat your basement and likely add moisture.`, color: 'bg-red-500/20 text-red-300', icon: ICONS.bad };
+            ventilationStatus = 'danger';
         } else if (finalHumidity < 60) {
             rec = { title: "Yes, Ventilate!", summary: `Ideal conditions. You will effectively cool and dehumidify your basement.`, color: 'bg-green-500/20 text-green-300', icon: ICONS.good };
+            ventilationStatus = 'good';
         } else if (finalHumidity < 75) {
             rec = { title: "Ventilate with Caution", summary: `This will help cool, but won't significantly lower humidity. Safe from condensation.`, color: 'bg-yellow-500/20 text-yellow-300', icon: ICONS.warning };
+            ventilationStatus = 'caution';
         } else {
             rec = { title: "Do Not Ventilate", summary: `This will make your basement more humid. The final humidity is too high.`, color: 'bg-red-500/20 text-red-300', icon: ICONS.bad };
+            ventilationStatus = 'danger';
         }
+        
+        // Apply ventilation-based theme
+        applyVentilationTheme(ventilationStatus);
         
         recommendationTitle.textContent = rec.title;
         recommendationSummary.textContent = rec.summary;
@@ -326,11 +412,26 @@
     }
 
     // --- CONTEXT & DYNAMIC ADVISOR ---
-    function applySeasonalTheme(season) {
-        body.className = body.className.replace(/season-\w+/g, '');
-        if (season) {
-            body.classList.add(`season-${season.toLowerCase()}`);
-            seasonalImage.src = `./images/${season.toLowerCase()}.png`;
+    function applyVentilationTheme(ventilationStatus) {
+        // Remove existing ventilation classes
+        body.className = body.className.replace(/ventilation-\w+/g, '');
+        
+        if (ventilationStatus) {
+            body.classList.add(`ventilation-${ventilationStatus}`);
+            
+            // Update status image based on ventilation recommendation
+            const statusImages = {
+                'good': './images/good.png',       // Green status icon
+                'caution': './images/caution.png', // Orange/yellow status icon
+                'danger': './images/danger.png'    // Red status icon
+            };
+            
+            if (statusImages[ventilationStatus]) {
+                statusImage.src = statusImages[ventilationStatus];
+            } else {
+                // Fallback to a neutral state
+                statusImage.src = './images/good.png';
+            }
         }
     }
 
@@ -347,7 +448,6 @@
         const hour = now.getHours();
         const season = getSeason(now);
         
-        applySeasonalTheme(season);
         currentTimeDisplay.textContent = now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
         currentSeasonDisplay.textContent = season;
 
@@ -368,7 +468,7 @@
         
         expectedTrendDisplay.textContent = trend;
         
-        dynamicAdvisorContainer.classList.remove('seasonal-accent');
+        dynamicAdvisorContainer.classList.remove('ventilation-accent');
         dynamicAdvisorText.classList.remove('font-bold');
 
         if (season === 'Winter') {
@@ -394,7 +494,7 @@
 
         if (!isNaN(tempIn) && !isNaN(tempOut) && season === 'Summer' && trend === "Rising ↗" && tempOut < tempIn) {
             hint = `Warning: Summer morning. Outside temp is rising. Ventilating now could trap heat and moisture later.`;
-            dynamicAdvisorContainer.classList.add('seasonal-accent');
+            dynamicAdvisorContainer.classList.add('ventilation-accent');
             dynamicAdvisorText.classList.add('font-bold');
         }
         
@@ -512,6 +612,7 @@
     // --- INITIALIZATION ---
     function initialize() {
         setupEventListeners();
+        applyVentilationTheme('good'); // Start with a default theme
         updateUI(); 
         setInterval(updateContextualInfo, 60000); 
     }

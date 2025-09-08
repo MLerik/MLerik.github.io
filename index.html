@@ -818,6 +818,63 @@
         });
     }
 
+    // --- EVENT LISTENERS ---
+    function setupEventListeners() {
+        [tempInSlider, tempOutSlider, rhOutSlider].forEach(slider => {
+            slider.addEventListener('input', () => {
+                tempInValue.textContent = `${tempInSlider.value}°C`;
+                tempOutValue.textContent = `${tempOutSlider.value}°C`;
+                rhOutValue.textContent = `${rhOutSlider.value}%`;
+                updateUI();
+            });
+        });
+
+        basementTempAutoSlider.addEventListener('input', () => {
+             basementTempAutoValue.textContent = `${basementTempAutoSlider.value}°C`;
+             updateUI();
+             if (forecastData) {
+                 updateForecastAnalysis();
+             }
+        });
+        
+        toggleForecastBtn.addEventListener('click', () => {
+            const isHidden = forecastCard.classList.contains('hidden');
+            
+            if (isHidden) {
+                // Show the forecast card
+                forecastCard.classList.remove('hidden');
+                toggleForecastBtn.textContent = 'Hide Forecast';
+            } else {
+                // Hide the forecast card
+                forecastCard.classList.add('hidden');
+                toggleForecastBtn.textContent = 'Show Forecast';
+            }
+        });
+
+        modeSwitch.addEventListener('change', () => {
+            if (modeSwitch.checked) {
+                autoModeDiv.classList.remove('hidden');
+                manualModeDiv.classList.add('hidden');
+                fetchWeatherData();
+            } else {
+                autoModeDiv.classList.add('hidden');
+                manualModeDiv.classList.remove('hidden');
+                currentWeatherTrend = null; // Clear weather trend when switching to manual
+                sampleDataWarning.classList.add('hidden'); // Hide sample data warning in manual mode
+                forecastCard.classList.add('hidden'); // Hide forecast card in manual mode
+                toggleForecastBtn.textContent = 'Show Forecast'; // Reset button text
+                updateUI();
+            }
+        });
+        
+        // Handle window resize to update charts responsively
+        window.addEventListener('resize', () => {
+            if (forecastData && !forecastCard.classList.contains('hidden')) {
+                updateForecastCard();
+            }
+        });
+    }
+
     // --- API & AUTO MODE LOGIC ---
     async function fetchWeatherData() {
         loadingMessage.classList.remove('hidden');
@@ -1288,6 +1345,20 @@
             // Update the forecast card display
             updateForecastCard();
         }
+    }
+
+    // --- INITIALIZATION ---
+    function initialize() {
+        setupEventListeners();
+        applyVentilationTheme('good'); // Start with a default theme
+        
+        // Since auto mode is default, fetch weather data on startup
+        if (modeSwitch.checked) {
+            fetchWeatherData();
+        }
+        
+        updateUI(); 
+        setInterval(updateContextualInfo, 60000); 
     }
 
     initialize();

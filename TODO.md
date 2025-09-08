@@ -175,6 +175,11 @@ const forecastData = {
    - Same safety thresholds for condensation risk
    - Consistent humidity and temperature criteria
    - Added "Meets safety standards" indicator
+5. ✅ **FIXED: Forecast toggle button functionality**
+   - Button was inside forecast card and disappeared when hidden
+   - Moved toggle button outside card structure
+   - Added missing initialize() and setupEventListeners() functions
+   - Toggle now works properly: "Show Forecast" ↔ "Hide Forecast"
 
 **Medium Priority**  
 4. Enhanced visual design with charts

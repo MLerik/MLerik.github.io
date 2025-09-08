@@ -1,0 +1,421 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Basement Venting Advisor</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            -webkit-tap-highlight-color: transparent;
+            background-color: var(--body-bg, #111827); /* Default dark gray */
+            transition: background-color 0.5s ease;
+        }
+        /* -- Base & Transitions -- */
+        .seasonal-card, .seasonal-accent, .seasonal-text-secondary, input[type="range"]::-webkit-slider-thumb {
+            transition: background-color 0.5s ease, color 0.5s ease;
+        }
+        .mode-switch:checked + .slider {
+            background-color: var(--accent-color, #3b82f6);
+        }
+        .mode-switch:checked + .slider .slider-thumb { transform: translateX(20px); }
+        .slider, .slider-thumb { transition: .4s; }
+
+        /* -- Seasonal Color Palettes using CSS Variables -- */
+        .season-winter {
+            --body-bg: #0f172a;         /* slate-900 */
+            --card-bg: #1e293b;         /* slate-800 */
+            --accent-color: #60a5fa;   /* blue-400 */
+            --text-secondary: #94a3b8; /* slate-400 */
+        }
+        .season-spring {
+            --body-bg: #052e16;         /* green-950 */
+            --card-bg: #064e3b;         /* emerald-900 */
+            --accent-color: #4ade80;   /* green-400 */
+            --text-secondary: #a3e635; /* lime-400 */
+        }
+        .season-summer {
+            --body-bg: #451a03;         /* amber-950 */
+            --card-bg: #854d0e;         /* amber-800 */
+            --accent-color: #facc15;   /* yellow-400 */
+            --text-secondary: #fde68a; /* yellow-200 */
+        }
+        .season-autumn {
+            --body-bg: #431407;         /* orange-950 */
+            --card-bg: #7c2d12;         /* orange-900 */
+            --accent-color: #fb923c;   /* orange-400 */
+            --text-secondary: #fed7aa; /* orange-200 */
+        }
+
+        /* -- Applying the Variables -- */
+        .seasonal-card { background-color: var(--card-bg, #1f2937); }
+        .seasonal-accent { color: var(--accent-color, #60a5fa); }
+        .seasonal-text-secondary { color: var(--text-secondary, #9ca3af); }
+
+        input[type="range"]::-webkit-slider-thumb {
+            -webkit-appearance: none; appearance: none;
+            width: 20px; height: 20px; border-radius: 50%;
+            cursor: pointer; margin-top: -6px;
+            background-color: var(--accent-color, #60a5fa);
+        }
+        input[type="range"]::-moz-range-thumb {
+            width: 20px; height: 20px; border-radius: 50%; cursor: pointer;
+            background-color: var(--accent-color, #60a5fa);
+        }
+    </style>
+</head>
+<body class="text-gray-200 flex items-center justify-center min-h-screen p-4">
+
+    <div class="w-full max-w-md mx-auto">
+        <header class="text-center mb-8">
+            <h1 id="main-title" class="text-3xl font-bold text-white seasonal-accent">Basement Venting Advisor</h1>
+            <p class="mt-2 seasonal-text-secondary">Get smart advice on when to open your windows.</p>
+        </header>
+
+        <!-- Input Controls Card -->
+        <div class="p-6 rounded-2xl shadow-2xl seasonal-card">
+            <!-- Mode Switch -->
+            <div class="flex items-center justify-center space-x-4 mb-6">
+                <span class="font-medium seasonal-text-secondary">Manual</span>
+                <label for="mode-switch" class="relative inline-flex items-center cursor-pointer">
+                    <input type="checkbox" id="mode-switch" class="sr-only mode-switch">
+                    <div class="w-11 h-6 bg-gray-700 rounded-full slider">
+                        <div class="absolute top-0.5 left-0.5 bg-white w-5 h-5 rounded-full slider-thumb"></div>
+                    </div>
+                </label>
+                <span class="font-medium text-gray-300">Auto (Live Weather)</span>
+            </div>
+
+            <!-- Auto Mode View -->
+            <div id="auto-mode" class="hidden">
+                 <div class="text-center mb-4">
+                    <p class="text-lg font-semibold text-white">Weather for Thun, Switzerland</p>
+                    <p id="loading-message" class="seasonal-accent">Fetching live weather data...</p>
+                 </div>
+                 <div id="weather-data-container" class="hidden space-y-4">
+                     <!-- Current Weather -->
+                    <div class="bg-black/20 p-4 rounded-xl">
+                        <h3 class="font-bold text-white mb-2">Current Conditions</h3>
+                        <div class="flex justify-between items-center">
+                             <div>
+                                <p class="text-4xl font-bold text-white"><span id="auto-temp-out">--</span>°C</p>
+                                <p class="seasonal-text-secondary">Outside Temp</p>
+                             </div>
+                             <div>
+                                <p class="text-4xl font-bold text-white"><span id="auto-rh-out">--</span>%</p>
+                                <p class="seasonal-text-secondary">Outside RH</p>
+                            </div>
+                        </div>
+                    </div>
+                     <!-- Basement Temp Input for Auto Mode -->
+                     <div>
+                        <label for="basement-temp-auto" class="block text-sm font-medium text-gray-300 mb-2">Your Basement Temperature (°C)</label>
+                        <div class="flex items-center space-x-4">
+                            <input type="range" id="basement-temp-auto" min="0" max="30" value="20" step="0.5" class="w-full h-2 bg-black/20 rounded-lg appearance-none cursor-pointer">
+                            <span id="basement-temp-auto-value" class="font-bold text-lg text-white w-16 text-center">20°C</span>
+                        </div>
+                    </div>
+                 </div>
+            </div>
+            
+            <!-- Manual Mode View -->
+            <div id="manual-mode" class="space-y-4">
+                <!-- Inside Temp -->
+                <div>
+                    <label for="temp-in" class="block text-sm font-medium text-gray-300 mb-2">Basement Temperature (°C)</label>
+                    <div class="flex items-center space-x-4">
+                        <input type="range" id="temp-in" min="0" max="30" value="20" step="0.5" class="w-full h-2 bg-black/20 rounded-lg appearance-none cursor-pointer">
+                        <span id="temp-in-value" class="font-bold text-lg text-white w-16 text-center">20°C</span>
+                    </div>
+                </div>
+                <!-- Outside Temp -->
+                <div>
+                    <label for="temp-out" class="block text-sm font-medium text-gray-300 mb-2">Outside Temperature (°C)</label>
+                    <div class="flex items-center space-x-4">
+                        <input type="range" id="temp-out" min="-10" max="35" value="15" step="0.5" class="w-full h-2 bg-black/20 rounded-lg appearance-none cursor-pointer">
+                        <span id="temp-out-value" class="font-bold text-lg text-white w-16 text-center">15°C</span>
+                    </div>
+                </div>
+                <!-- Outside RH -->
+                <div>
+                    <label for="rh-out" class="block text-sm font-medium text-gray-300 mb-2">Outside Relative Humidity (%)</label>
+                    <div class="flex items-center space-x-4">
+                        <input type="range" id="rh-out" min="20" max="100" value="89" step="1" class="w-full h-2 bg-black/20 rounded-lg appearance-none cursor-pointer">
+                        <span id="rh-out-value" class="font-bold text-lg text-white w-16 text-center">89%</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Upgraded Context Card -->
+        <div id="context-card" class="p-6 rounded-2xl shadow-2xl mt-6 seasonal-card">
+            <h2 class="text-xl font-bold text-center mb-4 text-white">Current Context</h2>
+            <div class="flex justify-between text-center border-b border-white/10 pb-3 mb-3">
+                <div>
+                    <p class="text-sm seasonal-text-secondary">Time</p>
+                    <p id="current-time" class="font-semibold text-lg">--:--</p>
+                </div>
+                <div>
+                    <p class="text-sm seasonal-text-secondary">Season</p>
+                    <p id="current-season" class="font-semibold text-lg">--</p>
+                </div>
+                <div>
+                    <p class="text-sm seasonal-text-secondary">Temp Trend</p>
+                    <p id="expected-trend" class="font-semibold text-lg">--</p>
+                </div>
+            </div>
+            <!-- Dynamic Advisor Hint -->
+            <div id="dynamic-advisor-container" class="flex items-start space-x-3 seasonal-text-secondary">
+                <div>
+                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="flex-shrink-0 mt-0.5"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="16" x2="12" y2="12"></line><line x1="12" y1="8" x2="12.01" y2="8"></line></svg>
+                </div>
+                <p id="dynamic-advisor-text" class="text-sm">Loading dynamic advice...</p>
+            </div>
+        </div>
+
+        <!-- Results Section -->
+        <div id="results-card" class="p-6 rounded-2xl shadow-2xl mt-6 seasonal-card">
+            <h2 class="text-xl font-bold text-center mb-4 text-white">Outcome</h2>
+            <div class="text-center mb-4">
+                <p class="text-sm seasonal-text-secondary">Expected Basement Humidity</p>
+                <p id="final-humidity" class="text-6xl font-bold seasonal-accent">--%</p>
+            </div>
+            <div id="recommendation-box" class="flex items-center p-4 rounded-xl transition-all duration-300">
+                <div id="recommendation-icon" class="mr-4">
+                    <!-- SVG icon will be injected here -->
+                </div>
+                <div>
+                    <h3 id="recommendation-title" class="text-lg font-bold"></h3>
+                    <p id="recommendation-summary" class="text-sm"></p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+<script>
+    // --- DOM ELEMENTS ---
+    const body = document.body;
+    const modeSwitch = document.getElementById('mode-switch');
+    const autoModeDiv = document.getElementById('auto-mode');
+    const manualModeDiv = document.getElementById('manual-mode');
+    
+    // Manual Inputs
+    const tempInSlider = document.getElementById('temp-in');
+    const tempOutSlider = document.getElementById('temp-out');
+    const rhOutSlider = document.getElementById('rh-out');
+    const tempInValue = document.getElementById('temp-in-value');
+    const tempOutValue = document.getElementById('temp-out-value');
+    const rhOutValue = document.getElementById('rh-out-value');
+
+    // Auto Inputs & Displays
+    const basementTempAutoSlider = document.getElementById('basement-temp-auto');
+    const basementTempAutoValue = document.getElementById('basement-temp-auto-value');
+    const autoTempOutDisplay = document.getElementById('auto-temp-out');
+    const autoRhOutDisplay = document.getElementById('auto-rh-out');
+    const loadingMessage = document.getElementById('loading-message');
+    const weatherDataContainer = document.getElementById('weather-data-container');
+
+    // Context Card
+    const currentTimeDisplay = document.getElementById('current-time');
+    const currentSeasonDisplay = document.getElementById('current-season');
+    const expectedTrendDisplay = document.getElementById('expected-trend');
+    const dynamicAdvisorText = document.getElementById('dynamic-advisor-text');
+    const dynamicAdvisorContainer = document.getElementById('dynamic-advisor-container');
+
+    // Results
+    const finalHumidityDisplay = document.getElementById('final-humidity');
+    const mainTitle = document.getElementById('main-title');
+    const recommendationBox = document.getElementById('recommendation-box');
+    const recommendationIcon = document.getElementById('recommendation-icon');
+    const recommendationTitle = document.getElementById('recommendation-title');
+    const recommendationSummary = document.getElementById('recommendation-summary');
+
+    // --- SVG ICONS ---
+    const ICONS = {
+        good: `<svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M14 9V5a3 3 0 0 0-3-3l-4 9v11h11.28a2 2 0 0 0 2-1.7l1.38-9a2 2 0 0 0-2-2.3zM7 22H4a2 2 0 0 1-2-2v-7a2 2 0 0 1 2-2h3"></path></svg>`,
+        bad: `<svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M10 15v7a3 3 0 0 0 3 3l4-9V2H5.72a2 2 0 0 0-2 1.7l-1.38 9a2 2 0 0 0 2 2.3zm7-13h3a2 2 0 0 1 2 2v7a2 2 0 0 1-2 2h-3"></path></svg>`,
+        warning: `<svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="m21.73 18-8-14a2 2 0 0 0-3.46 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z"></path><line x1="12" x2="12" y1="9" y2="13"></line><line x1="12" x2="12.01" y1="17" y2="17"></line></svg>`
+    };
+
+    // --- CORE LOGIC ---
+    function calculateFinalHumidity(tempIn, tempOut, rhOut) {
+        const calcEs = (temp) => 6.112 * Math.exp((17.67 * temp) / (temp + 243.5));
+        const esOut = calcEs(tempOut);
+        const eOut = esOut * (rhOut / 100);
+        const esIn = calcEs(tempIn);
+        const finalRh = (eOut / esIn) * 100;
+        return Math.min(100, Math.round(finalRh));
+    }
+
+    function calculateDewPoint(temp, rh) {
+        const a = 17.625;
+        const b = 243.04;
+        const alpha = Math.log(rh / 100) + (a * temp) / (b + temp);
+        const dewPoint = (b * alpha) / (a - alpha);
+        return dewPoint;
+    }
+    
+    function updateUI() {
+        let tempIn, tempOut, rhOut;
+        updateContextualInfo(); 
+
+        if (modeSwitch.checked) {
+            tempIn = parseFloat(basementTempAutoSlider.value);
+            tempOut = parseFloat(autoTempOutDisplay.textContent);
+            rhOut = parseFloat(autoRhOutDisplay.textContent);
+            if (isNaN(tempOut) || isNaN(rhOut)) return;
+        } else {
+            tempIn = parseFloat(tempInSlider.value);
+            tempOut = parseFloat(tempOutSlider.value);
+            rhOut = parseFloat(rhOutSlider.value);
+        }
+
+        const finalHumidity = calculateFinalHumidity(tempIn, tempOut, rhOut);
+        const dewPointOut = calculateDewPoint(tempOut, rhOut);
+        finalHumidityDisplay.textContent = `${finalHumidity}%`;
+
+        let rec = {};
+        if (dewPointOut >= tempIn - 1.5) { // Slightly more sensitive buffer
+            rec = { title: "Do Not Ventilate!", summary: `High condensation risk. The outside air is too moist (${dewPointOut.toFixed(1)}°C dew point).`, color: 'bg-red-500/20 text-red-300', icon: ICONS.bad };
+        } else if (tempOut > tempIn) {
+            rec = { title: "Do Not Ventilate!", summary: `The outside air is warmer. This will heat your basement and likely add moisture.`, color: 'bg-red-500/20 text-red-300', icon: ICONS.bad };
+        } else if (finalHumidity < 60) {
+            rec = { title: "Yes, Ventilate!", summary: `Ideal conditions. You will effectively cool and dehumidify your basement.`, color: 'bg-green-500/20 text-green-300', icon: ICONS.good };
+        } else if (finalHumidity < 75) {
+            rec = { title: "Ventilate with Caution", summary: `This will help cool, but won't significantly lower humidity. Safe from condensation.`, color: 'bg-yellow-500/20 text-yellow-300', icon: ICONS.warning };
+        } else {
+            rec = { title: "Do Not Ventilate", summary: `This will make your basement more humid. The final humidity is too high.`, color: 'bg-red-500/20 text-red-300', icon: ICONS.bad };
+        }
+        
+        recommendationTitle.textContent = rec.title;
+        recommendationSummary.textContent = rec.summary;
+        recommendationBox.className = `flex items-center p-4 rounded-xl transition-all duration-300 ${rec.color}`;
+        recommendationIcon.innerHTML = rec.icon;
+    }
+
+    // --- CONTEXT & DYNAMIC ADVISOR ---
+    function applySeasonalTheme(season) {
+        // Remove any existing season class from the body
+        body.classList.remove('season-winter', 'season-spring', 'season-summer', 'season-autumn');
+        // Add the current season class
+        if (season) {
+            body.classList.add(`season-${season.toLowerCase()}`);
+        }
+    }
+
+    function getSeason(d) {
+        const month = d.getMonth();
+        if (month < 2 || month === 11) return 'Winter';
+        if (month >= 2 && month < 5) return 'Spring';
+        if (month >= 5 && month < 8) return 'Summer';
+        return 'Autumn';
+    }
+
+    function updateContextualInfo() {
+        const now = new Date();
+        const hour = now.getHours();
+        const season = getSeason(now);
+        
+        applySeasonalTheme(season);
+        currentTimeDisplay.textContent = now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+        currentSeasonDisplay.textContent = season;
+
+        let hint = "General Tip: Ventilate when outside is cooler and the dew point is lower than your basement's temperature.";
+        let trend = "Stable";
+        
+        // Trend Prediction Logic
+        if ((season === 'Summer' || season === 'Spring') && (hour > 4 && hour < 12)) {
+            trend = "Rising ↗";
+        } else if (hour > 17 || hour < 3) {
+            trend = "Falling ↘";
+        }
+        expectedTrendDisplay.textContent = trend;
+        
+        dynamicAdvisorContainer.classList.remove('text-yellow-300');
+        dynamicAdvisorText.classList.remove('font-bold');
+
+        if (season === 'Winter') {
+            hint = "Hint: It's winter. Ventilating now is great for introducing fresh, dry air, though you will lose some heat.";
+        } else if (trend === "Falling ↘" && hour > 17) {
+            hint = "Hint: It's evening and temps are falling. This is often the best time to cool down your home for the night.";
+        }
+
+        let tempIn, tempOut;
+        if (modeSwitch.checked) {
+            tempIn = parseFloat(basementTempAutoSlider.value);
+            tempOut = parseFloat(autoTempOutDisplay.textContent);
+        } else {
+            tempIn = parseFloat(tempInSlider.value);
+            tempOut = parseFloat(tempOutSlider.value);
+        }
+
+        if (!isNaN(tempIn) && !isNaN(tempOut) && season === 'Summer' && trend === "Rising ↗" && tempOut < tempIn) {
+            hint = `Warning: Summer morning. Outside temp is rising. Ventilating now could trap heat and moisture later.`;
+            dynamicAdvisorContainer.classList.add('text-yellow-300');
+            dynamicAdvisorText.classList.add('font-bold');
+        }
+        
+        dynamicAdvisorText.textContent = hint;
+    }
+
+    // --- EVENT LISTENERS ---
+    function setupEventListeners() {
+        [tempInSlider, tempOutSlider, rhOutSlider].forEach(slider => {
+            slider.addEventListener('input', () => {
+                tempInValue.textContent = `${tempInSlider.value}°C`;
+                tempOutValue.textContent = `${tempOutSlider.value}°C`;
+                rhOutValue.textContent = `${rhOutSlider.value}%`;
+                updateUI();
+            });
+        });
+
+        basementTempAutoSlider.addEventListener('input', () => {
+             basementTempAutoValue.textContent = `${basementTempAutoSlider.value}°C`;
+             updateUI();
+        });
+
+        modeSwitch.addEventListener('change', () => {
+            if (modeSwitch.checked) {
+                autoModeDiv.classList.remove('hidden');
+                manualModeDiv.classList.add('hidden');
+                fetchWeatherData();
+            } else {
+                autoModeDiv.classList.add('hidden');
+                manualModeDiv.classList.remove('hidden');
+                updateUI();
+            }
+        });
+    }
+
+    // --- API & AUTO MODE LOGIC ---
+    function fetchWeatherData() {
+        loadingMessage.classList.remove('hidden');
+        weatherDataContainer.classList.add('hidden');
+
+        setTimeout(() => {
+            const mockWeatherData = { main: { temp: 16.5, humidity: 92 } };
+            autoTempOutDisplay.textContent = mockWeatherData.main.temp.toFixed(1);
+            autoRhOutDisplay.textContent = mockWeatherData.main.humidity;
+            loadingMessage.classList.add('hidden');
+            weatherDataContainer.classList.remove('hidden');
+            updateUI();
+        }, 1500);
+    }
+
+    // --- INITIALIZATION ---
+    function initialize() {
+        setupEventListeners();
+        updateUI(); 
+        setInterval(updateContextualInfo, 60000); 
+    }
+
+    initialize();
+</script>
+
+</body>
+</html>
+

@@ -284,21 +284,28 @@
                  <div class="text-center mb-4">
                     <p class="title-large" style="color: var(--on-surface);">Weather for Thun, Switzerland</p>
                     <p id="loading-message" class="body-medium ventilation-accent">Fetching live weather data...</p>
+                    <!-- Persistent sample data warning -->
+                    <div id="sample-data-warning" class="hidden mt-2 px-3 py-1 bg-yellow-500/20 border border-yellow-500/40 rounded-full inline-block">
+                        <p class="text-sm font-medium text-yellow-200 flex items-center gap-2">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m21.73 18-8-14a2 2 0 0 0-3.46 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z"></path><line x1="12" x2="12" y1="9" y2="13"></line><line x1="12" x2="12.01" y1="17" y2="17"></line></svg>
+                            Using Sample Data
+                        </p>
+                    </div>
                  </div>
                  <div id="weather-data-container" class="hidden space-y-6">
                     <div class="bg-black/20 p-4 lg:p-6 organic-small backdrop-blur-sm">
-                        <div class="grid grid-cols-3 gap-2 sm:gap-4 lg:gap-6 text-center">
+                        <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 sm:gap-2 md:gap-4 lg:gap-6 text-center">
                         <div>
-                        <p class="text-2xl sm:text-3xl lg:text-4xl font-normal" style="color: var(--on-surface);"><span id="auto-temp-out">--</span>°</p>
-                        <p class="text-xs sm:text-sm lg:text-base font-medium ventilation-text-secondary">Temperature</p>
+                        <p class="text-3xl sm:text-2xl md:text-3xl lg:text-4xl font-normal" style="color: var(--on-surface);"><span id="auto-temp-out">--</span>°</p>
+                        <p class="text-sm sm:text-xs md:text-sm lg:text-base font-medium ventilation-text-secondary">Temperature</p>
                         </div>
-                        <div>
-                        <p class="text-2xl sm:text-3xl lg:text-4xl font-normal" style="color: var(--on-surface);"><span id="auto-rh-out">--</span>%</p>
-                        <p class="text-xs sm:text-sm lg:text-base font-medium ventilation-text-secondary">Humidity</p>
+                        <div class="border-t sm:border-t-0 sm:border-l sm:border-r border-gray-600/30 pt-4 sm:pt-0">
+                        <p class="text-3xl sm:text-2xl md:text-3xl lg:text-4xl font-normal" style="color: var(--on-surface);"><span id="auto-rh-out">--</span>%</p>
+                        <p class="text-sm sm:text-xs md:text-sm lg:text-base font-medium ventilation-text-secondary">Humidity</p>
                         </div>
-                        <div>
-                        <p class="text-2xl sm:text-3xl lg:text-4xl font-normal" style="color: var(--on-surface);"><span id="auto-dewpoint-out">--</span>°</p>
-                        <p class="text-xs sm:text-sm lg:text-base font-medium ventilation-text-secondary">Dew Point</p>
+                        <div class="border-t sm:border-t-0 border-gray-600/30 pt-4 sm:pt-0">
+                        <p class="text-3xl sm:text-2xl md:text-3xl lg:text-4xl font-normal" style="color: var(--on-surface);"><span id="auto-dewpoint-out">--</span>°</p>
+                        <p class="text-sm sm:text-xs md:text-sm lg:text-base font-medium ventilation-text-secondary">Dew Point</p>
                         </div>
                         </div>
                     </div>
@@ -403,6 +410,7 @@
     const autoDewPointDisplay = document.getElementById('auto-dewpoint-out');
     const loadingMessage = document.getElementById('loading-message');
     const weatherDataContainer = document.getElementById('weather-data-container');
+    const sampleDataWarning = document.getElementById('sample-data-warning');
 
     // Global weather trend data
     let currentWeatherTrend = null;
@@ -631,6 +639,7 @@
                 contextGrid.classList.remove('justify-around');
                 contextGrid.classList.add('justify-between');
                 currentWeatherTrend = null; // Clear weather trend when switching to manual
+                sampleDataWarning.classList.add('hidden'); // Hide sample data warning in manual mode
                 updateUI();
             }
         });
@@ -688,6 +697,7 @@
             
             // Show success message briefly
             loadingMessage.textContent = `✓ Live data from Thun (${new Date().toLocaleTimeString()})`;
+            sampleDataWarning.classList.add('hidden'); // Hide sample data warning
             setTimeout(() => {
                 loadingMessage.classList.add('hidden');
             }, 2000);
@@ -704,6 +714,7 @@
             autoDewPointDisplay.textContent = '14.2';
             currentWeatherTrend = null; // No trend data available in fallback
             loadingMessage.textContent = '⚠️ Using sample data (API unavailable)';
+            sampleDataWarning.classList.remove('hidden'); // Show persistent warning
             
             setTimeout(() => {
                 loadingMessage.classList.add('hidden');

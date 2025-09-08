@@ -253,7 +253,7 @@
     <div class="backdrop-orb backdrop-orb-2"></div>
     <div class="backdrop-orb backdrop-orb-3"></div>
 
-    <div class="w-full max-w-lg mx-auto px-4 relative z-10">
+    <div class="w-full max-w-7xl mx-auto px-4 relative z-10">
         <header class="text-center mb-8">
             <!-- Ventilation Status Image -->
             <div id="status-image-container" class="mb-8 flex justify-center">
@@ -263,8 +263,10 @@
             <p class="mt-2 body-medium ventilation-text-secondary max-w-sm mx-auto leading-relaxed">Get smart advice on when to open your windows for optimal basement ventilation.</p>
         </header>
 
-        <!-- Input Controls Card -->
-        <div class="p-8 shadow-2xl ventilation-card organic-card mb-8">
+        <!-- Main Content Grid -->
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-8 lg:gap-6">
+            <!-- Input Controls Card -->
+            <div class="p-8 shadow-2xl ventilation-card organic-card">
             <!-- Mode Switch -->
             <div class="flex items-center justify-center space-x-4 mb-6">
                 <span class="label-large ventilation-text-secondary">Manual</span>
@@ -334,10 +336,10 @@
                     </div>
                 </div>
             </div>
-        </div>
+            </div>
 
-        <!-- Context Card -->
-        <div id="context-card" class="p-8 shadow-2xl ventilation-card organic-card-alt mb-8">
+            <!-- Context Card -->
+            <div id="context-card" class="p-8 shadow-2xl ventilation-card organic-card-alt">
             <h2 class="title-large text-center mb-4" style="color: var(--on-surface);">Current Context</h2>
             <div id="context-grid" class="flex justify-between text-center border-b pb-3 mb-3" style="border-color: var(--surface-container-high);">
                 <div>
@@ -357,10 +359,10 @@
                 <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="flex-shrink-0 mt-0.5"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="16" x2="12" y2="12"></line><line x1="12" y1="8" x2="12.01" y2="8"></line></svg>
                 <p id="dynamic-advisor-text" class="body-medium">Loading dynamic advice...</p>
             </div>
-        </div>
+            </div>
 
-        <!-- Results Section -->
-        <div id="results-card" class="p-8 shadow-2xl ventilation-card organic-card">
+            <!-- Results Section -->
+            <div id="results-card" class="p-8 shadow-2xl ventilation-card organic-card">
             <h2 class="title-large text-center mb-6" style="color: var(--on-surface);">Outcome</h2>
             <div class="text-center mb-6">
                 <p class="label-large ventilation-text-secondary">Expected Basement Humidity</p>
@@ -372,6 +374,7 @@
                     <h3 id="recommendation-title" class="title-large"></h3>
                     <p id="recommendation-summary" class="body-medium"></p>
                 </div>
+            </div>
             </div>
         </div>
     </div>

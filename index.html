@@ -264,7 +264,7 @@
         </header>
 
         <!-- Main Content Grid -->
-        <div class="grid grid-cols-1 lg:grid-cols-3 gap-8 lg:gap-6">
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-8 lg:gap-6">
             <!-- Input Controls Card -->
             <div class="p-8 shadow-2xl ventilation-card organic-card">
             <!-- Mode Switch -->
@@ -345,41 +345,29 @@
             </div>
             </div>
 
-            <!-- Context Card -->
-            <div id="context-card" class="p-8 shadow-2xl ventilation-card organic-card-alt">
-            <h2 class="title-large text-center mb-4" style="color: var(--on-surface);">Current Context</h2>
-            <div id="context-grid" class="flex justify-between text-center border-b pb-3 mb-3" style="border-color: var(--surface-container-high);">
-                <div>
-                    <p class="label-large ventilation-text-secondary">Time</p>
-                    <p id="current-time" class="font-semibold text-lg" style="color: var(--on-surface);">--:--</p>
-                </div>
-                <div id="season-display">
-                    <p class="label-large ventilation-text-secondary">Season</p>
-                    <p id="current-season" class="font-semibold text-lg" style="color: var(--on-surface);">--</p>
-                </div>
-                <div>
-                    <p class="label-large ventilation-text-secondary">Temp Trend</p>
-                    <p id="expected-trend" class="font-semibold text-lg" style="color: var(--on-surface);">--</p>
-                </div>
-            </div>
-            <div id="dynamic-advisor-container" class="flex items-start space-x-3 ventilation-text-secondary">
-                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="flex-shrink-0 mt-0.5"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="16" x2="12" y2="12"></line><line x1="12" y1="8" x2="12.01" y2="8"></line></svg>
-                <p id="dynamic-advisor-text" class="body-medium">Loading dynamic advice...</p>
-            </div>
-            </div>
-
-            <!-- Results Section -->
+            <!-- Enhanced Results Section -->
             <div id="results-card" class="p-8 shadow-2xl ventilation-card organic-card">
             <h2 class="title-large text-center mb-6" style="color: var(--on-surface);">Outcome</h2>
             <div class="text-center mb-6">
                 <p class="label-large ventilation-text-secondary">Expected Basement Humidity</p>
                 <p id="final-humidity" class="display-small ventilation-accent font-bold">--%</p>
             </div>
-            <div id="recommendation-box" class="flex items-center p-6 organic-small transition-all duration-300">
+            <div id="recommendation-box" class="flex items-center p-6 organic-small transition-all duration-300 mb-6">
                 <div id="recommendation-icon" class="mr-4"></div>
                 <div>
                     <h3 id="recommendation-title" class="title-large"></h3>
                     <p id="recommendation-summary" class="body-medium"></p>
+                </div>
+            </div>
+            
+            <!-- Enhanced Dynamic Advisor -->
+            <div class="border-t border-gray-600/20 pt-6">
+                <div id="dynamic-advisor-container" class="flex items-start space-x-3 ventilation-text-secondary">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="flex-shrink-0 mt-1"><path d="m9 12 2 2 4-4"></path><path d="M21 12c.552 0 1-.448 1-1s-.448-1-1-1-1 .448-1 1 .448 1 1 1"></path><path d="M17 7h4a2 2 0 0 1 2 2v6a2 2 0 0 1-2 2h-4"></path><path d="M7 7H3a2 2 0 0 0-2 2v6a2 2 0 0 0 2 2h4"></path></svg>
+                    <div class="flex-1">
+                        <h4 class="label-large mb-2" style="color: var(--on-surface);">Smart Advisor</h4>
+                        <p id="dynamic-advisor-text" class="body-medium leading-relaxed">Loading intelligent basement ventilation advice...</p>
+                    </div>
                 </div>
             </div>
             </div>
@@ -415,15 +403,6 @@
     // Global weather trend data
     let currentWeatherTrend = null;
 
-    // Context Card
-    const currentTimeDisplay = document.getElementById('current-time');
-    const currentSeasonDisplay = document.getElementById('current-season');
-    const seasonDisplayDiv = document.getElementById('season-display');
-    const contextGrid = document.getElementById('context-grid');
-    const expectedTrendDisplay = document.getElementById('expected-trend');
-    const dynamicAdvisorText = document.getElementById('dynamic-advisor-text');
-    const dynamicAdvisorContainer = document.getElementById('dynamic-advisor-container');
-
     // Results
     const finalHumidityDisplay = document.getElementById('final-humidity');
     const mainTitle = document.getElementById('main-title');
@@ -431,6 +410,10 @@
     const recommendationIcon = document.getElementById('recommendation-icon');
     const recommendationTitle = document.getElementById('recommendation-title');
     const recommendationSummary = document.getElementById('recommendation-summary');
+    
+    // Dynamic Advisor (now in results card)
+    const dynamicAdvisorText = document.getElementById('dynamic-advisor-text');
+    const dynamicAdvisorContainer = document.getElementById('dynamic-advisor-container');
 
     // --- SVG ICONS ---
     const ICONS = {
@@ -542,22 +525,6 @@
         const hour = now.getHours();
         const season = getSeason(now);
         
-        currentTimeDisplay.textContent = now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-        
-        // Show/hide season display based on mode
-        if (modeSwitch.checked) {
-            // Auto mode - hide season display and adjust grid
-            seasonDisplayDiv.classList.add('hidden');
-            contextGrid.classList.remove('justify-between');
-            contextGrid.classList.add('justify-around');
-        } else {
-            // Manual mode - show season display and restore grid
-            seasonDisplayDiv.classList.remove('hidden');
-            contextGrid.classList.remove('justify-around');
-            contextGrid.classList.add('justify-between');
-            currentSeasonDisplay.textContent = season;
-        }
-
         let hint = "General Tip: Ventilate when outside is cooler and the dew point is lower than your basement's temperature.";
         let trend = "Stable";
         
@@ -573,36 +540,91 @@
             }
         }
         
-        expectedTrendDisplay.textContent = trend;
-        
         dynamicAdvisorContainer.classList.remove('ventilation-accent');
         dynamicAdvisorText.classList.remove('font-bold');
 
-        if (season === 'Winter') {
-            hint = "Hint: It's winter. Ventilating now is great for introducing fresh, dry air, though you will lose some heat.";
-        } else if (trend === "Falling ↘") {
-            if (currentWeatherTrend && modeSwitch.checked) {
-                hint = "Hint: Temperature is falling according to the forecast. This is often ideal for cooling your basement.";
-            } else {
-                hint = "Hint: It's evening and temps are falling. This is often the best time to cool down your home for the night.";
-            }
-        } else if (trend === "Rising ↗" && currentWeatherTrend && modeSwitch.checked) {
-            hint = "Hint: Temperature is rising according to the forecast. Ventilate with caution to avoid trapping heat.";
-        }
-
-        let tempIn, tempOut;
+        // Get current conditions for enhanced basement-specific advice
+        let tempIn, tempOut, rhOut;
         if (modeSwitch.checked) {
             tempIn = parseFloat(basementTempAutoSlider.value);
             tempOut = parseFloat(autoTempOutDisplay.textContent);
+            rhOut = parseFloat(autoRhOutDisplay.textContent);
         } else {
             tempIn = parseFloat(tempInSlider.value);
             tempOut = parseFloat(tempOutSlider.value);
+            rhOut = parseFloat(rhOutSlider.value);
         }
 
-        if (!isNaN(tempIn) && !isNaN(tempOut) && season === 'Summer' && trend === "Rising ↗" && tempOut < tempIn) {
-            hint = `Warning: Summer morning. Outside temp is rising. Ventilating now could trap heat and moisture later.`;
-            dynamicAdvisorContainer.classList.add('ventilation-accent');
-            dynamicAdvisorText.classList.add('font-bold');
+        // Enhanced basement ventilation advice
+        if (!isNaN(tempIn) && !isNaN(tempOut) && !isNaN(rhOut)) {
+            const dewPointOut = calculateDewPoint(tempOut, rhOut);
+            const finalHumidity = calculateFinalHumidity(tempIn, tempOut, rhOut);
+            
+            // High-priority warnings (dangerous conditions)
+            if (dewPointOut >= tempIn - 1.5) {
+                hint = `⚠️ High condensation risk! Outside dew point (${dewPointOut.toFixed(1)}°C) is too close to your basement temperature. Wait for drier conditions.`;
+                dynamicAdvisorContainer.classList.add('ventilation-accent');
+                dynamicAdvisorText.classList.add('font-bold');
+            } 
+            else if (tempOut > tempIn + 3) {
+                hint = `🔥 Outside much warmer (${tempOut.toFixed(1)}°C vs ${tempIn}°C). Ventilating will heat and significantly humidify your basement.`;
+                dynamicAdvisorContainer.classList.add('ventilation-accent');
+                dynamicAdvisorText.classList.add('font-bold');
+            }
+            else if (rhOut > 95 && tempOut > tempIn) {
+                hint = `💧 Extremely humid outside (${rhOut}%) + warmer temps = recipe for basement moisture problems. Avoid ventilation.`;
+                dynamicAdvisorContainer.classList.add('ventilation-accent');
+                dynamicAdvisorText.classList.add('font-bold');
+            }
+            // Optimal conditions (encouraging advice)
+            else if (finalHumidity < 45 && tempOut < tempIn - 4) {
+                hint = `✨ Excellent conditions! Cool, dry air will perfectly dehumidify your basement. Ventilate for 3-4 hours maximum.`;
+            }
+            else if (finalHumidity < 55 && dewPointOut < tempIn - 4) {
+                if (trend === "Falling ↘" && (hour >= 20 || hour <= 6)) {
+                    hint = `🌙 Perfect timing! Night cooling + low dew point = ideal basement ventilation. Expected humidity: ${finalHumidity}%.`;
+                } else {
+                    hint = `👍 Great conditions! Ventilation will achieve ${finalHumidity}% humidity - perfect for preventing mold in basements.`;
+                }
+            }
+            // Good conditions with specific guidance
+            else if (finalHumidity < 65 && tempOut < tempIn - 1) {
+                if (season === 'Winter' && tempOut < 5) {
+                    hint = `❄️ Winter advantage: Cold air = dry air! Brief 1-2 hour sessions dehumidify effectively. Monitor heating costs.`;
+                } else if (trend === "Falling ↘") {
+                    hint = `📉 Good timing! Falling temperatures favor basement ventilation. Target humidity: ${finalHumidity}%.`;
+                } else {
+                    hint = `✅ Solid conditions. Ventilation will cool and moderately dehumidify (${finalHumidity}%). Safe from condensation.`;
+                }
+            }
+            // Marginal conditions
+            else if (finalHumidity < 75 && dewPointOut < tempIn - 2) {
+                hint = `⚠️ Marginal benefit. Ventilation cools but won't dramatically reduce humidity (${finalHumidity}%). Monitor closely.`;
+            }
+            // Poor conditions
+            else if (finalHumidity >= 75) {
+                hint = `❌ Not recommended. Would result in ${finalHumidity}% humidity - too high for basements, promotes mold growth.`;
+            }
+            // Time-specific optimizations
+            else if (season === 'Summer' && trend === "Rising ↗" && hour >= 6 && hour <= 10 && tempOut < tempIn) {
+                hint = `☀️ Summer morning: Temperatures rising. If you ventilate, close windows by 10 AM to avoid heat trapping.`;
+                dynamicAdvisorContainer.classList.add('ventilation-accent');
+            }
+            else if ((hour >= 22 || hour <= 5) && tempOut < tempIn && rhOut < 80) {
+                hint = `🌜 Night ventilation: Often optimal for basements. Coolest temps, lower humidity. Monitor dew point closely.`;
+            }
+        }
+        // Seasonal fallbacks when specific conditions aren't available
+        else {
+            if (season === 'Winter') {
+                hint = "❄️ Winter strategy: Cold air holds less moisture. Short ventilation bursts (1-2 hours) effectively dry basements.";
+            } else if (season === 'Summer') {
+                hint = "☀️ Summer tip: Best basement ventilation windows are late evening through early morning when coolest.";
+            } else if (season === 'Spring') {
+                hint = "🌸 Spring opportunity: Mild, variable weather. Watch for sudden humidity/temperature swings during transitions.";
+            } else {
+                hint = "🍂 Autumn advantage: Cooling temperatures excellent for basement ventilation. Watch humidity during rainy periods.";
+            }
         }
         
         dynamicAdvisorText.textContent = hint;
@@ -628,16 +650,10 @@
             if (modeSwitch.checked) {
                 autoModeDiv.classList.remove('hidden');
                 manualModeDiv.classList.add('hidden');
-                seasonDisplayDiv.classList.add('hidden'); // Hide season in auto mode
-                contextGrid.classList.remove('justify-between');
-                contextGrid.classList.add('justify-around');
                 fetchWeatherData();
             } else {
                 autoModeDiv.classList.add('hidden');
                 manualModeDiv.classList.remove('hidden');
-                seasonDisplayDiv.classList.remove('hidden'); // Show season in manual mode
-                contextGrid.classList.remove('justify-around');
-                contextGrid.classList.add('justify-between');
                 currentWeatherTrend = null; // Clear weather trend when switching to manual
                 sampleDataWarning.classList.add('hidden'); // Hide sample data warning in manual mode
                 updateUI();

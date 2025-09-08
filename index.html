@@ -17,6 +17,8 @@
             color: var(--on-surface, #e5e7eb);
             transition: background 0.8s ease;
             min-height: 100vh;
+            overflow-x: hidden;
+            max-width: 100vw;
         }
         .display-small { font-size: 36px; line-height: 44px; font-weight: 400; }
         .headline-medium { font-size: 28px; line-height: 36px; font-weight: 400; }
@@ -191,6 +193,50 @@
             50% { opacity: 0.8; }
         }
         
+        /* Prevent horizontal overflow */
+        html, body {
+            overflow-x: hidden;
+            max-width: 100vw;
+        }
+        
+        .container-responsive {
+            max-width: 100%;
+            overflow-x: hidden;
+        }
+        
+        /* Responsive forecast card */
+        @media (max-width: 640px) {
+            .forecast-grid {
+                gap: 0.5rem;
+            }
+            
+            .forecast-card {
+                margin-left: -0.5rem;
+                margin-right: -0.5rem;
+                padding-left: 1rem;
+                padding-right: 1rem;
+            }
+            
+            .humidity-chart-mobile {
+                gap: 0.125rem;
+            }
+            
+            .time-labels-mobile {
+                font-size: 0.6rem;
+            }
+            
+            /* Ensure charts never overflow */
+            #temperature-chart, #humidity-chart, #quality-zones, #time-labels {
+                max-width: 100%;
+                overflow: hidden;
+            }
+            
+            /* Compress forecast window cards on mobile */
+            .optimal-window-mobile {
+                padding: 0.75rem;
+            }
+        }
+        
         .ventilation-danger #final-humidity {
             animation: text-pulse-gentle 3s ease-in-out infinite;
         }
@@ -253,7 +299,7 @@
     <div class="backdrop-orb backdrop-orb-2"></div>
     <div class="backdrop-orb backdrop-orb-3"></div>
 
-    <div class="w-full max-w-7xl mx-auto px-4 relative z-10">
+    <div class="w-full max-w-7xl mx-auto px-4 relative z-10 container-responsive" style="max-width: 100vw;">
         <header class="text-center mb-8">
             <!-- Ventilation Status Image -->
             <div id="status-image-container" class="mb-8 flex justify-center">
@@ -372,6 +418,71 @@
             </div>
             </div>
         </div>
+
+        <!-- Enhanced Forecast Card -->
+        <div id="forecast-card" class="hidden mt-8 p-4 sm:p-8 shadow-2xl ventilation-card organic-card-alt forecast-card">
+            <div class="flex items-center justify-between mb-6 flex-wrap gap-2">
+                <h2 class="title-large" style="color: var(--on-surface);">📈 Next 6 Hours</h2>
+                <button id="toggle-forecast" class="px-3 py-1 sm:px-4 sm:py-2 bg-black/20 rounded-full text-xs sm:text-sm hover:bg-black/30 transition-colors flex-shrink-0" style="color: var(--on-surface-variant);">
+                    Hide
+                </button>
+            </div>
+            
+            <!-- Forecast Loading State -->
+            <div id="forecast-loading" class="text-center py-8">
+                <p class="body-medium ventilation-text-secondary">Loading 6-hour forecast...</p>
+            </div>
+            
+            <!-- Forecast Content -->
+            <div id="forecast-content" class="hidden">
+                <!-- Timeline Visualization -->
+                <div class="mb-6 forecast-grid">
+                    <div class="relative overflow-hidden">
+                        <!-- Temperature Chart -->
+                        <div class="mb-4">
+                            <p class="text-xs sm:text-sm ventilation-text-secondary mb-2">Temperature (°C)</p>
+                            <div class="h-16 sm:h-20 relative overflow-hidden" id="temperature-chart">
+                                <!-- Temperature line will be drawn here with SVG -->
+                            </div>
+                        </div>
+                        
+                        <!-- Humidity Bars -->
+                        <div class="mb-4">
+                            <p class="text-xs sm:text-sm ventilation-text-secondary mb-2">Humidity (%)</p>
+                            <div class="h-12 sm:h-16 relative flex items-end justify-between humidity-chart-mobile" id="humidity-chart">
+                                <!-- Humidity bars will be added here -->
+                            </div>
+                        </div>
+                        
+                        <!-- Ventilation Quality Zones -->
+                        <div class="mb-4">
+                            <p class="text-xs sm:text-sm ventilation-text-secondary mb-2">Quality</p>
+                            <div class="h-8 sm:h-12 relative flex" id="quality-zones">
+                                <!-- Color-coded quality zones will be added here -->
+                            </div>
+                        </div>
+                        
+                        <!-- Time Labels -->
+                        <div class="flex justify-between text-xs ventilation-text-secondary time-labels-mobile" id="time-labels">
+                            <!-- Time labels will be added here -->
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Optimal Windows Summary -->
+                <div id="optimal-windows" class="space-y-3 sm:space-y-4">
+                    <!-- Optimal window recommendations will be added here -->
+                </div>
+                
+                <!-- Extended Forecast Fallback -->
+                <div id="extended-forecast" class="hidden mt-4 sm:mt-6 p-3 sm:p-4 bg-black/20 rounded-xl">
+                    <h3 class="text-sm sm:text-base font-medium mb-2 sm:mb-3" style="color: var(--on-surface);">📅 No Good Opportunities Today</h3>
+                    <div id="extended-forecast-content">
+                        <!-- Extended forecast content will be added here -->
+                    </div>
+                </div>
+            </div>
+        </div>
     </div>
 
 <script>
@@ -402,6 +513,8 @@
 
     // Global weather trend data
     let currentWeatherTrend = null;
+    let forecastData = null;
+    let optimalWindows = [];
 
     // Results
     const finalHumidityDisplay = document.getElementById('final-humidity');
@@ -414,6 +527,19 @@
     // Dynamic Advisor (now in results card)
     const dynamicAdvisorText = document.getElementById('dynamic-advisor-text');
     const dynamicAdvisorContainer = document.getElementById('dynamic-advisor-container');
+    
+    // Forecast Card Elements
+    const forecastCard = document.getElementById('forecast-card');
+    const toggleForecastBtn = document.getElementById('toggle-forecast');
+    const forecastLoading = document.getElementById('forecast-loading');
+    const forecastContent = document.getElementById('forecast-content');
+    const temperatureChart = document.getElementById('temperature-chart');
+    const humidityChart = document.getElementById('humidity-chart');
+    const qualityZones = document.getElementById('quality-zones');
+    const timeLabels = document.getElementById('time-labels');
+    const optimalWindowsDiv = document.getElementById('optimal-windows');
+    const extendedForecast = document.getElementById('extended-forecast');
+    const extendedForecastContent = document.getElementById('extended-forecast-content');
 
     // --- SVG ICONS ---
     const ICONS = {
@@ -644,6 +770,13 @@
         basementTempAutoSlider.addEventListener('input', () => {
              basementTempAutoValue.textContent = `${basementTempAutoSlider.value}°C`;
              updateUI();
+             if (forecastData) {
+                 updateForecastAnalysis();
+             }
+        });
+        
+        toggleForecastBtn.addEventListener('click', () => {
+            forecastCard.classList.add('hidden');
         });
 
         modeSwitch.addEventListener('change', () => {
@@ -656,7 +789,15 @@
                 manualModeDiv.classList.remove('hidden');
                 currentWeatherTrend = null; // Clear weather trend when switching to manual
                 sampleDataWarning.classList.add('hidden'); // Hide sample data warning in manual mode
+                forecastCard.classList.add('hidden'); // Hide forecast card in manual mode
                 updateUI();
+            }
+        });
+        
+        // Handle window resize to update charts responsively
+        window.addEventListener('resize', () => {
+            if (forecastData && !forecastCard.classList.contains('hidden')) {
+                updateForecastCard();
             }
         });
     }
@@ -672,9 +813,9 @@
         const longitude = 7.6274;
         
         try {
-            // Open-Meteo API - get current weather AND hourly forecast for trend analysis
+            // Enhanced Open-Meteo API call - get current weather AND 6-hour detailed forecast
             const response = await fetch(
-                `https://api.open-meteo.com/v1/forecast?latitude=${latitude}&longitude=${longitude}&current=temperature_2m,relative_humidity_2m,dewpoint_2m&hourly=temperature_2m&forecast_hours=6&timezone=Europe/Berlin`
+                `https://api.open-meteo.com/v1/forecast?latitude=${latitude}&longitude=${longitude}&current=temperature_2m,relative_humidity_2m,dewpoint_2m&hourly=temperature_2m,relative_humidity_2m,dewpoint_2m&forecast_hours=6&timezone=Europe/Berlin`
             );
             
             if (!response.ok) {
@@ -719,6 +860,10 @@
             }, 2000);
             
             weatherDataContainer.classList.remove('hidden');
+            
+            // Process forecast data for the forecast card
+            await processForecastData(weatherData);
+            
             updateUI();
             
         } catch (error) {
@@ -737,6 +882,10 @@
             }, 3000);
             
             weatherDataContainer.classList.remove('hidden');
+            
+            // Create mock forecast data for the forecast card when API fails
+            await createMockForecastData();
+            
             updateUI();
         }
     }
@@ -753,6 +902,385 @@
         
         updateUI(); 
         setInterval(updateContextualInfo, 60000); 
+    }
+
+    // --- FORECAST CARD LOGIC ---
+    
+    async function processForecastData(weatherData) {
+        const hourlyData = weatherData.hourly;
+        const currentBasementTemp = parseFloat(basementTempAutoSlider.value);
+        
+        forecastData = {
+            hours: [],
+            optimalWindows: []
+        };
+        
+        // Process each hour of forecast data
+        for (let i = 0; i < hourlyData.time.length; i++) {
+            const temp = hourlyData.temperature_2m[i];
+            const humidity = hourlyData.relative_humidity_2m[i];
+            const dewPoint = hourlyData.dewpoint_2m[i];
+            
+            // Calculate ventilation metrics for this hour
+            const finalHumidity = calculateFinalHumidity(currentBasementTemp, temp, humidity);
+            const ventilationScore = calculateVentilationScore(currentBasementTemp, temp, humidity, dewPoint, finalHumidity);
+            const recommendation = getVentilationRecommendation(ventilationScore, finalHumidity, dewPoint, currentBasementTemp);
+            
+            forecastData.hours.push({
+                time: hourlyData.time[i],
+                temperature: temp,
+                humidity: humidity,
+                dewPoint: dewPoint,
+                finalHumidity: finalHumidity,
+                ventilationScore: ventilationScore,
+                recommendation: recommendation
+            });
+        }
+        
+        // Find optimal ventilation windows
+        forecastData.optimalWindows = findOptimalWindows(forecastData.hours, currentBasementTemp);
+        
+        // Show forecast card and update UI
+        updateForecastCard();
+        forecastCard.classList.remove('hidden');
+    }
+    
+    async function createMockForecastData() {
+        const currentBasementTemp = parseFloat(basementTempAutoSlider.value);
+        const now = new Date();
+        
+        forecastData = {
+            hours: [],
+            optimalWindows: []
+        };
+        
+        // Create mock 6-hour forecast data
+        const baseTemp = 16.5;
+        const baseHumidity = 85;
+        
+        for (let i = 0; i < 6; i++) {
+            const futureTime = new Date(now.getTime() + i * 60 * 60 * 1000);
+            // Simulate temperature dropping and humidity varying
+            const temp = baseTemp - (i * 1.2) + (Math.sin(i * 0.5) * 2);
+            const humidity = baseHumidity - (i * 3) + (Math.cos(i * 0.7) * 5);
+            const dewPoint = calculateDewPoint(temp, humidity);
+            const finalHumidity = calculateFinalHumidity(currentBasementTemp, temp, humidity);
+            const ventilationScore = calculateVentilationScore(currentBasementTemp, temp, humidity, dewPoint, finalHumidity);
+            const recommendation = getVentilationRecommendation(ventilationScore, finalHumidity, dewPoint, currentBasementTemp);
+            
+            forecastData.hours.push({
+                time: futureTime.toISOString(),
+                temperature: Math.round(temp * 10) / 10,
+                humidity: Math.round(humidity),
+                dewPoint: Math.round(dewPoint * 10) / 10,
+                finalHumidity: finalHumidity,
+                ventilationScore: ventilationScore,
+                recommendation: recommendation
+            });
+        }
+        
+        // Find optimal windows in mock data
+        forecastData.optimalWindows = findOptimalWindows(forecastData.hours, currentBasementTemp);
+        
+        // Show forecast card and update UI
+        updateForecastCard();
+        forecastCard.classList.remove('hidden');
+    }
+    
+    function calculateVentilationScore(basementTemp, outsideTemp, outsideHumidity, dewPoint, finalHumidity) {
+        let score = 0;
+        
+        // Condensation safety (most important factor)
+        const dewPointMargin = basementTemp - dewPoint;
+        if (dewPointMargin >= 3) {
+            score += 40; // Excellent safety margin
+        } else if (dewPointMargin >= 1.5) {
+            score += 25; // Good safety margin
+        } else if (dewPointMargin >= 0.5) {
+            score += 10; // Minimal safety margin
+        } else {
+            return 0; // Unsafe - no ventilation
+        }
+        
+        // Temperature benefit
+        const tempDiff = basementTemp - outsideTemp;
+        if (tempDiff >= 5) {
+            score += 30; // Excellent cooling
+        } else if (tempDiff >= 2) {
+            score += 20; // Good cooling
+        } else if (tempDiff >= 0) {
+            score += 10; // Some cooling
+        } else {
+            score -= 20; // Will heat basement
+        }
+        
+        // Humidity result
+        if (finalHumidity <= 50) {
+            score += 30; // Excellent dehumidification
+        } else if (finalHumidity <= 60) {
+            score += 20; // Good dehumidification
+        } else if (finalHumidity <= 70) {
+            score += 10; // Moderate benefit
+        } else if (finalHumidity <= 75) {
+            score += 5; // Minimal benefit
+        } else {
+            score -= 10; // Makes it more humid
+        }
+        
+        return Math.max(0, Math.min(100, score));
+    }
+    
+    function getVentilationRecommendation(score, finalHumidity, dewPoint, basementTemp) {
+        if (dewPoint >= basementTemp - 1.5) {
+            return 'dangerous';
+        } else if (score >= 80) {
+            return 'excellent';
+        } else if (score >= 60) {
+            return 'good';
+        } else if (score >= 40) {
+            return 'marginal';
+        } else {
+            return 'poor';
+        }
+    }
+    
+    function findOptimalWindows(hours, basementTemp) {
+        const windows = [];
+        let currentWindow = null;
+        
+        for (let i = 0; i < hours.length; i++) {
+            const hour = hours[i];
+            const isGoodForVentilation = hour.recommendation === 'excellent' || hour.recommendation === 'good';
+            
+            if (isGoodForVentilation) {
+                if (!currentWindow) {
+                    // Start new window
+                    currentWindow = {
+                        startTime: hour.time,
+                        startIndex: i,
+                        endTime: hour.time,
+                        endIndex: i,
+                        avgScore: hour.ventilationScore,
+                        avgFinalHumidity: hour.finalHumidity,
+                        minTemp: hour.temperature,
+                        maxTemp: hour.temperature
+                    };
+                } else {
+                    // Extend current window
+                    currentWindow.endTime = hour.time;
+                    currentWindow.endIndex = i;
+                    currentWindow.avgScore = (currentWindow.avgScore + hour.ventilationScore) / 2;
+                    currentWindow.avgFinalHumidity = Math.round((currentWindow.avgFinalHumidity + hour.finalHumidity) / 2);
+                    currentWindow.minTemp = Math.min(currentWindow.minTemp, hour.temperature);
+                    currentWindow.maxTemp = Math.max(currentWindow.maxTemp, hour.temperature);
+                }
+            } else {
+                if (currentWindow) {
+                    // Close current window and add to results
+                    const duration = currentWindow.endIndex - currentWindow.startIndex + 1;
+                    currentWindow.duration = duration;
+                    currentWindow.quality = currentWindow.avgScore >= 80 ? 'excellent' : 'good';
+                    windows.push(currentWindow);
+                    currentWindow = null;
+                }
+            }
+        }
+        
+        // Close any remaining window
+        if (currentWindow) {
+            const duration = currentWindow.endIndex - currentWindow.startIndex + 1;
+            currentWindow.duration = duration;
+            currentWindow.quality = currentWindow.avgScore >= 80 ? 'excellent' : 'good';
+            windows.push(currentWindow);
+        }
+        
+        return windows;
+    }
+    
+    function updateForecastCard() {
+        if (!forecastData) return;
+        
+        forecastLoading.classList.add('hidden');
+        forecastContent.classList.remove('hidden');
+        
+        // Update charts with a slight delay to ensure proper sizing
+        setTimeout(() => {
+            updateTemperatureChart();
+            updateHumidityChart();
+            updateQualityZones();
+            updateTimeLabels();
+            updateOptimalWindows();
+        }, 100);
+    }
+    
+    function updateTemperatureChart() {
+        const temps = forecastData.hours.map(h => h.temperature);
+        const minTemp = Math.min(...temps) - 1;
+        const maxTemp = Math.max(...temps) + 1;
+        const tempRange = maxTemp - minTemp;
+        
+        // Wait for next frame to ensure container is properly sized
+        requestAnimationFrame(() => {
+            // Get accurate container width, ensuring it doesn't exceed screen width
+            const containerRect = temperatureChart.getBoundingClientRect();
+            const screenPadding = window.innerWidth < 640 ? 32 : 64; // Less padding on mobile
+            const maxWidth = Math.min(window.innerWidth - screenPadding, containerRect.width);
+            const width = Math.max(window.innerWidth < 640 ? 250 : 300, Math.min(maxWidth, containerRect.width || 350));
+            const height = window.innerWidth < 640 ? 56 : 80; // More compact on mobile
+            
+            // Create SVG for temperature line
+            let svgPath = '';
+            const effectiveWidth = width - 40; // Leave margin for labels
+            
+            for (let i = 0; i < temps.length; i++) {
+                const x = 20 + (i / (temps.length - 1)) * effectiveWidth; // 20px left margin
+                const y = height - 20 - ((temps[i] - minTemp) / tempRange) * (height - 40); // 20px top/bottom margins
+                
+                if (i === 0) {
+                    svgPath += `M ${x} ${y}`;
+                } else {
+                    svgPath += ` L ${x} ${y}`;
+                }
+            }
+            
+            temperatureChart.innerHTML = `
+                <svg width="${width}" height="${height}" class="w-full h-full" style="max-width: 100%;" viewBox="0 0 ${width} ${height}" preserveAspectRatio="xMidYMid meet">
+                    <defs>
+                        <linearGradient id="tempGradient" x1="0%" y1="0%" x2="0%" y2="100%">
+                            <stop offset="0%" style="stop-color:var(--primary);stop-opacity:0.3" />
+                            <stop offset="100%" style="stop-color:var(--primary);stop-opacity:0.1" />
+                        </linearGradient>
+                    </defs>
+                    <path d="${svgPath} L ${20 + effectiveWidth} ${height - 20} L 20 ${height - 20} Z" fill="url(#tempGradient)" />
+                    <path d="${svgPath}" stroke="var(--primary)" stroke-width="2" fill="none" />
+                    ${temps.map((temp, i) => {
+                        const x = 20 + (i / (temps.length - 1)) * effectiveWidth;
+                        const y = height - 20 - ((temp - minTemp) / tempRange) * (height - 40);
+                        return `<circle cx="${x}" cy="${y}" r="${window.innerWidth < 640 ? '2' : '3'}" fill="var(--primary)" />`;
+                    }).join('')}
+                </svg>
+                <div class="absolute top-1 left-1 text-xs" style="color: var(--on-surface-variant);">${maxTemp.toFixed(1)}°</div>
+                <div class="absolute bottom-1 left-1 text-xs" style="color: var(--on-surface-variant);">${minTemp.toFixed(1)}°</div>
+            `;
+        });
+    }
+    
+    function updateHumidityChart() {
+        const humidities = forecastData.hours.map(h => h.humidity);
+        const maxHumidity = Math.max(...humidities);
+        const isMobile = window.innerWidth < 640;
+        const chartHeight = isMobile ? 48 : 64; // Responsive height
+        
+        humidityChart.innerHTML = humidities.map((humidity, i) => {
+            const height = (humidity / maxHumidity) * chartHeight;
+            const color = humidity > 85 ? '#f44336' : humidity > 70 ? '#ff9800' : '#4caf50';
+            const barWidth = isMobile ? 'w-6' : 'w-8';
+            const fontSize = isMobile ? 'text-xs' : 'text-xs';
+            
+            return `
+                <div class="flex flex-col items-center flex-1 min-w-0"> 
+                    <div class="${barWidth} rounded-t mx-auto" style="height: ${height}px; background-color: ${color}; opacity: 0.7; max-width: 100%;"></div>
+                    <span class="${fontSize} mt-1 truncate" style="color: var(--on-surface-variant);">${humidity}%</span>
+                </div>
+            `;
+        }).join('');
+    }
+    
+    function updateQualityZones() {
+        qualityZones.innerHTML = forecastData.hours.map((hour, i) => {
+            let bgColor = '#4caf50'; // green for good
+            let opacity = '0.3';
+            
+            switch(hour.recommendation) {
+                case 'excellent':
+                    bgColor = '#4caf50';
+                    opacity = '0.8';
+                    break;
+                case 'good':
+                    bgColor = '#4caf50';
+                    opacity = '0.5';
+                    break;
+                case 'marginal':
+                    bgColor = '#ff9800';
+                    opacity = '0.4';
+                    break;
+                case 'poor':
+                case 'dangerous':
+                    bgColor = '#f44336';
+                    opacity = '0.6';
+                    break;
+            }
+            
+            return `<div class="flex-1 h-full" style="background-color: ${bgColor}; opacity: ${opacity}; margin-right: ${i < forecastData.hours.length - 1 ? '1px' : '0'};"></div>`;
+        }).join('');
+    }
+    
+    function updateTimeLabels() {
+        timeLabels.innerHTML = forecastData.hours.map(hour => {
+            const time = new Date(hour.time);
+            return `<span>${time.getHours()}:00</span>`;
+        }).join('');
+    }
+    
+    function updateOptimalWindows() {
+        if (forecastData.optimalWindows.length === 0) {
+            optimalWindowsDiv.innerHTML = `
+                <div class="text-center py-4">
+                    <p class="text-sm sm:body-medium ventilation-text-secondary">❌ No optimal ventilation windows in the next 6 hours</p>
+                </div>
+            `;
+            // TODO: Show extended forecast fallback
+            return;
+        }
+        
+        const isMobile = window.innerWidth < 640;
+        
+        optimalWindowsDiv.innerHTML = forecastData.optimalWindows.map(window => {
+            const startTime = new Date(window.startTime);
+            const endTime = new Date(window.endTime);
+            const qualityIcon = window.quality === 'excellent' ? '🌟' : '👍';
+            const qualityColor = window.quality === 'excellent' ? 'text-green-300' : 'text-green-400';
+            
+            return `
+                <div class="${isMobile ? 'optimal-window-mobile' : 'p-4'} bg-green-500/10 border border-green-500/30 rounded-xl overflow-hidden">
+                    <div class="flex items-start sm:items-center justify-between mb-2 gap-2 ${isMobile ? 'flex-col' : ''}">
+                        <h4 class="font-semibold ${qualityColor} flex items-center gap-2 text-sm sm:text-base min-w-0">
+                            <span class="flex-shrink-0">${qualityIcon}</span>
+                            <span class="truncate">${window.quality === 'excellent' ? 'Perfect' : 'Good'} Window</span>
+                        </h4>
+                        <span class="text-xs sm:text-sm flex-shrink-0" style="color: var(--on-surface-variant);">Score: ${Math.round(window.avgScore)}/100</span>
+                    </div>
+                    <p class="text-sm sm:body-medium mb-2" style="color: var(--on-surface);">
+                        <strong>${startTime.getHours()}:00 - ${endTime.getHours()}:00</strong> 
+                        (${window.duration} hour${window.duration > 1 ? 's' : ''})
+                    </p>
+                    <p class="text-xs sm:text-sm" style="color: var(--on-surface-variant);">
+                        Expected humidity: <strong>${window.avgFinalHumidity}%</strong><br>
+                        Temp: ${window.minTemp.toFixed(1)}°C - ${window.maxTemp.toFixed(1)}°C
+                    </p>
+                </div>
+            `;
+        }).join('');
+    }
+    
+    function updateForecastAnalysis() {
+        if (forecastData) {
+            // Recalculate forecast analysis with new basement temperature
+            const newBasementTemp = parseFloat(basementTempAutoSlider.value);
+            
+            // Update all hours with new calculations
+            forecastData.hours.forEach(hour => {
+                hour.finalHumidity = calculateFinalHumidity(newBasementTemp, hour.temperature, hour.humidity);
+                hour.ventilationScore = calculateVentilationScore(newBasementTemp, hour.temperature, hour.humidity, hour.dewPoint, hour.finalHumidity);
+                hour.recommendation = getVentilationRecommendation(hour.ventilationScore, hour.finalHumidity, hour.dewPoint, newBasementTemp);
+            });
+            
+            // Recalculate optimal windows
+            forecastData.optimalWindows = findOptimalWindows(forecastData.hours, newBasementTemp);
+            
+            // Update the forecast card display
+            updateForecastCard();
+        }
     }
 
     initialize();

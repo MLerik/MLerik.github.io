@@ -776,7 +776,17 @@
         });
         
         toggleForecastBtn.addEventListener('click', () => {
-            forecastCard.classList.add('hidden');
+            const isHidden = forecastCard.classList.contains('hidden');
+            
+            if (isHidden) {
+                // Show the forecast card
+                forecastCard.classList.remove('hidden');
+                toggleForecastBtn.textContent = 'Hide';
+            } else {
+                // Hide the forecast card
+                forecastCard.classList.add('hidden');
+                toggleForecastBtn.textContent = 'Show Forecast';
+            }
         });
 
         modeSwitch.addEventListener('change', () => {
@@ -790,6 +800,7 @@
                 currentWeatherTrend = null; // Clear weather trend when switching to manual
                 sampleDataWarning.classList.add('hidden'); // Hide sample data warning in manual mode
                 forecastCard.classList.add('hidden'); // Hide forecast card in manual mode
+                toggleForecastBtn.textContent = 'Show Forecast'; // Reset button text
                 updateUI();
             }
         });
@@ -943,6 +954,7 @@
         // Show forecast card and update UI
         updateForecastCard();
         forecastCard.classList.remove('hidden');
+        toggleForecastBtn.textContent = 'Hide';
     }
     
     async function createMockForecastData() {
@@ -985,6 +997,7 @@
         // Show forecast card and update UI
         updateForecastCard();
         forecastCard.classList.remove('hidden');
+        toggleForecastBtn.textContent = 'Hide';
     }
     
     function calculateVentilationScore(basementTemp, outsideTemp, outsideHumidity, dewPoint, finalHumidity) {

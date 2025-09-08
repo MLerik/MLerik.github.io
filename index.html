@@ -102,24 +102,20 @@
             border-radius: 32px 24px 32px 24px;
             backdrop-filter: blur(20px);
             background: color-mix(in srgb, var(--surface-container) 95%, transparent 5%);
-            border: 1px solid;
-            border-image: linear-gradient(135deg, 
-                color-mix(in srgb, var(--primary) 30%, transparent 70%) 0%,
-                color-mix(in srgb, var(--primary) 10%, transparent 90%) 50%,
-                color-mix(in srgb, var(--primary) 30%, transparent 70%) 100%
-            ) 1;
+            border: 2px solid color-mix(in srgb, var(--primary) 30%, transparent 70%);
+            box-shadow: 
+                0 8px 32px rgba(0, 0, 0, 0.3),
+                0 0 0 1px color-mix(in srgb, var(--primary) 20%, transparent 80%) inset;
         }
         
         .organic-card-alt {
             border-radius: 24px 32px 24px 32px;
             backdrop-filter: blur(20px);
             background: color-mix(in srgb, var(--surface-container) 95%, transparent 5%);
-            border: 1px solid;
-            border-image: linear-gradient(225deg, 
-                color-mix(in srgb, var(--primary) 30%, transparent 70%) 0%,
-                color-mix(in srgb, var(--primary) 10%, transparent 90%) 50%,
-                color-mix(in srgb, var(--primary) 30%, transparent 70%) 100%
-            ) 1;
+            border: 2px solid color-mix(in srgb, var(--primary) 30%, transparent 70%);
+            box-shadow: 
+                0 8px 32px rgba(0, 0, 0, 0.3),
+                0 0 0 1px color-mix(in srgb, var(--primary) 20%, transparent 80%) inset;
         }
         
         .organic-small {
@@ -273,7 +269,7 @@
             <div class="flex items-center justify-center space-x-4 mb-6">
                 <span class="label-large ventilation-text-secondary">Manual</span>
                 <label for="mode-switch" class="relative inline-flex items-center cursor-pointer">
-                    <input type="checkbox" id="mode-switch" class="sr-only mode-switch">
+                    <input type="checkbox" id="mode-switch" class="sr-only mode-switch" checked>
                     <div class="switch">
                         <div class="switch-thumb"></div>
                     </div>
@@ -282,7 +278,7 @@
             </div>
 
             <!-- Auto Mode View -->
-            <div id="auto-mode" class="hidden">
+            <div id="auto-mode" class="">
                  <div class="text-center mb-4">
                     <p class="title-large" style="color: var(--on-surface);">Weather for Thun, Switzerland</p>
                     <p id="loading-message" class="body-medium ventilation-accent">Fetching live weather data...</p>
@@ -315,7 +311,7 @@
             </div>
             
             <!-- Manual Mode View -->
-            <div id="manual-mode" class="space-y-4">
+            <div id="manual-mode" class="space-y-4 hidden">
                 <div>
                     <label for="temp-in" class="block label-large text-gray-300 mb-2">Basement Temperature</label>
                     <div class="flex items-center space-x-4">
@@ -343,12 +339,12 @@
         <!-- Context Card -->
         <div id="context-card" class="p-8 shadow-2xl ventilation-card organic-card-alt mb-8">
             <h2 class="title-large text-center mb-4" style="color: var(--on-surface);">Current Context</h2>
-            <div class="flex justify-between text-center border-b pb-3 mb-3" style="border-color: var(--surface-container-high);">
+            <div id="context-grid" class="flex justify-between text-center border-b pb-3 mb-3" style="border-color: var(--surface-container-high);">
                 <div>
                     <p class="label-large ventilation-text-secondary">Time</p>
                     <p id="current-time" class="font-semibold text-lg" style="color: var(--on-surface);">--:--</p>
                 </div>
-                <div>
+                <div id="season-display">
                     <p class="label-large ventilation-text-secondary">Season</p>
                     <p id="current-season" class="font-semibold text-lg" style="color: var(--on-surface);">--</p>
                 </div>
@@ -411,6 +407,8 @@
     // Context Card
     const currentTimeDisplay = document.getElementById('current-time');
     const currentSeasonDisplay = document.getElementById('current-season');
+    const seasonDisplayDiv = document.getElementById('season-display');
+    const contextGrid = document.getElementById('context-grid');
     const expectedTrendDisplay = document.getElementById('expected-trend');
     const dynamicAdvisorText = document.getElementById('dynamic-advisor-text');
     const dynamicAdvisorContainer = document.getElementById('dynamic-advisor-container');
@@ -534,7 +532,20 @@
         const season = getSeason(now);
         
         currentTimeDisplay.textContent = now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-        currentSeasonDisplay.textContent = season;
+        
+        // Show/hide season display based on mode
+        if (modeSwitch.checked) {
+            // Auto mode - hide season display and adjust grid
+            seasonDisplayDiv.classList.add('hidden');
+            contextGrid.classList.remove('justify-between');
+            contextGrid.classList.add('justify-around');
+        } else {
+            // Manual mode - show season display and restore grid
+            seasonDisplayDiv.classList.remove('hidden');
+            contextGrid.classList.remove('justify-around');
+            contextGrid.classList.add('justify-between');
+            currentSeasonDisplay.textContent = season;
+        }
 
         let hint = "General Tip: Ventilate when outside is cooler and the dew point is lower than your basement's temperature.";
         let trend = "Stable";
@@ -606,10 +617,16 @@
             if (modeSwitch.checked) {
                 autoModeDiv.classList.remove('hidden');
                 manualModeDiv.classList.add('hidden');
+                seasonDisplayDiv.classList.add('hidden'); // Hide season in auto mode
+                contextGrid.classList.remove('justify-between');
+                contextGrid.classList.add('justify-around');
                 fetchWeatherData();
             } else {
                 autoModeDiv.classList.add('hidden');
                 manualModeDiv.classList.remove('hidden');
+                seasonDisplayDiv.classList.remove('hidden'); // Show season in manual mode
+                contextGrid.classList.remove('justify-around');
+                contextGrid.classList.add('justify-between');
                 currentWeatherTrend = null; // Clear weather trend when switching to manual
                 updateUI();
             }
@@ -698,6 +715,12 @@
     function initialize() {
         setupEventListeners();
         applyVentilationTheme('good'); // Start with a default theme
+        
+        // Since auto mode is default, fetch weather data on startup
+        if (modeSwitch.checked) {
+            fetchWeatherData();
+        }
+        
         updateUI(); 
         setInterval(updateContextualInfo, 60000); 
     }

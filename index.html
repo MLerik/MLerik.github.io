@@ -13,9 +13,10 @@
         body {
             font-family: 'Inter', sans-serif;
             -webkit-tap-highlight-color: transparent;
-            background-color: var(--surface, #111827);
+            background: linear-gradient(135deg, var(--surface, #111827) 0%, color-mix(in srgb, var(--surface, #111827) 85%, var(--primary, #4caf50) 15%) 100%);
             color: var(--on-surface, #e5e7eb);
-            transition: background-color 0.5s ease;
+            transition: background 0.8s ease;
+            min-height: 100vh;
         }
         .display-small { font-size: 36px; line-height: 44px; font-weight: 400; }
         .headline-medium { font-size: 28px; line-height: 36px; font-weight: 400; }
@@ -55,6 +56,74 @@
             --on-primary: #ffffff;
             --on-surface: #f5e8e8;
             --on-surface-variant: #d6c8c8;
+        }
+
+        /* Subtle backdrop elements */
+        .backdrop-orb {
+            position: absolute;
+            border-radius: 50%;
+            background: radial-gradient(circle, color-mix(in srgb, var(--primary) 15%, transparent 85%) 0%, transparent 70%);
+            pointer-events: none;
+            z-index: -1;
+            animation: float-gentle 8s ease-in-out infinite;
+        }
+        
+        .backdrop-orb-1 {
+            width: 300px;
+            height: 300px;
+            top: 10%;
+            right: -150px;
+            animation-delay: 0s;
+        }
+        
+        .backdrop-orb-2 {
+            width: 200px;
+            height: 200px;
+            bottom: 20%;
+            left: -100px;
+            animation-delay: 3s;
+        }
+        
+        .backdrop-orb-3 {
+            width: 150px;
+            height: 150px;
+            top: 60%;
+            right: -75px;
+            animation-delay: 6s;
+        }
+        
+        @keyframes float-gentle {
+            0%, 100% { transform: translateY(0px) scale(1); opacity: 0.3; }
+            50% { transform: translateY(-20px) scale(1.1); opacity: 0.5; }
+        }
+
+        /* -- Organic Card Styling -- */
+        .organic-card {
+            border-radius: 32px 24px 32px 24px;
+            backdrop-filter: blur(20px);
+            background: color-mix(in srgb, var(--surface-container) 95%, transparent 5%);
+            border: 1px solid;
+            border-image: linear-gradient(135deg, 
+                color-mix(in srgb, var(--primary) 30%, transparent 70%) 0%,
+                color-mix(in srgb, var(--primary) 10%, transparent 90%) 50%,
+                color-mix(in srgb, var(--primary) 30%, transparent 70%) 100%
+            ) 1;
+        }
+        
+        .organic-card-alt {
+            border-radius: 24px 32px 24px 32px;
+            backdrop-filter: blur(20px);
+            background: color-mix(in srgb, var(--surface-container) 95%, transparent 5%);
+            border: 1px solid;
+            border-image: linear-gradient(225deg, 
+                color-mix(in srgb, var(--primary) 30%, transparent 70%) 0%,
+                color-mix(in srgb, var(--primary) 10%, transparent 90%) 50%,
+                color-mix(in srgb, var(--primary) 30%, transparent 70%) 100%
+            ) 1;
+        }
+        
+        .organic-small {
+            border-radius: 20px 16px 20px 16px;
         }
 
         /* -- Applying Variables -- */
@@ -132,20 +201,32 @@
         
         /* Subtle glow effect for status image */
         #status-image {
-            transition: all 0.5s ease;
-            box-shadow: 0 0 20px rgba(var(--primary-rgb, 76, 175, 80), 0.3);
+            transition: all 0.8s ease;
+            box-shadow: 
+                0 0 40px rgba(var(--primary-rgb, 76, 175, 80), 0.3),
+                0 20px 60px rgba(0, 0, 0, 0.3),
+                inset 0 1px 0 rgba(255, 255, 255, 0.1);
         }
         
         .ventilation-good #status-image {
-            box-shadow: 0 0 25px rgba(76, 175, 80, 0.4);
+            box-shadow: 
+                0 0 50px rgba(76, 175, 80, 0.5),
+                0 20px 60px rgba(0, 0, 0, 0.3),
+                inset 0 1px 0 rgba(255, 255, 255, 0.1);
         }
         
         .ventilation-caution #status-image {
-            box-shadow: 0 0 25px rgba(255, 152, 0, 0.4);
+            box-shadow: 
+                0 0 50px rgba(255, 152, 0, 0.5),
+                0 20px 60px rgba(0, 0, 0, 0.3),
+                inset 0 1px 0 rgba(255, 255, 255, 0.1);
         }
         
         .ventilation-danger #status-image {
-            box-shadow: 0 0 25px rgba(244, 67, 54, 0.4);
+            box-shadow: 
+                0 0 50px rgba(244, 67, 54, 0.5),
+                0 20px 60px rgba(0, 0, 0, 0.3),
+                inset 0 1px 0 rgba(255, 255, 255, 0.1);
         }
 
         /* -- M3 Components -- */
@@ -170,20 +251,24 @@
         }
     </style>
 </head>
-<body class="flex items-center justify-center min-h-screen p-4">
+<body class="flex items-center justify-center min-h-screen p-4 relative">
+    <!-- Subtle backdrop orbs -->
+    <div class="backdrop-orb backdrop-orb-1"></div>
+    <div class="backdrop-orb backdrop-orb-2"></div>
+    <div class="backdrop-orb backdrop-orb-3"></div>
 
-    <div class="w-full max-w-md mx-auto">
+    <div class="w-full max-w-lg mx-auto px-4 relative z-10">
         <header class="text-center mb-8">
             <!-- Ventilation Status Image -->
-            <div id="status-image-container" class="mb-6 flex justify-center">
-                <img id="status-image" src="" alt="Ventilation status" class="w-32 h-32 rounded-full object-cover border-4 shadow-lg">
+            <div id="status-image-container" class="mb-8 flex justify-center">
+                <img id="status-image" src="" alt="Ventilation status" class="w-48 h-48 rounded-full object-cover border-4 shadow-2xl">
             </div>
-            <h1 id="main-title" class="headline-medium ventilation-accent">Villa Kunterbunt Kellerlüftungsberater</h1>
-            <p class="mt-2 body-medium ventilation-text-secondary">Get smart advice on when to open your windows.</p>
+            <h1 id="main-title" class="headline-medium ventilation-accent mb-4">Villa Kunterbunt Kellerlüftungsberater</h1>
+            <p class="mt-2 body-medium ventilation-text-secondary max-w-sm mx-auto leading-relaxed">Get smart advice on when to open your windows for optimal basement ventilation.</p>
         </header>
 
         <!-- Input Controls Card -->
-        <div class="p-6 rounded-[28px] shadow-2xl ventilation-card">
+        <div class="p-8 shadow-2xl ventilation-card organic-card mb-8">
             <!-- Mode Switch -->
             <div class="flex items-center justify-center space-x-4 mb-6">
                 <span class="label-large ventilation-text-secondary">Manual</span>
@@ -202,9 +287,9 @@
                     <p class="title-large" style="color: var(--on-surface);">Weather for Thun, Switzerland</p>
                     <p id="loading-message" class="body-medium ventilation-accent">Fetching live weather data...</p>
                  </div>
-                 <div id="weather-data-container" class="hidden space-y-4">
-                    <div class="bg-black/20 p-4 rounded-2xl">
-                        <div class="grid grid-cols-3 gap-4 text-center">
+                 <div id="weather-data-container" class="hidden space-y-6">
+                    <div class="bg-black/20 p-6 organic-small backdrop-blur-sm">
+                        <div class="grid grid-cols-3 gap-6 text-center">
                         <div>
                         <p class="display-small" style="color: var(--on-surface);"><span id="auto-temp-out">--</span>°</p>
                         <p class="label-large ventilation-text-secondary">Temperature</p>
@@ -256,7 +341,7 @@
         </div>
 
         <!-- Context Card -->
-        <div id="context-card" class="p-6 rounded-[28px] shadow-2xl mt-6 ventilation-card">
+        <div id="context-card" class="p-8 shadow-2xl ventilation-card organic-card-alt mb-8">
             <h2 class="title-large text-center mb-4" style="color: var(--on-surface);">Current Context</h2>
             <div class="flex justify-between text-center border-b pb-3 mb-3" style="border-color: var(--surface-container-high);">
                 <div>
@@ -279,13 +364,13 @@
         </div>
 
         <!-- Results Section -->
-        <div id="results-card" class="p-6 rounded-[28px] shadow-2xl mt-6 ventilation-card">
-            <h2 class="title-large text-center mb-4" style="color: var(--on-surface);">Outcome</h2>
-            <div class="text-center mb-4">
+        <div id="results-card" class="p-8 shadow-2xl ventilation-card organic-card">
+            <h2 class="title-large text-center mb-6" style="color: var(--on-surface);">Outcome</h2>
+            <div class="text-center mb-6">
                 <p class="label-large ventilation-text-secondary">Expected Basement Humidity</p>
-                <p id="final-humidity" class="display-small ventilation-accent">--%</p>
+                <p id="final-humidity" class="display-small ventilation-accent font-bold">--%</p>
             </div>
-            <div id="recommendation-box" class="flex items-center p-4 rounded-xl transition-all duration-300">
+            <div id="recommendation-box" class="flex items-center p-6 organic-small transition-all duration-300">
                 <div id="recommendation-icon" class="mr-4"></div>
                 <div>
                     <h3 id="recommendation-title" class="title-large"></h3>

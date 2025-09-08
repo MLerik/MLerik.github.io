@@ -170,6 +170,11 @@ const forecastData = {
 1. ✅ Basic 6-hour forecast API integration
 2. ✅ Simple timeline visualization
 3. ✅ Optimal window detection algorithm
+4. ✅ **FIXED: Forecast recommendations now align with main outcome tab logic**
+   - No more overly optimistic suggestions
+   - Same safety thresholds for condensation risk
+   - Consistent humidity and temperature criteria
+   - Added "Meets safety standards" indicator
 
 **Medium Priority**  
 4. Enhanced visual design with charts

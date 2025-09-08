@@ -1001,59 +1001,38 @@
     }
     
     function calculateVentilationScore(basementTemp, outsideTemp, outsideHumidity, dewPoint, finalHumidity) {
-        let score = 0;
-        
-        // Condensation safety (most important factor)
-        const dewPointMargin = basementTemp - dewPoint;
-        if (dewPointMargin >= 3) {
-            score += 40; // Excellent safety margin
-        } else if (dewPointMargin >= 1.5) {
-            score += 25; // Good safety margin
-        } else if (dewPointMargin >= 0.5) {
-            score += 10; // Minimal safety margin
-        } else {
-            return 0; // Unsafe - no ventilation
+        // Use the same strict logic as the main outcome tab
+        // Safety first: Check for dangerous conditions
+        if (dewPoint >= basementTemp - 1.5) {
+            return 0; // Condensation risk - no ventilation
         }
         
-        // Temperature benefit
-        const tempDiff = basementTemp - outsideTemp;
-        if (tempDiff >= 5) {
-            score += 30; // Excellent cooling
-        } else if (tempDiff >= 2) {
-            score += 20; // Good cooling
-        } else if (tempDiff >= 0) {
-            score += 10; // Some cooling
-        } else {
-            score -= 20; // Will heat basement
+        if (outsideTemp > basementTemp) {
+            return 0; // Will heat basement - no ventilation
         }
         
-        // Humidity result
-        if (finalHumidity <= 50) {
-            score += 30; // Excellent dehumidification
-        } else if (finalHumidity <= 60) {
-            score += 20; // Good dehumidification
-        } else if (finalHumidity <= 70) {
-            score += 10; // Moderate benefit
-        } else if (finalHumidity <= 75) {
-            score += 5; // Minimal benefit
+        // Apply the same thresholds as main outcome tab
+        if (finalHumidity < 60) {
+            return 85; // "Yes, Ventilate!" equivalent
+        } else if (finalHumidity < 75) {
+            return 50; // "Ventilate with Caution" equivalent
         } else {
-            score -= 10; // Makes it more humid
+            return 10; // "Do Not Ventilate" equivalent
         }
-        
-        return Math.max(0, Math.min(100, score));
     }
     
     function getVentilationRecommendation(score, finalHumidity, dewPoint, basementTemp) {
+        // Align with main outcome tab logic exactly
         if (dewPoint >= basementTemp - 1.5) {
-            return 'dangerous';
-        } else if (score >= 80) {
-            return 'excellent';
-        } else if (score >= 60) {
-            return 'good';
-        } else if (score >= 40) {
-            return 'marginal';
+            return 'dangerous'; // "Do Not Ventilate!" - condensation risk
+        }
+        
+        if (score >= 80) {
+            return 'excellent'; // "Yes, Ventilate!" - finalHumidity < 60
+        } else if (score >= 45) {
+            return 'good'; // "Ventilate with Caution" - finalHumidity < 75
         } else {
-            return 'poor';
+            return 'poor'; // "Do Not Ventilate" - finalHumidity >= 75
         }
     }
     
@@ -1063,6 +1042,7 @@
         
         for (let i = 0; i < hours.length; i++) {
             const hour = hours[i];
+            // Only consider windows that match main outcome tab's "Yes, Ventilate!" or "Ventilate with Caution" recommendations
             const isGoodForVentilation = hour.recommendation === 'excellent' || hour.recommendation === 'good';
             
             if (isGoodForVentilation) {
@@ -1089,22 +1069,30 @@
                 }
             } else {
                 if (currentWindow) {
-                    // Close current window and add to results
+                    // Close current window and add to results only if it's truly beneficial
                     const duration = currentWindow.endIndex - currentWindow.startIndex + 1;
                     currentWindow.duration = duration;
                     currentWindow.quality = currentWindow.avgScore >= 80 ? 'excellent' : 'good';
-                    windows.push(currentWindow);
+                    
+                    // Additional validation: ensure window meets main outcome standards
+                    if (currentWindow.avgFinalHumidity < 75) { // Only add if humidity result is acceptable
+                        windows.push(currentWindow);
+                    }
                     currentWindow = null;
                 }
             }
         }
         
-        // Close any remaining window
+        // Close any remaining window with validation
         if (currentWindow) {
             const duration = currentWindow.endIndex - currentWindow.startIndex + 1;
             currentWindow.duration = duration;
             currentWindow.quality = currentWindow.avgScore >= 80 ? 'excellent' : 'good';
-            windows.push(currentWindow);
+            
+            // Additional validation: ensure window meets main outcome standards
+            if (currentWindow.avgFinalHumidity < 75) { // Only add if humidity result is acceptable
+                windows.push(currentWindow);
+            }
         }
         
         return windows;
@@ -1269,7 +1257,8 @@
                     </p>
                     <p class="text-xs sm:text-sm" style="color: var(--on-surface-variant);">
                         Expected humidity: <strong>${window.avgFinalHumidity}%</strong><br>
-                        Temp: ${window.minTemp.toFixed(1)}°C - ${window.maxTemp.toFixed(1)}°C
+                        Temp: ${window.minTemp.toFixed(1)}°C - ${window.maxTemp.toFixed(1)}°C<br>
+                        <em style="color: var(--primary);">Meets safety standards ✓</em>
                     </p>
                 </div>
             `;

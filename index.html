@@ -420,13 +420,18 @@
         </div>
 
         <!-- Enhanced Forecast Card -->
-        <div id="forecast-card" class="hidden mt-8 p-4 sm:p-8 shadow-2xl ventilation-card organic-card-alt forecast-card">
-            <div class="flex items-center justify-between mb-6 flex-wrap gap-2">
-                <h2 class="title-large" style="color: var(--on-surface);">📈 Next 6 Hours</h2>
-                <button id="toggle-forecast" class="px-3 py-1 sm:px-4 sm:py-2 bg-black/20 rounded-full text-xs sm:text-sm hover:bg-black/30 transition-colors flex-shrink-0" style="color: var(--on-surface-variant);">
-                    Hide
+        <div class="mt-8">
+            <!-- Forecast Toggle Button (outside the card so it's always visible) -->
+            <div class="flex justify-center mb-4">
+                <button id="toggle-forecast" class="px-4 py-2 bg-black/20 rounded-full text-sm hover:bg-black/30 transition-colors" style="color: var(--on-surface-variant);">
+                    Show Forecast
                 </button>
             </div>
+            
+            <div id="forecast-card" class="hidden p-4 sm:p-8 shadow-2xl ventilation-card organic-card-alt forecast-card">
+                <div class="flex items-center justify-center mb-6">
+                    <h2 class="title-large" style="color: var(--on-surface);">📈 Next 6 Hours</h2>
+                </div>
             
             <!-- Forecast Loading State -->
             <div id="forecast-loading" class="text-center py-8">
@@ -781,7 +786,7 @@
             if (isHidden) {
                 // Show the forecast card
                 forecastCard.classList.remove('hidden');
-                toggleForecastBtn.textContent = 'Hide';
+                toggleForecastBtn.textContent = 'Hide Forecast';
             } else {
                 // Hide the forecast card
                 forecastCard.classList.add('hidden');
@@ -954,7 +959,7 @@
         // Show forecast card and update UI
         updateForecastCard();
         forecastCard.classList.remove('hidden');
-        toggleForecastBtn.textContent = 'Hide';
+        toggleForecastBtn.textContent = 'Hide Forecast';
     }
     
     async function createMockForecastData() {
@@ -997,7 +1002,7 @@
         // Show forecast card and update UI
         updateForecastCard();
         forecastCard.classList.remove('hidden');
-        toggleForecastBtn.textContent = 'Hide';
+        toggleForecastBtn.textContent = 'Hide Forecast';
     }
     
     function calculateVentilationScore(basementTemp, outsideTemp, outsideHumidity, dewPoint, finalHumidity) {

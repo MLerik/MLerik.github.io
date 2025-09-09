@@ -409,6 +409,65 @@
                 </div>
             </div>
             
+            <!-- Venting Session Tracking -->
+            <div id="venting-session-card" class="p-4 organic-small mb-6" style="background: color-mix(in srgb, var(--surface-container-high) 80%, transparent 20%);">
+                <h3 class="text-lg font-medium mb-3" style="color: var(--on-surface);">Track Venting Session</h3>
+                
+                <!-- Session Not Started -->
+                <div id="session-start-view" class="">
+                    <button id="start-venting-btn" class="w-full px-4 py-3 rounded-lg font-medium transition-colors flex items-center justify-center gap-2" style="background-color: var(--primary); color: var(--on-primary);">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="6" height="11" x="6" y="2" rx="3"/><path d="m20 12-1.5-6L15 7l-3 1 3 3-3 1 3.5 1L20 12Z"/><path d="M6 16a2 2 0 0 1 1.33-.89l1.67-.22"/><path d="M8 18a2 2 0 0 1 1.33-.89l1.67-.22"/><path d="M6 19v1a2 2 0 0 0 2 2h2.5"/></svg>
+                        Start Venting Session
+                    </button>
+                    <p class="text-sm mt-2 text-center" style="color: var(--on-surface-variant);">Click when you open windows to start tracking</p>
+                </div>
+                
+                <!-- Session In Progress -->
+                <div id="session-active-view" class="hidden">
+                    <div class="rounded-lg p-3 mb-3" style="background: color-mix(in srgb, var(--primary) 15%, transparent 85%); border: 1px solid color-mix(in srgb, var(--primary) 40%, transparent 60%);">
+                        <div class="flex justify-between items-center">
+                            <span class="font-medium flex items-center gap-2" style="color: var(--primary);">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2a3 3 0 0 0-3 3v7a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3Z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/><circle cx="12" cy="19" r="3"/></svg>
+                                Venting in progress...
+                            </span>
+                            <span id="session-timer" class="text-sm" style="color: var(--on-surface-variant);">00:00</span>
+                        </div>
+                        <p class="text-sm mt-1" style="color: var(--on-surface-variant);">Started: <span id="session-start-time"></span></p>
+                    </div>
+                    <button id="stop-venting-btn" class="w-full px-4 py-3 rounded-lg font-medium transition-colors flex items-center justify-center gap-2" style="background-color: #ef4444; color: white;">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="18" height="18" x="3" y="3" rx="2" ry="2"/></svg>
+                        Stop & Record Results
+                    </button>
+                </div>
+                
+                <!-- Session Results Input -->
+                <div id="session-results-view" class="hidden">
+                    <div class="space-y-3">
+                        <div class="text-sm" style="color: var(--on-surface-variant);">
+                            <p>Session completed! Duration: <span id="final-duration" class="font-medium"></span></p>
+                            <p>Predicted result: <span id="predicted-result" class="font-medium"></span>%</p>
+                        </div>
+                        <div>
+                            <label for="actual-humidity-input" class="block text-sm font-medium mb-2" style="color: var(--on-surface);">What's the actual basement humidity now?</label>
+                            <div class="flex space-x-2">
+                                <input type="number" id="actual-humidity-input" min="0" max="100" placeholder="e.g. 45" class="flex-1 px-3 py-2 rounded-lg" style="background: color-mix(in srgb, var(--surface-container-high) 70%, transparent 30%); border: 1px solid color-mix(in srgb, var(--on-surface-variant) 30%, transparent 70%); color: var(--on-surface);">
+                                <span class="flex items-center text-sm" style="color: var(--on-surface-variant);">%</span>
+                            </div>
+                        </div>
+                        <div class="flex space-x-2">
+                            <button id="save-session-btn" class="flex-1 px-4 py-2 rounded-lg font-medium transition-colors flex items-center justify-center gap-2" style="background-color: #3b82f6; color: white;">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15.2 3a2 2 0 0 1 1.4.6l3.8 3.8a2 2 0 0 1 .6 1.4V19a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2z"/><path d="M17 21v-7a1 1 0 0 0-1-1H8a1 1 0 0 0-1 1v7"/><path d="M7 3v4a1 1 0 0 0 1 1h8"/></svg>
+                                Save Session
+                            </button>
+                            <button id="cancel-session-btn" class="px-4 py-2 rounded-lg font-medium transition-colors flex items-center justify-center gap-2" style="background-color: #6b7280; color: white;">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m18 6-12 12"/><path d="m6 6 12 12"/></svg>
+                                Cancel
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
             <!-- Enhanced Dynamic Advisor -->
             <div class="border-t border-gray-600/20 pt-6">
                 <div id="dynamic-advisor-container" class="flex items-start space-x-3 ventilation-text-secondary">
@@ -532,6 +591,10 @@
     let currentWeatherTrend = null;
     let forecastData = null;
     let optimalWindows = [];
+    
+    // Venting session tracking
+    let currentVentingSession = null;
+    const GOOGLE_SHEETS_URL = 'https://script.google.com/macros/s/AKfycbwNnHJlHK58I6IDNCxzPyThtoJwb1vycIWKNeNx-9oAbblhCDaDOKI2el_0DjC1iSXvyw/exec';
 
     // Results
     const finalHumidityDisplay = document.getElementById('final-humidity');
@@ -854,63 +917,12 @@
                 updateForecastCard();
             }
         });
-    }
-
-    // --- EVENT LISTENERS ---
-    function setupEventListeners() {
-        [tempInSlider, tempOutSlider, rhOutSlider].forEach(slider => {
-            slider.addEventListener('input', () => {
-                tempInValue.textContent = `${tempInSlider.value}°C`;
-                tempOutValue.textContent = `${tempOutSlider.value}°C`;
-                rhOutValue.textContent = `${rhOutSlider.value}%`;
-                updateUI();
-            });
-        });
-
-        basementTempAutoSlider.addEventListener('input', () => {
-             basementTempAutoValue.textContent = `${basementTempAutoSlider.value}°C`;
-             updateUI();
-             if (forecastData) {
-                 updateForecastAnalysis();
-             }
-        });
         
-        toggleForecastBtn.addEventListener('click', () => {
-            const isHidden = forecastCard.classList.contains('hidden');
-            
-            if (isHidden) {
-                // Show the forecast card
-                forecastCard.classList.remove('hidden');
-                toggleForecastBtn.textContent = 'Hide Forecast';
-            } else {
-                // Hide the forecast card
-                forecastCard.classList.add('hidden');
-                toggleForecastBtn.textContent = 'Show Forecast';
-            }
-        });
-
-        modeSwitch.addEventListener('change', () => {
-            if (modeSwitch.checked) {
-                autoModeDiv.classList.remove('hidden');
-                manualModeDiv.classList.add('hidden');
-                fetchWeatherData();
-            } else {
-                autoModeDiv.classList.add('hidden');
-                manualModeDiv.classList.remove('hidden');
-                currentWeatherTrend = null; // Clear weather trend when switching to manual
-                sampleDataWarning.classList.add('hidden'); // Hide sample data warning in manual mode
-                forecastCard.classList.add('hidden'); // Hide forecast card in manual mode
-                toggleForecastBtn.textContent = 'Show Forecast'; // Reset button text
-                updateUI();
-            }
-        });
-        
-        // Handle window resize to update charts responsively
-        window.addEventListener('resize', () => {
-            if (forecastData && !forecastCard.classList.contains('hidden')) {
-                updateForecastCard();
-            }
-        });
+        // Venting Session Event Listeners
+        document.getElementById('start-venting-btn').addEventListener('click', startVentingSession);
+        document.getElementById('stop-venting-btn').addEventListener('click', stopVentingSession);
+        document.getElementById('save-session-btn').addEventListener('click', saveVentingSession);
+        document.getElementById('cancel-session-btn').addEventListener('click', cancelVentingSession);
     }
 
     // --- API & AUTO MODE LOGIC ---
@@ -999,6 +1011,203 @@
             
             updateUI();
         }
+    }
+
+    // --- VENTING SESSION TRACKING ---
+    function startVentingSession() {
+        const now = new Date();
+        
+        // Get current conditions to store with the session
+        let tempIn, tempOut, rhOut;
+        if (modeSwitch.checked) {
+            tempIn = parseFloat(basementTempAutoSlider.value);
+            tempOut = parseFloat(autoTempOutDisplay.textContent);
+            rhOut = parseFloat(autoRhOutDisplay.textContent);
+        } else {
+            tempIn = parseFloat(tempInSlider.value);
+            tempOut = parseFloat(tempOutSlider.value);
+            rhOut = parseFloat(rhOutSlider.value);
+        }
+        
+        const predictedHumidity = calculateFinalHumidity(tempIn, tempOut, rhOut);
+        
+        // Store session data
+        currentVentingSession = {
+            startTime: now,
+            basementTempBefore: tempIn,
+            outsideTemp: tempOut,
+            outsideHumidity: rhOut,
+            predictedHumidity: predictedHumidity,
+            timer: null
+        };
+        
+        // Update UI
+        document.getElementById('session-start-view').classList.add('hidden');
+        document.getElementById('session-active-view').classList.remove('hidden');
+        document.getElementById('session-start-time').textContent = now.toLocaleTimeString();
+        document.getElementById('predicted-result').textContent = predictedHumidity;
+        
+        // Start timer
+        updateSessionTimer();
+        currentVentingSession.timer = setInterval(updateSessionTimer, 1000);
+    }
+    
+    function updateSessionTimer() {
+        if (!currentVentingSession) return;
+        
+        const now = new Date();
+        const elapsed = Math.floor((now - currentVentingSession.startTime) / 1000);
+        const hours = Math.floor(elapsed / 3600);
+        const minutes = Math.floor((elapsed % 3600) / 60);
+        const seconds = elapsed % 60;
+        
+        const timeString = hours > 0 
+            ? `${hours}:${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`
+            : `${minutes}:${seconds.toString().padStart(2, '0')}`;
+            
+        document.getElementById('session-timer').textContent = timeString;
+    }
+    
+    function stopVentingSession() {
+        if (!currentVentingSession) return;
+        
+        // Stop timer
+        clearInterval(currentVentingSession.timer);
+        
+        // Calculate duration
+        const now = new Date();
+        const durationMs = now - currentVentingSession.startTime;
+        const durationMinutes = Math.round(durationMs / 60000);
+        
+        // Store end time and duration
+        currentVentingSession.endTime = now;
+        currentVentingSession.durationMinutes = durationMinutes;
+        
+        // Update UI to show results input
+        document.getElementById('session-active-view').classList.add('hidden');
+        document.getElementById('session-results-view').classList.remove('hidden');
+        
+        // Show duration
+        const hours = Math.floor(durationMinutes / 60);
+        const mins = durationMinutes % 60;
+        const durationText = hours > 0 ? `${hours}h ${mins}m` : `${mins}m`;
+        document.getElementById('final-duration').textContent = durationText;
+    }
+    
+    async function saveVentingSession() {
+        const actualHumidityInput = document.getElementById('actual-humidity-input');
+        const actualHumidity = parseFloat(actualHumidityInput.value);
+        
+        if (!actualHumidity || actualHumidity < 0 || actualHumidity > 100) {
+            alert('Please enter a valid humidity percentage (0-100)');
+            return;
+        }
+        
+        // Determine if session was successful
+        const success = actualHumidity < 75 && actualHumidity <= currentVentingSession.predictedHumidity + 10;
+        
+        // Prepare data for Google Sheets
+        const sessionData = {
+            timestamp: currentVentingSession.startTime.toISOString(),
+            startTime: currentVentingSession.startTime.toLocaleTimeString(),
+            endTime: currentVentingSession.endTime.toLocaleTimeString(),
+            durationMinutes: currentVentingSession.durationMinutes,
+            basementTempBefore: currentVentingSession.basementTempBefore,
+            outsideTemp: currentVentingSession.outsideTemp,
+            outsideHumidity: currentVentingSession.outsideHumidity,
+            predictedHumidity: currentVentingSession.predictedHumidity,
+            actualHumidity: actualHumidity,
+            success: success
+        };
+        
+        // Show loading state
+        const saveBtn = document.getElementById('save-session-btn');
+        const originalHTML = saveBtn.innerHTML;
+        saveBtn.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12a9 9 0 1 1-6.219-8.56"/></svg> Saving...`;
+        saveBtn.disabled = true;
+        
+        try {
+            // Send to Google Sheets
+            const response = await fetch(GOOGLE_SHEETS_URL, {
+                method: 'POST',
+                mode: 'cors',
+                cache: 'no-cache',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(sessionData)
+            });
+            
+            if (response.ok) {
+                // Success! Reset UI
+                resetVentingSessionUI();
+                
+                // Show success message
+                const successIcon = success 
+                    ? `<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20,6 9,17 4,12"/></svg>`
+                    : `<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m21.73 18-8-14a2 2 0 0 0-3.46 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z"/><line x1="12" x2="12" y1="9" y2="13"/><line x1="12" x2="12.01" y1="17" y2="17"/></svg>`;
+                const successColor = success ? 'text-green-300' : 'text-yellow-300';
+                const successMessage = success ? 'Session saved successfully!' : 'Session saved (suboptimal results)';
+                
+                // Temporarily show success in the advisor
+                const advisor = document.getElementById('dynamic-advisor-text');
+                const originalAdvice = advisor.textContent;
+                advisor.innerHTML = `<span class="${successColor} font-medium flex items-center gap-2">${successIcon} ${successMessage}</span> Check your <a href="https://sheets.google.com" target="_blank" class="underline">Google Sheet</a> to view the data.`;
+                
+                setTimeout(() => {
+                    advisor.textContent = originalAdvice;
+                }, 5000);
+                
+            } else {
+                throw new Error('Failed to save session');
+            }
+            
+        } catch (error) {
+            console.error('Error saving session:', error);
+            console.error('Full error details:', {
+                message: error.message,
+                name: error.name,
+                stack: error.stack
+            });
+            
+            let errorMessage = 'Failed to save session.';
+            if (window.location.protocol === 'file:') {
+                errorMessage = 'CORS Error: Please run this from a web server (not file://). See browser console for details.';
+            }
+            
+            alert(errorMessage + ' Please try again or check your internet connection.');
+            
+            // Reset button
+            saveBtn.innerHTML = originalHTML;
+            saveBtn.disabled = false;
+        }
+    }
+    
+    function cancelVentingSession() {
+        if (confirm('Are you sure you want to cancel this session? Data will not be saved.')) {
+            resetVentingSessionUI();
+        }
+    }
+    
+    function resetVentingSessionUI() {
+        // Clear session data
+        if (currentVentingSession && currentVentingSession.timer) {
+            clearInterval(currentVentingSession.timer);
+        }
+        currentVentingSession = null;
+        
+        // Reset UI
+        document.getElementById('session-start-view').classList.remove('hidden');
+        document.getElementById('session-active-view').classList.add('hidden');
+        document.getElementById('session-results-view').classList.add('hidden');
+        
+        // Clear inputs
+        document.getElementById('actual-humidity-input').value = '';
+        
+        // Reset button state
+        const saveBtn = document.getElementById('save-session-btn');
+        saveBtn.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15.2 3a2 2 0 0 1 1.4.6l3.8 3.8a2 2 0 0 1 .6 1.4V19a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2z"/><path d="M17 21v-7a1 1 0 0 0-1-1H8a1 1 0 0 0-1 1v7"/><path d="M7 3v4a1 1 0 0 0 1 1h8"/></svg> Save Session`;
+        saveBtn.disabled = false;
     }
 
     // --- INITIALIZATION ---

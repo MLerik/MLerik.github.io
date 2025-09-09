@@ -206,3 +206,251 @@ The forecast card should be **proactive rather than reactive** - instead of just
 - ✅ "Your perfect ventilation window opens at 9 PM tonight for 3 hours"
 
 This transforms the app from a calculator into a true **smart advisor** for Villa Kunterbunt! 🏠✨
+
+---
+
+## 🏆 Phase 5: Venting History Analytics Card
+
+### Overview
+Create an intelligent history card that displays past venting sessions with analytics, trends, and performance insights to help users understand and improve their basement ventilation strategies.
+
+---
+
+## History Card Core Features 📊
+
+### Data Visualization
+- [ ] **Session Success Rate Gauge**
+  ```
+  ┌─────────────────────┐
+  │   Success Rate      │
+  │      ● 87%         │
+  │    ░░░███░░░       │
+  │  12 of 14 sessions │
+  └─────────────────────┘
+  ```
+
+- [ ] **Recent Sessions Timeline**
+  - Last 10 sessions with visual indicators
+  - Green dots: Successful sessions (achieved target humidity)
+  - Yellow dots: Partial success (improved but not optimal)
+  - Red dots: Failed sessions (worse than predicted)
+  - Interactive hover with session details
+
+- [ ] **Humidity Achievement Chart**
+  ```
+  Predicted vs Actual Results
+  │ 80%                     ●
+  │                    ●
+  │ 60%            ●
+  │              ●   ●
+  │ 40%      ●
+  └────────────────────────
+    Predicted Humidity →
+  ```
+
+### Smart Analytics
+- [ ] **Performance Metrics Card**
+  - **Average session duration**: "2.5 hours typical"
+  - **Best time of day**: "Most successful: 9 PM - 1 AM"
+  - **Seasonal effectiveness**: "Winter sessions 23% more effective"
+  - **Accuracy score**: "Predictions accurate within ±8%"
+
+- [ ] **Personal Records**
+  - 🏆 **Best humidity achieved**: "32% on Dec 15"
+  - 🔥 **Current streak**: "5 successful sessions in a row"
+  - ⏱️ **Longest effective session**: "4.5 hours"
+  - 📈 **Biggest improvement**: "Reduced humidity by 28%"
+
+### Trend Analysis
+- [ ] **Weekly Pattern Recognition**
+  ```
+  Your Best Venting Days
+  Mon ░░░░░░░░ 42%
+  Tue ░░░░░░░░░░ 67%
+  Wed ░░░░░░░░░░░░ 89% ← Best day
+  Thu ░░░░░░ 34%
+  Fri ░░░░░░░░░ 56%
+  Sat ░░░░░░░░ 45%
+  Sun ░░░░░░░░░░ 71%
+  ```
+
+- [ ] **Monthly Progress Graph**
+  - Line chart showing average humidity achieved per week
+  - Seasonal trends and improvements over time
+  - Goal line at 60% basement humidity
+
+---
+
+## Advanced History Features 🔮
+
+### Intelligent Insights
+- [ ] **Smart Recommendations Based on History**
+  - "You're most successful when outside temperature is <12°C"
+  - "Sessions longer than 3 hours show diminishing returns"
+  - "Your accuracy improves 15% in low humidity conditions"
+  
+- [ ] **Failure Pattern Analysis**
+  - Identify common factors in unsuccessful sessions
+  - "Warning: Similar conditions to your failed session on Dec 3"
+  - Suggest modifications: "Try shorter duration this time"
+
+### Comparative Analytics
+- [ ] **Session Comparison Tool**
+  - Side-by-side comparison of best vs worst sessions
+  - Identify what made successful sessions work
+  - Environmental factor analysis
+
+- [ ] **Prediction Accuracy Tracking**
+  ```
+  Algorithm Performance
+  ┌─────────────────────────┐
+  │ Prediction Accuracy     │
+  │ ██████████░ 89%        │
+  │                         │
+  │ Overestimated:  4 times │
+  │ Underestimated: 2 times │
+  │ Perfect:       8 times  │
+  └─────────────────────────┘
+  ```
+
+---
+
+## History Card UI Design 🎨
+
+### Card Layout Options
+- [ ] **Compact Summary Card** (Always visible)
+  - Key metrics: Success rate, last session result, streak
+  - "View Full History" expandable section
+  
+- [ ] **Detailed History Modal/Page**
+  - Full session list with filtering and sorting
+  - Advanced charts and analytics
+  - Export functionality for power users
+
+### Visual Design Elements
+- [ ] **Session Status Icons**
+  - 🎯 Perfect sessions (within 5% of prediction)
+  - ✅ Good sessions (met humidity goals)
+  - ⚠️ Partial success (improved but missed target)
+  - ❌ Failed sessions (worse than expected)
+
+- [ ] **Color-Coded Timeline**
+  ```
+  Recent Sessions
+  ●─●─●─○─●─●─○─●─●─●
+  │ │ │ │ │ │ │ │ │ └─ Today: 45% ✅
+  │ │ │ │ │ │ │ │ └─── Dec 8: 52% ✅  
+  │ │ │ │ │ │ │ └───── Dec 6: 68% ⚠️
+  └─────────────────── 10 days ago
+  ```
+
+### Interactive Elements
+- [ ] **Session Detail Popover**
+  - Click any session for full details
+  - Weather conditions, duration, results
+  - "Learn from this session" insights
+  
+- [ ] **Filter and Sort Options**
+  - Filter by: Successful only, time period, weather conditions
+  - Sort by: Date, success rate, duration, humidity achieved
+
+---
+
+## Data Integration Strategy 🔧
+
+### Google Sheets Data Retrieval
+- [ ] **Fetch Historical Data**
+  ```javascript
+  async function fetchVentingHistory() {
+    // Use the doGet() function in Google Apps Script
+    const response = await fetch(GOOGLE_SHEETS_URL);
+    const data = await response.json();
+    return processHistoryData(data.data);
+  }
+  ```
+
+- [ ] **Local Caching Strategy**
+  - Cache recent sessions in localStorage
+  - Refresh from Google Sheets periodically
+  - Handle offline scenarios gracefully
+
+### Data Processing
+- [ ] **Session Analysis Functions**
+  ```javascript
+  function analyzeSessionData(sessions) {
+    return {
+      successRate: calculateSuccessRate(sessions),
+      averageDuration: calculateAverageDuration(sessions),
+      bestTimeOfDay: findOptimalTimePattern(sessions),
+      predictionAccuracy: calculateAccuracy(sessions),
+      trends: identifyTrends(sessions)
+    };
+  }
+  ```
+
+### Performance Considerations
+- [ ] **Lazy Loading**
+  - Load summary data first (last 10 sessions)
+  - Full history on demand
+  - Infinite scroll for long histories
+
+- [ ] **Data Optimization**
+  - Compress older session data
+  - Aggregate weekly/monthly summaries
+  - Client-side analytics to reduce API calls
+
+---
+
+## Priority Implementation Plan 📆
+
+### Phase 5A: Basic History (High Priority)
+1. [ ] Implement Google Sheets data retrieval (doGet)
+2. [ ] Create simple history card with last 5 sessions
+3. [ ] Add basic success rate calculation
+4. [ ] Show prediction vs actual comparison
+
+### Phase 5B: Analytics Dashboard (Medium Priority) 
+5. [ ] Add trend analysis (best times, patterns)
+6. [ ] Implement session comparison features
+7. [ ] Create detailed session view modal
+8. [ ] Add filtering and sorting capabilities
+
+### Phase 5C: Advanced Insights (Low Priority)
+9. [ ] Machine learning pattern recognition
+10. [ ] Seasonal trend analysis
+11. [ ] Predictive recommendations based on history
+12. [ ] Export functionality (CSV, charts)
+
+---
+
+## Success Metrics 🎯
+
+### User Engagement
+- [ ] **Learning Acceleration**
+  - Users improve success rate over time
+  - Better prediction accuracy with experience
+  - More confident venting decisions
+
+### Feature Effectiveness
+- [ ] **Data-Driven Optimization**
+  - History insights lead to better session planning
+  - Users adapt timing based on personal patterns
+  - Reduced "trial and error" approach
+
+---
+
+## Integration with Existing Features 🔗
+
+### Smart Advisor Enhancement
+- [ ] **Personalized Advice**
+  - "Based on your history, 2.5 hours would be optimal"
+  - "You tend to be most successful on Tuesday evenings"
+  - "Your last 3 sessions like this achieved 54% average"
+
+### Forecast Card Connection
+- [ ] **Historical Context**
+  - "Similar conditions to your successful session on Dec 5"
+  - "This forecast matches your best performing windows"
+  - Show success probability based on historical patterns
+
+This History Card will transform Villa Kunterbunt from a simple calculator into a **learning companion** that gets smarter with every session! 📈🏠

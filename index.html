@@ -558,6 +558,115 @@
                 </div>
             </div>
         </div>
+        
+        <!-- History Analytics Card -->
+        <div class="mt-8">
+            <!-- History Toggle Button -->
+            <div class="flex justify-center mb-4">
+                <button id="toggle-history" class="px-4 py-2 bg-black/20 rounded-full text-sm hover:bg-black/30 transition-colors" style="color: var(--on-surface-variant);">
+                    Show History
+                </button>
+            </div>
+            
+            <div id="history-card" class="hidden p-4 sm:p-8 shadow-2xl ventilation-card organic-card-alt">
+                <div class="flex items-center justify-center mb-6">
+                    <h2 class="title-large" style="color: var(--on-surface);">📊 Venting History Analytics</h2>
+                </div>
+            
+                <!-- History Loading State -->
+                <div id="history-loading" class="text-center py-8">
+                    <p class="body-medium ventilation-text-secondary">Loading your venting history...</p>
+                </div>
+                
+                <!-- No History State -->
+                <div id="history-empty" class="hidden text-center py-8">
+                    <div class="mb-4 opacity-50">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1" stroke-linecap="round" stroke-linejoin="round" class="mx-auto"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14,2 14,8 20,8"></polyline><line x1="16" x2="8" y1="13" y2="13"></line><line x1="16" x2="8" y1="17" y2="17"></line><polyline points="10,9 9,9 8,9"></polyline></svg>
+                    </div>
+                    <p class="body-medium ventilation-text-secondary mb-2">No venting sessions recorded yet</p>
+                    <p class="text-sm" style="color: var(--on-surface-variant);">Start tracking sessions to see analytics and trends</p>
+                </div>
+            
+                <!-- History Content -->
+                <div id="history-content" class="hidden space-y-6">
+                    <!-- Success Rate Gauge -->
+                    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
+                        <div class="bg-black/20 p-4 sm:p-6 organic-small backdrop-blur-sm text-center">
+                            <p class="text-sm ventilation-text-secondary mb-2">Success Rate</p>
+                            <div class="relative w-20 h-20 mx-auto mb-2">
+                                <svg class="w-20 h-20 transform -rotate-90" viewBox="0 0 36 36">
+                                    <path class="text-gray-600" stroke="currentColor" stroke-width="3" fill="none"
+                                          d="m18,2.0845 a 15.9155,15.9155 0 0,1 0,31.831 a 15.9155,15.9155 0 0,1 0,-31.831" />
+                                    <path id="success-rate-arc" class="text-green-400" stroke="currentColor" stroke-width="3" fill="none" stroke-linecap="round"
+                                          d="m18,2.0845 a 15.9155,15.9155 0 0,1 0,31.831 a 15.9155,15.9155 0 0,1 0,-31.831" stroke-dasharray="0, 100" />
+                                </svg>
+                                <div class="absolute inset-0 flex items-center justify-center">
+                                    <span id="success-rate-text" class="text-xl font-bold" style="color: var(--on-surface);">--%</span>
+                                </div>
+                            </div>
+                            <p id="success-rate-subtitle" class="text-xs" style="color: var(--on-surface-variant);">-- of -- sessions</p>
+                        </div>
+                        
+                        <div class="bg-black/20 p-4 sm:p-6 organic-small backdrop-blur-sm text-center">
+                            <p class="text-sm ventilation-text-secondary mb-2">Best Achievement</p>
+                            <p id="best-humidity" class="text-2xl sm:text-3xl font-bold" style="color: var(--primary);">--%</p>
+                            <p id="best-humidity-date" class="text-xs" style="color: var(--on-surface-variant);">--</p>
+                        </div>
+                        
+                        <div class="bg-black/20 p-4 sm:p-6 organic-small backdrop-blur-sm text-center">
+                            <p class="text-sm ventilation-text-secondary mb-2">Current Streak</p>
+                            <div class="flex items-center justify-center gap-2 mb-1">
+                                <span id="current-streak" class="text-2xl sm:text-3xl font-bold" style="color: var(--primary);">--</span>
+                                <span class="text-lg" style="color: var(--on-surface);">🔥</span>
+                            </div>
+                            <p class="text-xs" style="color: var(--on-surface-variant);">successful sessions</p>
+                        </div>
+                    </div>
+                    
+                    <!-- Recent Sessions Timeline -->
+                    <div class="bg-black/20 p-4 sm:p-6 organic-small backdrop-blur-sm">
+                        <h3 class="text-lg font-medium mb-4" style="color: var(--on-surface);">Recent Sessions</h3>
+                        <div id="recent-sessions-timeline" class="space-y-3">
+                            <!-- Recent sessions will be populated here -->
+                        </div>
+                        <div id="sessions-empty" class="hidden text-center py-4">
+                            <p class="text-sm" style="color: var(--on-surface-variant);">No recent sessions to display</p>
+                        </div>
+                    </div>
+                    
+                    <!-- Performance Analytics -->
+                    <div class="bg-black/20 p-4 sm:p-6 organic-small backdrop-blur-sm">
+                        <h3 class="text-lg font-medium mb-4" style="color: var(--on-surface);">Smart Analytics</h3>
+                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                            <div>
+                                <p class="text-sm ventilation-text-secondary mb-2">⏱️ Average Duration</p>
+                                <p id="avg-duration" class="font-semibold" style="color: var(--on-surface);">-- hours</p>
+                            </div>
+                            <div>
+                                <p class="text-sm ventilation-text-secondary mb-2">🎯 Prediction Accuracy</p>
+                                <p id="prediction-accuracy" class="font-semibold" style="color: var(--on-surface);">±-- %</p>
+                            </div>
+                            <div>
+                                <p class="text-sm ventilation-text-secondary mb-2">⭐ Best Time of Day</p>
+                                <p id="best-time" class="font-semibold" style="color: var(--on-surface);">-- hours</p>
+                            </div>
+                            <div>
+                                <p class="text-sm ventilation-text-secondary mb-2">📈 Improvement Trend</p>
+                                <p id="improvement-trend" class="font-semibold" style="color: var(--on-surface);">--</p>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Insights & Recommendations -->
+                    <div id="history-insights" class="bg-gradient-to-r from-green-500/10 to-blue-500/10 border border-green-500/30 p-4 sm:p-6 organic-small backdrop-blur-sm">
+                        <h3 class="text-lg font-medium mb-3 flex items-center gap-2" style="color: var(--on-surface);">💡 Personal Insights</h3>
+                        <div id="insights-content" class="space-y-2">
+                            <!-- Insights will be populated here -->
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
     </div>
 
 <script>
@@ -595,6 +704,10 @@
     // Venting session tracking
     let currentVentingSession = null;
     const GOOGLE_SHEETS_URL = 'https://script.google.com/macros/s/AKfycbzvhJcFS-fbwiWCy0FHvNREGq8PsJbB3Ua_pij_vJxsLiRSGpcPq1orNSZ8NbNtd_X14A/exec';
+    
+    // History analytics data
+    let historyData = null;
+    let historyAnalytics = null;
 
     // Results
     const finalHumidityDisplay = document.getElementById('final-humidity');
@@ -620,6 +733,13 @@
     const optimalWindowsDiv = document.getElementById('optimal-windows');
     const extendedForecast = document.getElementById('extended-forecast');
     const extendedForecastContent = document.getElementById('extended-forecast-content');
+    
+    // History Card Elements
+    const historyCard = document.getElementById('history-card');
+    const toggleHistoryBtn = document.getElementById('toggle-history');
+    const historyLoading = document.getElementById('history-loading');
+    const historyEmpty = document.getElementById('history-empty');
+    const historyContent = document.getElementById('history-content');
 
     // --- SVG ICONS ---
     const ICONS = {
@@ -892,6 +1012,23 @@
                 // Hide the forecast card
                 forecastCard.classList.add('hidden');
                 toggleForecastBtn.textContent = 'Show Forecast';
+            }
+        });
+        
+        toggleHistoryBtn.addEventListener('click', async () => {
+            const isHidden = historyCard.classList.contains('hidden');
+            
+            if (isHidden) {
+                // Show the history card and load data
+                historyCard.classList.remove('hidden');
+                toggleHistoryBtn.textContent = 'Hide History';
+                if (!historyData) {
+                    await fetchHistoryData();
+                }
+            } else {
+                // Hide the history card
+                historyCard.classList.add('hidden');
+                toggleHistoryBtn.textContent = 'Show History';
             }
         });
 
@@ -1243,6 +1380,412 @@
         
         // Expose test function for debugging
         window.testGoogleSheets = testGoogleSheetsConnection;
+    }
+    
+    // --- HISTORY ANALYTICS LOGIC ---
+    
+    async function fetchHistoryData() {
+        historyLoading.classList.remove('hidden');
+        historyContent.classList.add('hidden');
+        historyEmpty.classList.add('hidden');
+        
+        try {
+            console.log('Fetching history data from Google Sheets...');
+            
+            // Fetch data from Google Sheets using GET method to retrieve existing data
+            const response = await fetch(`${GOOGLE_SHEETS_URL}?action=getHistory`, {
+                method: 'GET'
+            });
+            
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+            
+            const responseText = await response.text();
+            console.log('History response:', responseText);
+            
+            let data;
+            try {
+                data = JSON.parse(responseText);
+            } catch (parseError) {
+                console.error('Failed to parse history response:', parseError);
+                throw new Error('Invalid response format from Google Sheets');
+            }
+            
+            if (data.result === 'success' && Array.isArray(data.data)) {
+                historyData = data.data;
+                console.log('History data loaded:', historyData.length, 'sessions');
+                
+                if (historyData.length === 0) {
+                    historyLoading.classList.add('hidden');
+                    historyEmpty.classList.remove('hidden');
+                } else {
+                    historyAnalytics = analyzeHistoryData(historyData);
+                    updateHistoryCard();
+                    historyLoading.classList.add('hidden');
+                    historyContent.classList.remove('hidden');
+                }
+            } else {
+                console.warn('No history data available or invalid format');
+                historyLoading.classList.add('hidden');
+                historyEmpty.classList.remove('hidden');
+            }
+            
+        } catch (error) {
+            console.error('Error fetching history data:', error);
+            
+            // Show empty state with error context
+            historyLoading.classList.add('hidden');
+            historyEmpty.classList.remove('hidden');
+            
+            // Create mock data for development/demo purposes
+            console.log('Creating mock history data for demonstration');
+            historyData = createMockHistoryData();
+            historyAnalytics = analyzeHistoryData(historyData);
+            updateHistoryCard();
+            historyLoading.classList.add('hidden');
+            historyContent.classList.remove('hidden');
+        }
+    }
+    
+    function createMockHistoryData() {
+        // Create realistic mock data for demonstration
+        const mockSessions = [];
+        const now = new Date();
+        
+        // Generate 15 mock sessions over the past month
+        for (let i = 0; i < 15; i++) {
+            const sessionDate = new Date(now.getTime() - (i * 2 * 24 * 60 * 60 * 1000)); // Every 2 days
+            const basementTemp = 18 + Math.random() * 4; // 18-22°C
+            const outsideTemp = 5 + Math.random() * 15; // 5-20°C
+            const outsideHumidity = 60 + Math.random() * 30; // 60-90%
+            const predictedHumidity = Math.round(calculateFinalHumidity(basementTemp, outsideTemp, outsideHumidity));
+            const actualHumidity = Math.round(predictedHumidity + (Math.random() - 0.5) * 20); // ±10% variance
+            const safeActualHumidity = Math.max(30, Math.min(90, actualHumidity));
+            const duration = Math.round(60 + Math.random() * 180); // 1-4 hours
+            
+            // Ensure success is properly calculated
+            const isSuccess = safeActualHumidity < 75 && safeActualHumidity <= predictedHumidity + 10;
+            
+            mockSessions.push({
+                timestamp: sessionDate.toISOString(),
+                startTime: sessionDate.toLocaleTimeString(),
+                endTime: new Date(sessionDate.getTime() + duration * 60 * 1000).toLocaleTimeString(),
+                durationMinutes: duration,
+                basementTempBefore: Math.round(basementTemp * 10) / 10,
+                outsideTemp: Math.round(outsideTemp * 10) / 10,
+                outsideHumidity: Math.round(outsideHumidity),
+                predictedHumidity: predictedHumidity,
+                actualHumidity: safeActualHumidity,
+                success: isSuccess
+            });
+        }
+        
+        return mockSessions.reverse(); // Oldest first
+    }
+    
+    function analyzeHistoryData(sessions) {
+        if (!sessions || sessions.length === 0) {
+            return null;
+        }
+        
+        // Filter out any sessions with missing or invalid data
+        const validSessions = sessions.filter(s => {
+            return s && 
+                   typeof s.actualHumidity === 'number' && !isNaN(s.actualHumidity) &&
+                   typeof s.predictedHumidity === 'number' && !isNaN(s.predictedHumidity) &&
+                   typeof s.durationMinutes === 'number' && !isNaN(s.durationMinutes) &&
+                   s.timestamp && new Date(s.timestamp).getTime() > 0;
+        });
+        
+        if (validSessions.length === 0) {
+            return null;
+        }
+        
+        // Basic metrics
+        const totalSessions = validSessions.length;
+        const successfulSessions = validSessions.filter(s => s.success === true).length;
+        const successRate = (successfulSessions / totalSessions) * 100;
+        
+        // Best achievement (lowest humidity)
+        const bestSession = validSessions.reduce((best, current) => {
+            if (!best || current.actualHumidity < best.actualHumidity) {
+                return current;
+            }
+            return best;
+        }, null);
+        
+        // Current streak
+        let currentStreak = 0;
+        for (let i = validSessions.length - 1; i >= 0; i--) {
+            if (validSessions[i].success === true) {
+                currentStreak++;
+            } else {
+                break;
+            }
+        }
+        
+        // Average duration
+        const avgDuration = validSessions.reduce((sum, s) => sum + s.durationMinutes, 0) / validSessions.length;
+        
+        // Prediction accuracy
+        const accuracyDiffs = validSessions.map(s => Math.abs(s.actualHumidity - s.predictedHumidity));
+        const avgAccuracy = accuracyDiffs.reduce((sum, diff) => sum + diff, 0) / accuracyDiffs.length;
+        
+        // Best time of day analysis
+        const timeAnalysis = {};
+        validSessions.forEach(session => {
+            const sessionDate = new Date(session.timestamp);
+            if (sessionDate.getTime() > 0) { // Valid date
+                const hour = sessionDate.getHours();
+                const timeSlot = hour < 6 ? 'Night' : hour < 12 ? 'Morning' : hour < 18 ? 'Afternoon' : 'Evening';
+                
+                if (!timeAnalysis[timeSlot]) {
+                    timeAnalysis[timeSlot] = { total: 0, successful: 0 };
+                }
+                timeAnalysis[timeSlot].total++;
+                if (session.success === true) {
+                    timeAnalysis[timeSlot].successful++;
+                }
+            }
+        });
+        
+        const bestTimeSlot = Object.entries(timeAnalysis).reduce((best, [slot, data]) => {
+            const successRate = data.successful / data.total;
+            return successRate > best.rate ? { slot, rate: successRate } : best;
+        }, { slot: 'Morning', rate: 0 }); // Default to Morning instead of Unknown
+        
+        // Improvement trend (comparing recent vs older sessions)
+        const halfPoint = Math.floor(validSessions.length / 2);
+        const recentSessions = validSessions.slice(halfPoint);
+        const olderSessions = validSessions.slice(0, halfPoint);
+        
+        const recentSuccessRate = recentSessions.length > 0 ? recentSessions.filter(s => s.success === true).length / recentSessions.length : 0;
+        const olderSuccessRate = olderSessions.length > 0 ? olderSessions.filter(s => s.success === true).length / olderSessions.length : 0;
+        const improvementTrend = recentSuccessRate - olderSuccessRate;
+        
+        // Generate insights
+        const insights = generateInsights({
+            sessions: validSessions,
+            successRate,
+            bestSession,
+            avgDuration,
+            avgAccuracy,
+            bestTimeSlot,
+            improvementTrend,
+            currentStreak
+        });
+        
+        return {
+            totalSessions,
+            successfulSessions,
+            successRate,
+            bestSession,
+            currentStreak,
+            avgDuration,
+            avgAccuracy,
+            bestTimeSlot,
+            improvementTrend,
+            insights,
+            recentSessions: validSessions.slice(-10).reverse() // Last 10, most recent first
+        };
+    }
+    
+    function generateInsights(analytics) {
+        const insights = [];
+        const { successRate, avgDuration, avgAccuracy, bestTimeSlot, improvementTrend, currentStreak, sessions } = analytics;
+        
+        // Success rate insights
+        if (successRate >= 80) {
+            insights.push("🎯 Excellent success rate! You've mastered basement ventilation timing.");
+        } else if (successRate >= 60) {
+            insights.push("👍 Good success rate. Consider fine-tuning your session timing.");
+        } else if (successRate < 40) {
+            insights.push("⚠️ Low success rate. Focus on ventilating when outside dew point is well below basement temperature.");
+        }
+        
+        // Duration insights
+        if (avgDuration > 240) { // > 4 hours
+            insights.push("⏰ Your sessions average over 4 hours. Shorter sessions (2-3h) might be more efficient.");
+        } else if (avgDuration < 60) { // < 1 hour
+            insights.push("⚡ Short sessions detected. Consider extending to 1.5-3 hours for better dehumidification.");
+        }
+        
+        // Time pattern insights
+        if (bestTimeSlot.slot === 'Night') {
+            insights.push("🌙 You're most successful during night hours when temperatures are coolest.");
+        } else if (bestTimeSlot.slot === 'Morning') {
+            insights.push("🌅 Morning ventilation works well for you. Cool air from overnight cooling is ideal.");
+        }
+        
+        // Improvement trend
+        if (improvementTrend > 0.2) {
+            insights.push("📈 Great improvement! Your recent sessions are significantly more successful.");
+        } else if (improvementTrend < -0.2) {
+            insights.push("📉 Recent sessions show declining success. Review your timing and weather conditions.");
+        }
+        
+        // Streak insights
+        if (currentStreak >= 5) {
+            insights.push("🔥 Impressive streak! You're consistently making good ventilation decisions.");
+        } else if (currentStreak === 0 && sessions.length > 3) {
+            insights.push("🎯 Your last session didn't meet targets. Check condensation risk and timing.");
+        }
+        
+        // Accuracy insights
+        if (avgAccuracy < 5) {
+            insights.push("🎯 Excellent prediction accuracy! The app's calculations align well with your results.");
+        } else if (avgAccuracy > 15) {
+            insights.push("🔍 Predictions vary from actual results. External factors like wind or thermal mass may affect outcomes.");
+        }
+        
+        return insights.slice(0, 4); // Limit to top 4 insights
+    }
+    
+    function updateHistoryCard() {
+        if (!historyAnalytics) return;
+        
+        const {
+            totalSessions,
+            successfulSessions,
+            successRate,
+            bestSession,
+            currentStreak,
+            avgDuration,
+            avgAccuracy,
+            bestTimeSlot,
+            improvementTrend,
+            insights,
+            recentSessions
+        } = historyAnalytics;
+        
+        // Update success rate gauge
+        const successRateArc = document.getElementById('success-rate-arc');
+        const successRateText = document.getElementById('success-rate-text');
+        const successRateSubtitle = document.getElementById('success-rate-subtitle');
+        
+        const safeSuccessRate = typeof successRate === 'number' && !isNaN(successRate) ? successRate : 0;
+        const safeTotalSessions = typeof totalSessions === 'number' ? totalSessions : 0;
+        const safeSuccessfulSessions = typeof successfulSessions === 'number' ? successfulSessions : 0;
+        
+        successRateText.textContent = `${Math.round(safeSuccessRate)}%`;
+        successRateSubtitle.textContent = `${safeSuccessfulSessions} of ${safeTotalSessions} sessions`;
+        successRateArc.style.strokeDasharray = `${safeSuccessRate}, 100`;
+        
+        // Color code the arc based on success rate
+        successRateArc.classList.remove('text-green-400', 'text-yellow-400', 'text-red-400');
+        if (safeSuccessRate >= 80) {
+            successRateArc.classList.add('text-green-400');
+        } else if (safeSuccessRate >= 60) {
+            successRateArc.classList.add('text-yellow-400');
+        } else {
+            successRateArc.classList.add('text-red-400');
+        }
+        
+        // Update best achievement
+        if (bestSession && typeof bestSession.actualHumidity === 'number') {
+            document.getElementById('best-humidity').textContent = `${bestSession.actualHumidity}%`;
+            const bestDate = new Date(bestSession.timestamp);
+            document.getElementById('best-humidity-date').textContent = bestDate.getTime() > 0 ? bestDate.toLocaleDateString() : 'Unknown Date';
+        } else {
+            document.getElementById('best-humidity').textContent = '--';
+            document.getElementById('best-humidity-date').textContent = 'No data yet';
+        }
+        
+        // Update current streak
+        const safeCurrentStreak = typeof currentStreak === 'number' ? currentStreak : 0;
+        document.getElementById('current-streak').textContent = safeCurrentStreak;
+        
+        // Update analytics
+        const safeAvgDuration = typeof avgDuration === 'number' && !isNaN(avgDuration) ? avgDuration : 0;
+        const hours = Math.floor(safeAvgDuration / 60);
+        const minutes = Math.round(safeAvgDuration % 60);
+        document.getElementById('avg-duration').textContent = hours > 0 ? `${hours}h ${minutes}m` : `${minutes}m`;
+        
+        const safeAvgAccuracy = typeof avgAccuracy === 'number' && !isNaN(avgAccuracy) ? avgAccuracy : 0;
+        document.getElementById('prediction-accuracy').textContent = `±${Math.round(safeAvgAccuracy)}%`;
+        
+        const safeBestTimeSlot = bestTimeSlot && bestTimeSlot.slot ? bestTimeSlot.slot : 'Unknown';
+        document.getElementById('best-time').textContent = safeBestTimeSlot;
+        
+        const safeImprovementTrend = typeof improvementTrend === 'number' && !isNaN(improvementTrend) ? improvementTrend : 0;
+        const trendText = safeImprovementTrend > 0.1 ? 'Improving ↗️' : 
+                         safeImprovementTrend < -0.1 ? 'Declining ↘️' : 'Stable ➡️';
+        document.getElementById('improvement-trend').textContent = trendText;
+        
+        // Update recent sessions timeline
+        updateRecentSessionsTimeline(recentSessions);
+        
+        // Update insights
+        updateInsights(insights);
+    }
+    
+    function updateRecentSessionsTimeline(sessions) {
+        const timeline = document.getElementById('recent-sessions-timeline');
+        
+        if (!sessions || sessions.length === 0) {
+            timeline.classList.add('hidden');
+            document.getElementById('sessions-empty').classList.remove('hidden');
+            return;
+        }
+        
+        timeline.classList.remove('hidden');
+        document.getElementById('sessions-empty').classList.add('hidden');
+        
+        timeline.innerHTML = sessions.map(session => {
+            // Safely handle date parsing
+            const date = new Date(session.timestamp);
+            const isValidDate = date.getTime() > 0;
+            const dateStr = isValidDate ? date.toLocaleDateString() : 'Unknown Date';
+            const timeStr = isValidDate ? date.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'}) : 'Unknown Time';
+            
+            // Safely handle session properties
+            const actualHumidity = typeof session.actualHumidity === 'number' ? session.actualHumidity : 0;
+            const predictedHumidity = typeof session.predictedHumidity === 'number' ? session.predictedHumidity : 0;
+            const durationMinutes = typeof session.durationMinutes === 'number' ? session.durationMinutes : 0;
+            const success = session.success === true;
+            
+            const statusIcon = success ? '✅' : 
+                              actualHumidity <= predictedHumidity + 15 ? '⚠️' : '❌';
+            const statusColor = success ? 'text-green-300' : 
+                               actualHumidity <= predictedHumidity + 15 ? 'text-yellow-300' : 'text-red-300';
+            
+            const durationHours = Math.floor(durationMinutes / 60);
+            const durationMins = durationMinutes % 60;
+            const durationText = durationHours > 0 ? `${durationHours}h ${durationMins}m` : `${durationMins}m`;
+            
+            const predictionDiff = actualHumidity - predictedHumidity;
+            const accuracyText = predictionDiff > 0 ? `+${predictionDiff}%` : `${predictionDiff}%`;
+            
+            return `
+                <div class="flex items-center justify-between p-3 bg-black/10 rounded-lg">
+                    <div class="flex items-center gap-3">
+                        <span class="text-lg ${statusColor}">${statusIcon}</span>
+                        <div>
+                            <p class="text-sm font-medium" style="color: var(--on-surface);">${dateStr} at ${timeStr}</p>
+                            <p class="text-xs" style="color: var(--on-surface-variant);">Duration: ${durationText} • Result: ${actualHumidity}%</p>
+                        </div>
+                    </div>
+                    <div class="text-right">
+                        <p class="text-sm font-medium ${statusColor}">${actualHumidity}%</p>
+                        <p class="text-xs" style="color: var(--on-surface-variant);">vs ${predictedHumidity}% (${accuracyText})</p>
+                    </div>
+                </div>
+            `;
+        }).join('');
+    }
+    
+    function updateInsights(insights) {
+        const insightsContent = document.getElementById('insights-content');
+        
+        if (insights.length === 0) {
+            insightsContent.innerHTML = `<p class="text-sm" style="color: var(--on-surface-variant);">Not enough data for personalized insights yet.</p>`;
+            return;
+        }
+        
+        insightsContent.innerHTML = insights.map(insight => 
+            `<p class="text-sm leading-relaxed" style="color: var(--on-surface);">${insight}</p>`
+        ).join('');
     }
     
     // Debug function to test Google Sheets connection

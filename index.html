@@ -594,7 +594,7 @@
     
     // Venting session tracking
     let currentVentingSession = null;
-    const GOOGLE_SHEETS_URL = 'https://script.google.com/macros/s/AKfycbwNnHJlHK58I6IDNCxzPyThtoJwb1vycIWKNeNx-9oAbblhCDaDOKI2el_0DjC1iSXvyw/exec';
+    const GOOGLE_SHEETS_URL = 'https://script.google.com/macros/s/AKfycbzvhJcFS-fbwiWCy0FHvNREGq8PsJbB3Ua_pij_vJxsLiRSGpcPq1orNSZ8NbNtd_X14A/exec';
 
     // Results
     const finalHumidityDisplay = document.getElementById('final-humidity');
@@ -1133,10 +1133,8 @@
             // Send to Google Sheets
             const response = await fetch(GOOGLE_SHEETS_URL, {
                 method: 'POST',
-                mode: 'cors',
-                cache: 'no-cache',
                 headers: {
-                    'Content-Type': 'application/json'
+                    'Content-Type': 'text/plain'
                 },
                 body: JSON.stringify(sessionData)
             });
@@ -1267,9 +1265,8 @@
         try {
             const response = await fetch(GOOGLE_SHEETS_URL, {
                 method: 'POST',
-                mode: 'cors',
                 headers: {
-                    'Content-Type': 'application/json'
+                    'Content-Type': 'text/plain'
                 },
                 body: JSON.stringify(testData)
             });

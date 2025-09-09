@@ -180,6 +180,11 @@ const forecastData = {
    - Moved toggle button outside card structure
    - Added missing initialize() and setupEventListeners() functions
    - Toggle now works properly: "Show Forecast" ↔ "Hide Forecast"
+6. ✅ **ADDED: Animated status indicators support**
+   - Added support for both animated GIFs and videos
+   - Flexible system: switch between formats with useVideo flag
+   - Maintains responsive design and all existing styling
+   - Created comprehensive animation guide (ANIMATION_GUIDE.md)
 
 **Medium Priority**  
 4. Enhanced visual design with charts

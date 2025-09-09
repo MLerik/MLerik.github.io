@@ -1,0 +1,222 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Villa Kunterbunt Video Generator</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            background: #111827;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            font-family: Arial, sans-serif;
+        }
+        
+        .container {
+            text-align: center;
+            color: white;
+        }
+        
+        .video-canvas {
+            width: 300px;
+            height: 300px;
+            border: 2px solid #333;
+            border-radius: 50%;
+            overflow: hidden;
+            margin: 20px auto;
+            position: relative;
+            background: #000;
+        }
+        
+        .animation-circle {
+            width: 200px;
+            height: 200px;
+            border-radius: 50%;
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            opacity: 0.8;
+        }
+        
+        /* Good Animation - Gentle Pulse */
+        .good {
+            background: radial-gradient(circle, #4caf50 0%, #2e7d32 70%, transparent 100%);
+            animation: gentle-pulse 3s ease-in-out infinite;
+        }
+        
+        @keyframes gentle-pulse {
+            0%, 100% { 
+                transform: translate(-50%, -50%) scale(1);
+                opacity: 0.7;
+            }
+            50% { 
+                transform: translate(-50%, -50%) scale(1.1);
+                opacity: 0.9;
+            }
+        }
+        
+        /* Caution Animation - Warning Pulse */
+        .caution {
+            background: radial-gradient(circle, #ff9800 0%, #f57c00 70%, transparent 100%);
+            animation: warning-pulse 2s ease-in-out infinite;
+        }
+        
+        @keyframes warning-pulse {
+            0%, 100% { 
+                transform: translate(-50%, -50%) scale(1);
+                opacity: 0.6;
+            }
+            50% { 
+                transform: translate(-50%, -50%) scale(1.15);
+                opacity: 1;
+            }
+        }
+        
+        /* Danger Animation - Urgent Pulse */
+        .danger {
+            background: radial-gradient(circle, #f44336 0%, #c62828 70%, transparent 100%);
+            animation: urgent-pulse 1.5s ease-in-out infinite;
+        }
+        
+        @keyframes urgent-pulse {
+            0%, 100% { 
+                transform: translate(-50%, -50%) scale(1);
+                opacity: 0.8;
+            }
+            50% { 
+                transform: translate(-50%, -50%) scale(1.2);
+                opacity: 1;
+            }
+        }
+        
+        .controls {
+            margin: 20px;
+        }
+        
+        button {
+            background: #333;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            margin: 5px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 14px;
+        }
+        
+        button.active {
+            background: #4caf50;
+        }
+        
+        .instructions {
+            max-width: 600px;
+            margin: 20px auto;
+            padding: 20px;
+            background: #1f2937;
+            border-radius: 10px;
+            text-align: left;
+            line-height: 1.5;
+        }
+        
+        .recording-tip {
+            background: #059669;
+            padding: 15px;
+            border-radius: 8px;
+            margin: 15px 0;
+            text-align: center;
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🎬 Villa Kunterbunt Video Generator</h1>
+        
+        <div class="recording-tip">
+            📹 Use screen recording software to capture each animation as MP4
+        </div>
+        
+        <div class="video-canvas" id="canvas">
+            <div class="animation-circle good" id="animation"></div>
+        </div>
+        
+        <div class="controls">
+            <button id="good-btn" class="active" onclick="showAnimation('good')">🟢 Good Status</button>
+            <button id="caution-btn" onclick="showAnimation('caution')">🟡 Caution Status</button>
+            <button id="danger-btn" onclick="showAnimation('danger')">🔴 Danger Status</button>
+        </div>
+        
+        <div class="instructions">
+            <h3>📋 Recording Instructions:</h3>
+            <ol>
+                <li><strong>Choose Animation:</strong> Click the buttons above to switch between status animations</li>
+                <li><strong>Start Recording:</strong> Use screen recording software (QuickTime on Mac, OBS, or Windows Game Bar)</li>
+                <li><strong>Record the Circle:</strong> Focus your recording on just the circular animation area</li>
+                <li><strong>Duration:</strong> Record for 3-4 seconds to capture full animation loops</li>
+                <li><strong>Save Format:</strong> Export as MP4, 300x300px resolution</li>
+                <li><strong>File Names:</strong> Save as <code>good.mp4</code>, <code>caution.mp4</code>, <code>danger.mp4</code></li>
+                <li><strong>Location:</strong> Place files in your <code>images/</code> folder</li>
+            </ol>
+            
+            <h3>🛠️ Screen Recording Tools:</h3>
+            <ul>
+                <li><strong>Mac:</strong> QuickTime Player → File → New Screen Recording</li>
+                <li><strong>Windows:</strong> Windows + G (Game Bar) or Windows + Alt + R</li>
+                <li><strong>Free Software:</strong> OBS Studio (all platforms)</li>
+                <li><strong>Online:</strong> Loom, ScreenPal, or similar</li>
+            </ul>
+            
+            <h3>✅ Quality Tips:</h3>
+            <ul>
+                <li>Record at high quality, then compress if needed</li>
+                <li>Ensure smooth animation (no lag during recording)</li>
+                <li>Keep file sizes under 2MB each</li>
+                <li>Test the loop seamlessly (no visible "jump")</li>
+            </ul>
+        </div>
+    </div>
+    
+    <script>
+        function showAnimation(type) {
+            const animation = document.getElementById('animation');
+            const buttons = document.querySelectorAll('button');
+            
+            // Remove all classes
+            animation.className = 'animation-circle';
+            buttons.forEach(btn => btn.classList.remove('active'));
+            
+            // Add new class and activate button
+            animation.classList.add(type);
+            document.getElementById(type + '-btn').classList.add('active');
+            
+            // Update page title for easy identification while recording
+            document.title = `Recording ${type.charAt(0).toUpperCase() + type.slice(1)} Status - Villa Kunterbunt`;
+        }
+        
+        // Auto-cycle through animations for preview (optional)
+        let autoCycle = false;
+        let currentIndex = 0;
+        const animations = ['good', 'caution', 'danger'];
+        
+        function startAutoCycle() {
+            if (autoCycle) return;
+            autoCycle = true;
+            
+            setInterval(() => {
+                if (autoCycle) {
+                    currentIndex = (currentIndex + 1) % animations.length;
+                    showAnimation(animations[currentIndex]);
+                }
+            }, 4000);
+        }
+        
+        // Uncomment the line below to auto-cycle through animations
+        // startAutoCycle();
+    </script>
+</body>
+</html>

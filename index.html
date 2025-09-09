@@ -456,9 +456,17 @@
                         
                         <!-- Humidity Bars -->
                         <div class="mb-4">
-                            <p class="text-xs sm:text-sm ventilation-text-secondary mb-2">Humidity (%)</p>
+                            <p class="text-xs sm:text-sm ventilation-text-secondary mb-2">Outside Humidity (%)</p>
                             <div class="h-12 sm:h-16 relative flex items-end justify-between humidity-chart-mobile" id="humidity-chart">
                                 <!-- Humidity bars will be added here -->
+                            </div>
+                        </div>
+                        
+                        <!-- Basement Humidity Prediction -->
+                        <div class="mb-4">
+                            <p class="text-xs sm:text-sm ventilation-text-secondary mb-2">Predicted Basement Humidity (%)</p>
+                            <div class="h-12 sm:h-16 relative flex items-end justify-between humidity-chart-mobile" id="basement-humidity-chart">
+                                <!-- Basement humidity bars will be added here -->
                             </div>
                         </div>
                         
@@ -1200,6 +1208,7 @@
         setTimeout(() => {
             updateTemperatureChart();
             updateHumidityChart();
+            updateBasementHumidityChart();
             updateQualityZones();
             updateTimeLabels();
             updateOptimalWindows();
@@ -1273,6 +1282,35 @@
             return `
                 <div class="flex flex-col items-center flex-1 min-w-0"> 
                     <div class="${barWidth} rounded-t mx-auto" style="height: ${height}px; background-color: ${color}; opacity: 0.7; max-width: 100%;"></div>
+                    <span class="${fontSize} mt-1 truncate" style="color: var(--on-surface-variant);">${humidity}%</span>
+                </div>
+            `;
+        }).join('');
+    }
+    
+    function updateBasementHumidityChart() {
+        const basementHumidities = forecastData.hours.map(h => h.finalHumidity);
+        const maxBasementHumidity = Math.max(...basementHumidities, 100); // Ensure scale goes to at least 100%
+        const isMobile = window.innerWidth < 640;
+        const chartHeight = isMobile ? 48 : 64; // Responsive height
+        
+        const basementHumidityChart = document.getElementById('basement-humidity-chart');
+        basementHumidityChart.innerHTML = basementHumidities.map((humidity, i) => {
+            const height = (humidity / maxBasementHumidity) * chartHeight;
+            // Color coding based on basement humidity levels (more stringent than outside humidity)
+            let color = '#4caf50'; // Good (green)
+            if (humidity >= 75) {
+                color = '#f44336'; // High/Bad (red) - promotes mold
+            } else if (humidity >= 60) {
+                color = '#ff9800'; // Moderate (orange/yellow) - caution level
+            }
+            
+            const barWidth = isMobile ? 'w-6' : 'w-8';
+            const fontSize = isMobile ? 'text-xs' : 'text-xs';
+            
+            return `
+                <div class="flex flex-col items-center flex-1 min-w-0"> 
+                    <div class="${barWidth} rounded-t mx-auto" style="height: ${height}px; background-color: ${color}; opacity: 0.8; max-width: 100%;"></div>
                     <span class="${fontSize} mt-1 truncate" style="color: var(--on-surface-variant);">${humidity}%</span>
                 </div>
             `;

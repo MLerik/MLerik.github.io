@@ -774,7 +774,16 @@
             tempIn = parseFloat(basementTempAutoSlider.value);
             tempOut = parseFloat(autoTempOutDisplay.textContent);
             rhOut = parseFloat(autoRhOutDisplay.textContent);
-            if (isNaN(tempOut) || isNaN(rhOut)) return;
+            if (isNaN(tempOut) || isNaN(rhOut) || autoTempOutDisplay.textContent === '--') {
+                // No weather data available, show placeholder results
+                finalHumidityDisplay.textContent = '--%';
+                recommendationTitle.textContent = 'No Weather Data';
+                recommendationSummary.textContent = 'Unable to provide recommendations without live weather data. Please switch to manual mode.';
+                recommendationBox.className = 'flex items-center p-4 rounded-xl transition-all duration-300 bg-gray-500/20 text-gray-300';
+                recommendationIcon.innerHTML = ICONS.warning;
+                applyVentilationTheme('caution');
+                return;
+            }
         } else {
             tempIn = parseFloat(tempInSlider.value);
             tempOut = parseFloat(tempOutSlider.value);
@@ -1041,9 +1050,13 @@
                 autoModeDiv.classList.add('hidden');
                 manualModeDiv.classList.remove('hidden');
                 currentWeatherTrend = null; // Clear weather trend when switching to manual
-                sampleDataWarning.classList.add('hidden'); // Hide sample data warning in manual mode
                 forecastCard.classList.add('hidden'); // Hide forecast card in manual mode
                 toggleForecastBtn.textContent = 'Show Forecast'; // Reset button text
+                
+                // Clear any error messages from auto mode
+                loadingMessage.classList.add('hidden');
+                loadingMessage.innerHTML = 'Fetching live weather data...';
+                
                 updateUI();
             }
         });
@@ -1129,24 +1142,40 @@
         } catch (error) {
             console.error('Weather API Error:', error);
             
-            // Fallback to mock data if API fails
-            autoTempOutDisplay.textContent = '16.5';
-            autoRhOutDisplay.textContent = '85';
-            autoDewPointDisplay.textContent = '14.2';
-            currentWeatherTrend = null; // No trend data available in fallback
-            loadingMessage.textContent = '⚠️ Using sample data (API unavailable)';
-            sampleDataWarning.classList.remove('hidden'); // Show persistent warning
+            // Clear any existing data displays
+            autoTempOutDisplay.textContent = '--';
+            autoRhOutDisplay.textContent = '--';
+            autoDewPointDisplay.textContent = '--';
+            currentWeatherTrend = null;
             
+            // Show error message with manual mode suggestion
+            loadingMessage.innerHTML = `
+                <div class="text-center space-y-3">
+                    <p class="text-red-300 font-medium">⚠️ Unable to fetch live weather data</p>
+                    <p class="text-sm" style="color: var(--on-surface-variant);">API temporarily unavailable. Please switch to manual mode below.</p>
+                    <button id="switch-to-manual-btn" class="px-4 py-2 bg-blue-500 hover:bg-blue-600 text-white text-sm font-medium rounded-lg transition-colors">
+                        Switch to Manual Mode
+                    </button>
+                </div>
+            `;
+            
+            // Add event listener to switch to manual mode
             setTimeout(() => {
-                loadingMessage.classList.add('hidden');
-            }, 3000);
+                const switchBtn = document.getElementById('switch-to-manual-btn');
+                if (switchBtn) {
+                    switchBtn.addEventListener('click', () => {
+                        modeSwitch.checked = false;
+                        modeSwitch.dispatchEvent(new Event('change'));
+                    });
+                }
+            }, 100);
             
-            weatherDataContainer.classList.remove('hidden');
+            // Keep weather container hidden - no data to show
+            weatherDataContainer.classList.add('hidden');
             
-            // Create mock forecast data for the forecast card when API fails
-            await createMockForecastData();
-            
-            updateUI();
+            // Hide forecast card since we have no data
+            forecastCard.classList.add('hidden');
+            toggleForecastBtn.textContent = 'Show Forecast';
         }
     }
 

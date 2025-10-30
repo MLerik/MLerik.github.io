@@ -378,9 +378,12 @@
                 <h2 class="title-large mb-4 text-center" style="color: var(--on-surface);">Basement Air Quality</h2>
 
                 <!-- Airthings Data Display -->
-                <div id="airthings-data" class="mb-6 p-4 organic-small" style="background: color-mix(in srgb, var(--surface-container-high) 50%, transparent 50%);">
+                <div id="airthings-data" class="p-4 organic-small" style="background: color-mix(in srgb, var(--surface-container-high) 50%, transparent 50%);">
                     <div class="flex items-center justify-between mb-3">
-                        <h3 class="label-large" style="color: var(--on-surface);">🏠 Basement (Airthings)</h3>
+                        <h3 class="label-large flex items-center gap-2" style="color: var(--on-surface);">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" x2="18" y1="20" y2="10"></line><line x1="12" x2="12" y1="20" y2="4"></line><line x1="6" x2="6" y1="20" y2="14"></line></svg>
+                            Current Readings
+                        </h3>
                         <div id="airthings-status" class="text-xs px-2 py-1 rounded-full" style="background: color-mix(in srgb, var(--primary) 20%, transparent 80%); color: var(--primary);">
                             Loading...
                         </div>
@@ -393,38 +396,22 @@
                         </div>
                         <div>
                             <p class="text-xs ventilation-text-secondary">Humidity</p>
-                            <p id="airthings-humidity" class="text-xl font-semibold" style="color: var(--primary);">--%</p>
+                            <div class="flex items-center gap-2">
+                                <p id="airthings-humidity" class="text-xl font-semibold" style="color: var(--primary);">--%</p>
+                                <span id="humidity-trend" class="text-sm">-</span>
+                            </div>
                         </div>
                         <div>
                             <p class="text-xs ventilation-text-secondary">VOC</p>
-                            <p id="airthings-voc" class="text-sm" style="color: var(--on-surface);">-- ppb</p>
+                            <div class="flex items-center gap-2">
+                                <p id="airthings-voc" class="text-sm" style="color: var(--on-surface);">-- ppb</p>
+                                <span id="voc-trend" class="text-xs">-</span>
+                            </div>
                         </div>
                         <div>
                             <p class="text-xs ventilation-text-secondary">Mold Risk</p>
                             <p id="airthings-mold" class="text-sm" style="color: var(--on-surface);">--/10</p>
                         </div>
-                    </div>
-                </div>
-
-                <!-- Weather Data Display -->
-                <div id="weather-loading" class="text-center py-4">
-                    <p class="body-medium ventilation-text-secondary">Fetching weather data...</p>
-                </div>
-
-                <div id="weather-data" class="hidden space-y-4">
-                    <div class="grid grid-cols-2 gap-4">
-                        <div>
-                            <p class="label-large mb-2 ventilation-text-secondary">Outside Temp</p>
-                            <p id="outside-temp" class="text-2xl font-semibold" style="color: var(--on-surface);">--°C</p>
-                        </div>
-                        <div>
-                            <p class="label-large mb-2 ventilation-text-secondary">Outside Humidity</p>
-                            <p id="outside-humidity" class="text-2xl font-semibold" style="color: var(--on-surface);">--%</p>
-                        </div>
-                    </div>
-                    <div>
-                        <p class="label-large mb-2 ventilation-text-secondary">Outside Dew Point</p>
-                        <p id="outside-dewpoint" class="text-xl" style="color: var(--on-surface);">--°C</p>
                     </div>
                 </div>
             </div>
@@ -437,6 +424,34 @@
                 </div>
 
                 <h2 class="title-large mb-4 text-center" style="color: var(--on-surface);">Ventilation Recommendation</h2>
+
+                <!-- Weather Data Display -->
+                <div id="weather-loading" class="text-center py-4 mb-4">
+                    <p class="body-medium ventilation-text-secondary">Fetching weather data...</p>
+                </div>
+
+                <div id="weather-data" class="hidden mb-6 p-4 organic-small" style="background: color-mix(in srgb, var(--surface-container-high) 50%, transparent 50%);">
+                    <h3 class="label-large mb-3 flex items-center gap-2" style="color: var(--on-surface);">
+                        <span id="weather-icon">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="4"></circle><path d="M12 2v2"></path><path d="M12 20v2"></path><path d="m4.93 4.93 1.41 1.41"></path><path d="m17.66 17.66 1.41 1.41"></path><path d="M2 12h2"></path><path d="M20 12h2"></path><path d="m6.34 17.66-1.41 1.41"></path><path d="m19.07 4.93-1.41 1.41"></path></svg>
+                        </span>
+                        Outside Conditions
+                    </h3>
+                    <div class="grid grid-cols-2 gap-3">
+                        <div>
+                            <p class="text-xs ventilation-text-secondary">Temperature</p>
+                            <p id="outside-temp" class="text-xl font-semibold" style="color: var(--on-surface);">--°C</p>
+                        </div>
+                        <div>
+                            <p class="text-xs ventilation-text-secondary">Humidity</p>
+                            <p id="outside-humidity" class="text-xl font-semibold" style="color: var(--on-surface);">--%</p>
+                        </div>
+                        <div class="col-span-2">
+                            <p class="text-xs ventilation-text-secondary">Dew Point</p>
+                            <p id="outside-dewpoint" class="text-lg" style="color: var(--on-surface);">--°C</p>
+                        </div>
+                    </div>
+                </div>
 
                 <div class="text-center mb-6">
                     <p class="label-large ventilation-text-secondary">Expected Basement Humidity</p>
@@ -500,6 +515,7 @@
     // Weather elements
     const weatherLoading = document.getElementById('weather-loading');
     const weatherData = document.getElementById('weather-data');
+    const weatherIcon = document.getElementById('weather-icon');
     const outsideTemp = document.getElementById('outside-temp');
     const outsideHumidity = document.getElementById('outside-humidity');
     const outsideDewpoint = document.getElementById('outside-dewpoint');
@@ -526,6 +542,45 @@
         bad: `<svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M10 15v7a3 3 0 0 0 3 3l4-9V2H5.72a2 2 0 0 0-2 1.7l-1.38 9a2 2 0 0 0 2 2.3zm7-13h3a2 2 0 0 1 2 2v7a2 2 0 0 1-2 2h-3"></path></svg>`,
         warning: `<svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="m21.73 18-8-14a2 2 0 0 0-3.46 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z"></path><line x1="12" x2="12" y1="9" y2="13"></line><line x1="12" x2="12.01" y1="17" y2="17"></line></svg>`
     };
+
+    // Weather icon mapping based on WMO Weather codes
+    // https://open-meteo.com/en/docs
+    function getWeatherIcon(weatherCode) {
+        // Clear sky
+        if (weatherCode === 0) {
+            return '<svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="4"></circle><path d="M12 2v2"></path><path d="M12 20v2"></path><path d="m4.93 4.93 1.41 1.41"></path><path d="m17.66 17.66 1.41 1.41"></path><path d="M2 12h2"></path><path d="M20 12h2"></path><path d="m6.34 17.66-1.41 1.41"></path><path d="m19.07 4.93-1.41 1.41"></path></svg>';
+        }
+        // Partly cloudy
+        if (weatherCode === 1 || weatherCode === 2) {
+            return '<svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2v2"></path><path d="m4.93 4.93 1.41 1.41"></path><path d="M20 12h2"></path><path d="m19.07 4.93-1.41 1.41"></path><path d="M15.947 12.65a4 4 0 0 0-5.925-4.128"></path><path d="M13 22H7a5 5 0 1 1 4.9-6H13a3 3 0 0 1 0 6Z"></path></svg>';
+        }
+        // Overcast
+        if (weatherCode === 3) {
+            return '<svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17.5 19H9a7 7 0 1 1 6.71-9h1.79a4.5 4.5 0 1 1 0 9Z"></path></svg>';
+        }
+        // Fog
+        if (weatherCode === 45 || weatherCode === 48) {
+            return '<svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 14.899A7 7 0 1 1 15.71 8h1.79a4.5 4.5 0 0 1 2.5 8.242"></path><path d="M16 17H7"></path><path d="M17 21H9"></path></svg>';
+        }
+        // Drizzle
+        if (weatherCode >= 51 && weatherCode <= 57) {
+            return '<svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 14.899A7 7 0 1 1 15.71 8h1.79a4.5 4.5 0 0 1 2.5 8.242"></path><path d="M8 19v1"></path><path d="M8 14v1"></path><path d="M16 19v1"></path><path d="M16 14v1"></path><path d="M12 21v1"></path><path d="M12 16v1"></path></svg>';
+        }
+        // Rain
+        if ((weatherCode >= 61 && weatherCode <= 67) || (weatherCode >= 80 && weatherCode <= 82)) {
+            return '<svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 14.899A7 7 0 1 1 15.71 8h1.79a4.5 4.5 0 0 1 2.5 8.242"></path><path d="M16 14v6"></path><path d="M8 14v6"></path><path d="M12 16v6"></path></svg>';
+        }
+        // Snow
+        if ((weatherCode >= 71 && weatherCode <= 77) || (weatherCode >= 85 && weatherCode <= 86)) {
+            return '<svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 14.899A7 7 0 1 1 15.71 8h1.79a4.5 4.5 0 0 1 2.5 8.242"></path><path d="M8 15h.01"></path><path d="M8 19h.01"></path><path d="M12 17h.01"></path><path d="M12 21h.01"></path><path d="M16 15h.01"></path><path d="M16 19h.01"></path></svg>';
+        }
+        // Thunderstorm
+        if (weatherCode >= 95 && weatherCode <= 99) {
+            return '<svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 16.326A7 7 0 1 1 15.71 8h1.79a4.5 4.5 0 0 1 .5 8.973"></path><path d="m13 12-3 5h4l-3 5"></path></svg>';
+        }
+        // Default: cloud
+        return '<svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17.5 19H9a7 7 0 1 1 6.71-9h1.79a4.5 4.5 0 1 1 0 9Z"></path></svg>';
+    }
 
     // --- CORE CALCULATIONS ---
     function calculateFinalHumidity(tempIn, tempOut, rhOut) {
@@ -645,7 +700,7 @@
             weatherData.classList.add('hidden');
 
             console.log('Fetching weather data...');
-            const url = `${WEATHER_API_URL}?latitude=${THUN_LAT}&longitude=${THUN_LON}&current=temperature_2m,relative_humidity_2m,dewpoint_2m&timezone=Europe/Berlin`;
+            const url = `${WEATHER_API_URL}?latitude=${THUN_LAT}&longitude=${THUN_LON}&current=temperature_2m,relative_humidity_2m,dewpoint_2m,weather_code&timezone=Europe/Berlin`;
 
             const response = await fetch(url);
 
@@ -662,6 +717,11 @@
             outsideTemp.textContent = `${Math.round(weatherCurrentData.temperature_2m)}°C`;
             outsideHumidity.textContent = `${Math.round(weatherCurrentData.relative_humidity_2m)}%`;
             outsideDewpoint.textContent = `${Math.round(weatherCurrentData.dewpoint_2m)}°C`;
+
+            // Update weather icon based on weather code
+            if (weatherCurrentData.weather_code !== undefined) {
+                weatherIcon.innerHTML = getWeatherIcon(weatherCurrentData.weather_code);
+            }
 
             weatherLoading.classList.add('hidden');
             weatherData.classList.remove('hidden');
@@ -745,6 +805,15 @@
         const finalHumidity = calculateFinalHumidity(basementTemp, outsideTempValue, outsideHumidityValue);
         finalHumidityDisplay.textContent = `${finalHumidity}%`;
 
+        // Color the expected humidity based on its value (matching basement humidity thresholds)
+        if (finalHumidity >= 65) {
+            finalHumidityDisplay.style.color = '#ef4444'; // danger red
+        } else if (finalHumidity >= 55) {
+            finalHumidityDisplay.style.color = '#f59e0b'; // caution orange
+        } else {
+            finalHumidityDisplay.style.color = '#4caf50'; // good green
+        }
+
         // Calculate recommended ventilation duration
         const humidityDiff = basementHumidity - finalHumidity;
         const ventilationDuration = calculateVentilationDuration(humidityDiff, basementHumidity, basementVoc);
@@ -766,33 +835,33 @@
             summary = 'Condensation risk detected';
             icon = ICONS.bad;
             theme = 'danger';
-            advice = `🚫 The outside dew point (${Math.round(outsideDewpointValue)}°C) is higher than your basement temperature (${basementTemp}°C). Opening windows will cause condensation and mold growth.`;
+            advice = `The outside dew point (${Math.round(outsideDewpointValue)}°C) is higher than your basement temperature (${basementTemp}°C). Opening windows will cause condensation and mold growth.`;
         } else if (finalHumidity >= 75) {
             recommendation = 'bad';
             title = 'Do Not Ventilate';
             summary = 'Humidity will increase significantly';
             icon = ICONS.bad;
             theme = 'danger';
-            advice = `❌ Ventilating now would raise basement humidity to ${finalHumidity}%, which is too high (target: <60%, acceptable: <75%). Wait for better conditions.`;
+            advice = `Ventilating now would raise basement humidity to ${finalHumidity}%, which is too high (target: <60%, acceptable: <75%). Wait for better conditions.`;
         } else if (finalHumidity >= 60 && finalHumidity < 75) {
             recommendation = 'caution';
             title = 'Ventilate with Caution';
             summary = 'Moderate improvement expected';
             icon = ICONS.warning;
             theme = 'caution';
-            advice = `⚠️ Ventilating will result in ${finalHumidity}% humidity (acceptable but not optimal). Current basement: ${basementHumidity}%. Consider waiting for better conditions if possible.`;
+            advice = `Ventilating will result in ${finalHumidity}% humidity (acceptable but not optimal). Current basement: ${basementHumidity}%. Consider waiting for better conditions if possible.`;
         } else {
             recommendation = 'good';
             title = 'Good Time to Ventilate';
             summary = 'Optimal conditions';
             icon = ICONS.good;
             theme = 'good';
-            advice = `✅ Excellent ventilation conditions! Expected humidity: ${finalHumidity}% (optimal: <55%). Current basement: ${basementHumidity}%. ⏱️ Recommended duration: ${formatDuration(ventilationDuration)}.`;
+            advice = `Excellent ventilation conditions! Expected humidity: ${finalHumidity}% (optimal: <55%). Current basement: ${basementHumidity}%. Recommended duration: ${formatDuration(ventilationDuration)}.`;
         }
 
         // Add duration to caution message
         if (recommendation === 'caution') {
-            advice += ` ⏱️ If you proceed, ventilate for about ${formatDuration(ventilationDuration)}.`;
+            advice += ` If you proceed, ventilate for about ${formatDuration(ventilationDuration)}.`;
         }
 
         // Add VOC and mold risk context
@@ -800,7 +869,7 @@
             advice += ` Your VOC level (${airthingsData.data.voc} ppb) is elevated - ventilating will help improve air quality.`;
         }
         if (airthingsData.data.mold && airthingsData.data.mold > 5) {
-            advice += ` ⚠️ Mold risk is ${airthingsData.data.mold}/10 - prioritize ventilation when conditions allow.`;
+            advice += ` Mold risk is ${airthingsData.data.mold}/10 - prioritize ventilation when conditions allow.`;
         }
 
         // Update UI

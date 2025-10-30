@@ -51,7 +51,7 @@
   // ============================================================================
 
   /**
-   * Get real-time data from Airthings Wave Mini device
+   * Get real-time and 24h historical data from Airthings Wave Mini device
    */
   function getAirthingsData() {
     try {
@@ -63,9 +63,9 @@
       }
 
       // Fetch latest samples from device
-      const url = `${AIRTHINGS_API_BASE}/devices/${deviceSerial}/latest-samples`;
+      const latestUrl = `${AIRTHINGS_API_BASE}/devices/${deviceSerial}/latest-samples`;
 
-      const response = UrlFetchApp.fetch(url, {
+      const latestResponse = UrlFetchApp.fetch(latestUrl, {
         method: 'get',
         headers: {
           'Authorization': 'Bearer ' + accessToken,
@@ -74,15 +74,35 @@
         muteHttpExceptions: true
       });
 
-      const responseCode = response.getResponseCode();
-      const responseText = response.getContentText();
-
-      if (responseCode !== 200) {
-        Logger.log('Airthings API error: ' + responseCode + ' - ' + responseText);
-        throw new Error('Airthings API returned error ' + responseCode);
+      if (latestResponse.getResponseCode() !== 200) {
+        Logger.log('Airthings API error: ' + latestResponse.getResponseCode());
+        throw new Error('Airthings API returned error ' + latestResponse.getResponseCode());
       }
 
-      const airthingsData = JSON.parse(responseText);
+      const latestData = JSON.parse(latestResponse.getContentText());
+
+      // Fetch 24h historical samples
+      const endTime = new Date();
+      const startTime = new Date(endTime.getTime() - (24 * 60 * 60 * 1000)); // 24h ago
+
+      const samplesUrl = `${AIRTHINGS_API_BASE}/devices/${deviceSerial}/samples?start=${startTime.toISOString()}&end=${endTime.toISOString()}`;
+
+      const samplesResponse = UrlFetchApp.fetch(samplesUrl, {
+        method: 'get',
+        headers: {
+          'Authorization': 'Bearer ' + accessToken,
+          'Accept': 'application/json'
+        },
+        muteHttpExceptions: true
+      });
+
+      let historical24h = null;
+      if (samplesResponse.getResponseCode() === 200) {
+        historical24h = JSON.parse(samplesResponse.getContentText());
+      }
+
+      // Calculate trends from 24h data
+      const trends = calculateTrends(historical24h, latestData.data);
 
       // Extract Wave Mini data and format for frontend
       const result = {
@@ -91,18 +111,19 @@
         timestamp: new Date().toISOString(),
         data: {
           // Core measurements from Wave Mini
-          temperature: airthingsData.data.temp || null,
-          humidity: airthingsData.data.humidity || null,
-          voc: airthingsData.data.voc || null,           // Volatile Organic Compounds (ppb)
-          mold: airthingsData.data.mold || null,         // Mold risk indicator (0-10 scale)
+          temperature: latestData.data.temp || null,
+          humidity: latestData.data.humidity || null,
+          voc: latestData.data.voc || null,           // Volatile Organic Compounds (ppb)
+          mold: latestData.data.mold || null,         // Mold risk indicator (0-10 scale)
 
           // Device info
-          batteryPercentage: airthingsData.data.battery || null,
-          rssi: airthingsData.data.rssi || null,         // WiFi signal strength
+          batteryPercentage: latestData.data.battery || null,
+          rssi: latestData.data.rssi || null,         // WiFi signal strength
 
           // Timestamp from device
-          recorded: airthingsData.data.time || null
-        }
+          recorded: latestData.data.time || null
+        },
+        trends: trends
       };
 
       return createJsonResponse(result);
@@ -114,6 +135,79 @@
         error: 'Failed to fetch Airthings data: ' + error.toString()
       }, 500);
     }
+  }
+
+  /**
+   * Calculate trends from 24h historical data
+   */
+  function calculateTrends(historical24h, currentData) {
+    if (!historical24h || !historical24h.data || historical24h.data.length === 0) {
+      return {
+        humidity: 'stable',
+        voc: 'stable',
+        temperature: 'stable'
+      };
+    }
+
+    const samples = historical24h.data;
+
+    // Get average from first quarter vs last quarter to determine trend
+    const firstQuarter = samples.slice(0, Math.floor(samples.length / 4));
+    const lastQuarter = samples.slice(-Math.floor(samples.length / 4));
+
+    const trends = {};
+
+    // Calculate humidity trend
+    if (currentData.humidity) {
+      const avgFirst = average(firstQuarter.map(function(s) { return s.humidity; }).filter(function(v) { return v != null; }));
+      const avgLast = average(lastQuarter.map(function(s) { return s.humidity; }).filter(function(v) { return v != null; }));
+
+      if (avgLast > avgFirst + 3) {
+        trends.humidity = 'rising';
+      } else if (avgLast < avgFirst - 3) {
+        trends.humidity = 'falling';
+      } else {
+        trends.humidity = 'stable';
+      }
+    }
+
+    // Calculate VOC trend
+    if (currentData.voc) {
+      const avgFirst = average(firstQuarter.map(function(s) { return s.voc; }).filter(function(v) { return v != null; }));
+      const avgLast = average(lastQuarter.map(function(s) { return s.voc; }).filter(function(v) { return v != null; }));
+
+      if (avgLast > avgFirst + 50) {
+        trends.voc = 'rising';
+      } else if (avgLast < avgFirst - 50) {
+        trends.voc = 'falling';
+      } else {
+        trends.voc = 'stable';
+      }
+    }
+
+    // Calculate temperature trend
+    if (currentData.temp) {
+      const avgFirst = average(firstQuarter.map(function(s) { return s.temp; }).filter(function(v) { return v != null; }));
+      const avgLast = average(lastQuarter.map(function(s) { return s.temp; }).filter(function(v) { return v != null; }));
+
+      if (avgLast > avgFirst + 1) {
+        trends.temperature = 'rising';
+      } else if (avgLast < avgFirst - 1) {
+        trends.temperature = 'falling';
+      } else {
+        trends.temperature = 'stable';
+      }
+    }
+
+    return trends;
+  }
+
+  /**
+   * Calculate average of an array of numbers
+   */
+  function average(arr) {
+    if (!arr || arr.length === 0) return 0;
+    return arr.reduce(function(a, b) { return a + b; }, 0) / arr.length;
   }
 
   /**

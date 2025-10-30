@@ -94,7 +94,24 @@
         /* -- Cards & Surfaces -- */
         .ventilation-card {
             background: linear-gradient(145deg, var(--surface-container) 0%, var(--surface-container-high) 100%);
-            border: 1px solid color-mix(in srgb, var(--primary) 15%, transparent 85%);
+            border: 3px solid color-mix(in srgb, var(--primary) 15%, transparent 85%);
+            transition: border-color 0.5s ease, box-shadow 0.5s ease;
+        }
+
+        /* Card status variants */
+        .card-status-good {
+            border-color: #4caf50;
+            box-shadow: 0 0 30px color-mix(in srgb, #4caf50 20%, transparent 80%);
+        }
+
+        .card-status-caution {
+            border-color: #ff9800;
+            box-shadow: 0 0 30px color-mix(in srgb, #ff9800 20%, transparent 80%);
+        }
+
+        .card-status-danger {
+            border-color: #f44336;
+            box-shadow: 0 0 30px color-mix(in srgb, #f44336 20%, transparent 80%);
         }
 
         .organic-card {
@@ -113,19 +130,63 @@
             color: var(--primary);
         }
 
-        /* -- Status Image -- */
-        #status-image-container {
+        /* -- Status Animations -- */
+        .status-indicator {
             position: relative;
-            width: 180px;
-            height: 180px;
-            margin: 0 auto 2rem;
+            width: 120px;
+            height: 120px;
+            margin: 0 auto 1.5rem;
         }
 
-        #status-image {
+        .status-indicator img {
             width: 100%;
             height: 100%;
             object-fit: contain;
-            filter: drop-shadow(0 8px 24px color-mix(in srgb, var(--primary) 30%, transparent 70%));
+        }
+
+        @keyframes pulse-good {
+            0%, 100% {
+                filter: drop-shadow(0 0 20px rgba(76, 175, 80, 0.6));
+                transform: scale(1);
+            }
+            50% {
+                filter: drop-shadow(0 0 30px rgba(76, 175, 80, 0.8));
+                transform: scale(1.05);
+            }
+        }
+
+        @keyframes pulse-caution {
+            0%, 100% {
+                filter: drop-shadow(0 0 20px rgba(255, 152, 0, 0.6));
+                transform: scale(1);
+            }
+            50% {
+                filter: drop-shadow(0 0 30px rgba(255, 152, 0, 0.8));
+                transform: scale(1.05);
+            }
+        }
+
+        @keyframes pulse-danger {
+            0%, 100% {
+                filter: drop-shadow(0 0 20px rgba(244, 67, 54, 0.6));
+                transform: scale(1);
+            }
+            50% {
+                filter: drop-shadow(0 0 30px rgba(244, 67, 54, 0.8));
+                transform: scale(1.05);
+            }
+        }
+
+        .status-good {
+            animation: pulse-good 2s ease-in-out infinite;
+        }
+
+        .status-caution {
+            animation: pulse-caution 2s ease-in-out infinite;
+        }
+
+        .status-danger {
+            animation: pulse-danger 2s ease-in-out infinite;
         }
 
         /* -- Range Sliders -- */
@@ -183,17 +244,17 @@
             <p class="label-large ventilation-text-secondary">Kellerlüftungsberater · Thun</p>
         </div>
 
-        <!-- Status Circle -->
-        <div id="status-image-container">
-            <img id="status-image" src="images/good.png" alt="Status">
-        </div>
-
         <!-- Main Content Grid -->
         <div class="grid grid-cols-1 md:grid-cols-2 gap-6 md:gap-8">
 
-            <!-- Input Card -->
-            <div class="p-6 md:p-8 shadow-2xl ventilation-card organic-card">
-                <h2 class="title-large mb-6" style="color: var(--on-surface);">Current Conditions</h2>
+            <!-- Basement Conditions Card -->
+            <div id="basement-card" class="p-6 md:p-8 shadow-2xl ventilation-card organic-card">
+                <!-- Basement Status Indicator -->
+                <div class="status-indicator">
+                    <img id="basement-status-image" class="status-good" src="images/good.png" alt="Basement Status">
+                </div>
+
+                <h2 class="title-large mb-4 text-center" style="color: var(--on-surface);">Basement Air Quality</h2>
 
                 <!-- Airthings Data Display -->
                 <div id="airthings-data" class="mb-6 p-4 organic-small" style="background: color-mix(in srgb, var(--surface-container-high) 50%, transparent 50%);">
@@ -247,9 +308,14 @@
                 </div>
             </div>
 
-            <!-- Results Card -->
-            <div class="p-6 md:p-8 shadow-2xl ventilation-card organic-card">
-                <h2 class="title-large mb-6" style="color: var(--on-surface);">Recommendation</h2>
+            <!-- Ventilation Recommendation Card -->
+            <div id="ventilation-card" class="p-6 md:p-8 shadow-2xl ventilation-card organic-card">
+                <!-- Ventilation Status Indicator -->
+                <div class="status-indicator">
+                    <img id="ventilation-status-image" class="status-good" src="images/good.png" alt="Ventilation Status">
+                </div>
+
+                <h2 class="title-large mb-4 text-center" style="color: var(--on-surface);">Ventilation Recommendation</h2>
 
                 <div class="text-center mb-6">
                     <p class="label-large ventilation-text-secondary">Expected Basement Humidity</p>
@@ -296,7 +362,12 @@
 
     // --- DOM ELEMENTS ---
     const body = document.body;
-    const statusImage = document.getElementById('status-image');
+
+    // Card elements
+    const basementCard = document.getElementById('basement-card');
+    const ventilationCard = document.getElementById('ventilation-card');
+    const basementStatusImage = document.getElementById('basement-status-image');
+    const ventilationStatusImage = document.getElementById('ventilation-status-image');
 
     // Airthings elements
     const airthingsStatus = document.getElementById('airthings-status');
@@ -438,6 +509,41 @@
     }
 
     // --- UI UPDATE FUNCTIONS ---
+    function assessBasementAirQuality(basementHumidity, voc, moldRisk) {
+        // Assess overall basement air quality
+        let status = 'good';
+        let issues = [];
+
+        // Check humidity (most important for basements)
+        if (basementHumidity >= 70) {
+            status = 'danger';
+            issues.push(`High humidity (${basementHumidity}%)`);
+        } else if (basementHumidity >= 60) {
+            status = status === 'danger' ? 'danger' : 'caution';
+            issues.push(`Elevated humidity (${basementHumidity}%)`);
+        }
+
+        // Check VOC levels
+        if (voc && voc > 500) {
+            status = 'danger';
+            issues.push(`High VOC (${voc} ppb)`);
+        } else if (voc && voc > 250) {
+            status = status === 'danger' ? 'danger' : 'caution';
+            issues.push(`Elevated VOC (${voc} ppb)`);
+        }
+
+        // Check mold risk
+        if (moldRisk && moldRisk >= 7) {
+            status = 'danger';
+            issues.push(`High mold risk (${moldRisk}/10)`);
+        } else if (moldRisk && moldRisk >= 5) {
+            status = status === 'danger' ? 'danger' : 'caution';
+            issues.push(`Elevated mold risk (${moldRisk}/10)`);
+        }
+
+        return { status, issues };
+    }
+
     function updateUI() {
         if (!airthingsData || !airthingsData.data || !weatherCurrentData) {
             dynamicAdvisorText.textContent = 'Waiting for data...';
@@ -446,6 +552,8 @@
 
         const basementTemp = airthingsData.data.temperature;
         const basementHumidity = airthingsData.data.humidity;
+        const basementVoc = airthingsData.data.voc;
+        const basementMold = airthingsData.data.mold;
         const outsideTempValue = weatherCurrentData.temperature_2m;
         const outsideHumidityValue = weatherCurrentData.relative_humidity_2m;
         const outsideDewpointValue = weatherCurrentData.dewpoint_2m;
@@ -455,11 +563,15 @@
             return;
         }
 
-        // Calculate expected humidity
+        // Assess basement air quality
+        const basementAssessment = assessBasementAirQuality(basementHumidity, basementVoc, basementMold);
+        applyCardStatus(basementCard, basementStatusImage, basementAssessment.status);
+
+        // Calculate expected humidity for ventilation
         const finalHumidity = calculateFinalHumidity(basementTemp, outsideTempValue, outsideHumidityValue);
         finalHumidityDisplay.textContent = `${finalHumidity}%`;
 
-        // Determine recommendation
+        // Determine ventilation recommendation
         let recommendation = 'neutral';
         let title = '';
         let summary = '';
@@ -514,21 +626,36 @@
         recommendationSummary.textContent = summary;
         dynamicAdvisorText.textContent = advice;
 
-        // Apply theme
-        applyVentilationTheme(theme);
+        // Apply ventilation status to card
+        applyCardStatus(ventilationCard, ventilationStatusImage, theme);
+
+        // Apply overall theme based on worst status
+        const worstStatus = [basementAssessment.status, theme].includes('danger') ? 'danger' :
+                           [basementAssessment.status, theme].includes('caution') ? 'caution' : 'good';
+        applyVentilationTheme(worstStatus);
     }
 
-    function applyVentilationTheme(theme) {
-        body.classList.remove('ventilation-good', 'ventilation-caution', 'ventilation-danger');
-        body.classList.add(`ventilation-${theme}`);
+    function applyCardStatus(card, statusImage, status) {
+        // Remove all status classes
+        card.classList.remove('card-status-good', 'card-status-caution', 'card-status-danger');
+        statusImage.classList.remove('status-good', 'status-caution', 'status-danger');
 
+        // Add appropriate status class
+        card.classList.add(`card-status-${status}`);
+        statusImage.classList.add(`status-${status}`);
+
+        // Update image
         const images = {
             good: 'images/good.png',
             caution: 'images/caution.png',
             danger: 'images/danger.png'
         };
+        statusImage.src = images[status] || images.good;
+    }
 
-        statusImage.src = images[theme] || images.good;
+    function applyVentilationTheme(theme) {
+        body.classList.remove('ventilation-good', 'ventilation-caution', 'ventilation-danger');
+        body.classList.add(`ventilation-${theme}`);
     }
 
     // --- EVENT LISTENERS ---

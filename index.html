@@ -710,9 +710,11 @@
 
                 // Update trend indicators (falling is good for both humidity and VOC)
                 if (data.trends) {
+                    console.log('Trends data:', data.trends);
                     humidityTrend.innerHTML = getTrendIcon(data.trends.humidity, 'falling');
                     vocTrend.innerHTML = getTrendIcon(data.trends.voc, 'falling');
                 } else {
+                    console.log('No trends data available - redeploy Google Apps Script if needed');
                     humidityTrend.innerHTML = '';
                     vocTrend.innerHTML = '';
                 }
@@ -922,6 +924,16 @@
         if (recommendation === 'good' || recommendation === 'caution') {
             durationDisplay.classList.remove('hidden');
             durationText.textContent = formatDuration(ventilationDuration);
+
+            // Color duration based on ventilation status
+            const durationColors = {
+                good: '#4caf50',
+                caution: '#f59e0b',
+                danger: '#ef4444'
+            };
+            const durationColor = durationColors[theme] || durationColors.good;
+            durationText.style.color = durationColor;
+            durationDisplay.querySelector('svg').style.color = durationColor;
         } else {
             durationDisplay.classList.add('hidden');
         }

@@ -69,7 +69,7 @@
             z-index: -1;
             animation: float-gentle 8s ease-in-out infinite;
         }
-        
+
         .backdrop-orb-1 {
             width: 300px;
             height: 300px;
@@ -77,7 +77,7 @@
             right: -150px;
             animation-delay: 0s;
         }
-        
+
         .backdrop-orb-2 {
             width: 200px;
             height: 200px;
@@ -85,661 +85,248 @@
             left: -100px;
             animation-delay: 3s;
         }
-        
-        .backdrop-orb-3 {
-            width: 150px;
-            height: 150px;
-            top: 60%;
-            right: -75px;
-            animation-delay: 6s;
-        }
-        
+
         @keyframes float-gentle {
             0%, 100% { transform: translateY(0px) scale(1); opacity: 0.3; }
             50% { transform: translateY(-20px) scale(1.1); opacity: 0.5; }
         }
 
-        /* -- Organic Card Styling -- */
+        /* -- Cards & Surfaces -- */
+        .ventilation-card {
+            background: linear-gradient(145deg, var(--surface-container) 0%, var(--surface-container-high) 100%);
+            border: 1px solid color-mix(in srgb, var(--primary) 15%, transparent 85%);
+        }
+
         .organic-card {
-            border-radius: 32px 24px 32px 24px;
-            backdrop-filter: blur(20px);
-            background: color-mix(in srgb, var(--surface-container) 95%, transparent 5%);
-            border: 2px solid color-mix(in srgb, var(--primary) 30%, transparent 70%);
-            box-shadow: 
-                0 8px 32px rgba(0, 0, 0, 0.3),
-                0 0 0 1px color-mix(in srgb, var(--primary) 20%, transparent 80%) inset;
+            border-radius: 32px;
         }
-        
-        .organic-card-alt {
-            border-radius: 24px 32px 24px 32px;
-            backdrop-filter: blur(20px);
-            background: color-mix(in srgb, var(--surface-container) 95%, transparent 5%);
-            border: 2px solid color-mix(in srgb, var(--primary) 30%, transparent 70%);
-            box-shadow: 
-                0 8px 32px rgba(0, 0, 0, 0.3),
-                0 0 0 1px color-mix(in srgb, var(--primary) 20%, transparent 80%) inset;
-        }
-        
+
         .organic-small {
-            border-radius: 20px 16px 20px 16px;
+            border-radius: 16px;
         }
 
-        /* -- Applying Variables -- */
-        .ventilation-card { background-color: var(--surface-container); }
-        .ventilation-accent { color: var(--primary); }
-        .ventilation-text-secondary { color: var(--on-surface-variant); }
-        #status-image { border-color: var(--primary); }
-
-        /* -- Pulsing Animations -- */
-        @keyframes pulse-gentle {
-            0%, 100% { transform: scale(1); opacity: 1; }
-            50% { transform: scale(1.05); opacity: 0.9; }
-        }
-        
-        @keyframes pulse-moderate {
-            0%, 100% { transform: scale(1); opacity: 1; }
-            50% { transform: scale(1.08); opacity: 0.85; }
-        }
-        
-        @keyframes pulse-urgent {
-            0%, 100% { transform: scale(1); opacity: 1; }
-            50% { transform: scale(1.12); opacity: 0.8; }
-        }
-        
-        /* Apply pulsing based on ventilation status */
-        .ventilation-good #status-image, .ventilation-good #status-video {
-            animation: pulse-gentle 3s ease-in-out infinite;
-        }
-        
-        .ventilation-caution #status-image, .ventilation-caution #status-video {
-            animation: pulse-moderate 2.5s ease-in-out infinite;
-        }
-        
-        .ventilation-danger #status-image, .ventilation-danger #status-video {
-            animation: pulse-urgent 2s ease-in-out infinite;
-        }
-        
-        /* Subtle pulsing for recommendation box */
-        @keyframes card-glow-gentle {
-            0%, 100% { box-shadow: 0 4px 20px rgba(76, 175, 80, 0.1); }
-            50% { box-shadow: 0 4px 30px rgba(76, 175, 80, 0.2); }
-        }
-        
-        @keyframes card-glow-caution {
-            0%, 100% { box-shadow: 0 4px 20px rgba(255, 152, 0, 0.15); }
-            50% { box-shadow: 0 4px 30px rgba(255, 152, 0, 0.25); }
-        }
-        
-        @keyframes card-glow-danger {
-            0%, 100% { box-shadow: 0 4px 20px rgba(244, 67, 54, 0.2); }
-            50% { box-shadow: 0 4px 35px rgba(244, 67, 54, 0.3); }
-        }
-        
-        .ventilation-good #recommendation-box {
-            animation: card-glow-gentle 4s ease-in-out infinite;
-        }
-        
-        .ventilation-caution #recommendation-box {
-            animation: card-glow-caution 3s ease-in-out infinite;
-        }
-        
-        .ventilation-danger #recommendation-box {
-            animation: card-glow-danger 2.5s ease-in-out infinite;
-        }
-        
-        /* Subtle pulsing for key metrics */
-        @keyframes text-pulse-gentle {
-            0%, 100% { opacity: 1; }
-            50% { opacity: 0.8; }
-        }
-        
-        /* Prevent horizontal overflow */
-        html, body {
-            overflow-x: hidden;
-            max-width: 100vw;
-        }
-        
-        .container-responsive {
-            max-width: 100%;
-            overflow-x: hidden;
-        }
-        
-        /* Responsive forecast card */
-        @media (max-width: 640px) {
-            .forecast-grid {
-                gap: 0.5rem;
-            }
-            
-            .forecast-card {
-                margin-left: -0.5rem;
-                margin-right: -0.5rem;
-                padding-left: 1rem;
-                padding-right: 1rem;
-            }
-            
-            .humidity-chart-mobile {
-                gap: 0.125rem;
-            }
-            
-            .time-labels-mobile {
-                font-size: 0.6rem;
-            }
-            
-            /* Ensure charts never overflow */
-            #temperature-chart, #humidity-chart, #quality-zones, #time-labels {
-                max-width: 100%;
-                overflow: hidden;
-            }
-            
-            /* Compress forecast window cards on mobile */
-            .optimal-window-mobile {
-                padding: 0.75rem;
-            }
-        }
-        
-        .ventilation-danger #final-humidity {
-            animation: text-pulse-gentle 3s ease-in-out infinite;
-        }
-        
-        /* Subtle glow effect for status image and video */
-        #status-image, #status-video {
-            transition: all 0.8s ease;
-            box-shadow: 
-                0 0 40px rgba(var(--primary-rgb, 76, 175, 80), 0.3),
-                0 20px 60px rgba(0, 0, 0, 0.3),
-                inset 0 1px 0 rgba(255, 255, 255, 0.1);
-        }
-        
-        .ventilation-good #status-image, .ventilation-good #status-video {
-            box-shadow: 
-                0 0 50px rgba(76, 175, 80, 0.5),
-                0 20px 60px rgba(0, 0, 0, 0.3),
-                inset 0 1px 0 rgba(255, 255, 255, 0.1);
-        }
-        
-        .ventilation-caution #status-image, .ventilation-caution #status-video {
-            box-shadow: 
-                0 0 50px rgba(255, 152, 0, 0.5),
-                0 20px 60px rgba(0, 0, 0, 0.3),
-                inset 0 1px 0 rgba(255, 255, 255, 0.1);
-        }
-        
-        .ventilation-danger #status-image, .ventilation-danger #status-video {
-            box-shadow: 
-                0 0 50px rgba(244, 67, 54, 0.5),
-                0 20px 60px rgba(0, 0, 0, 0.3),
-                inset 0 1px 0 rgba(255, 255, 255, 0.1);
+        .ventilation-text-secondary {
+            color: var(--on-surface-variant);
         }
 
-        /* -- M3 Components -- */
-        /* Switch */
-        .switch { width: 52px; height: 32px; background-color: var(--surface-container-high); border-radius: 100px; position: relative; }
-        .switch-thumb { width: 24px; height: 24px; background-color: #8e9094; border-radius: 50%; position: absolute; top: 4px; left: 4px; transition: transform 0.25s ease, background-color 0.25s ease; }
-        .mode-switch:checked + .switch .switch-thumb { transform: translateX(20px); background-color: var(--on-primary); }
-        .mode-switch:checked + .switch { background-color: var(--primary); }
+        .ventilation-accent {
+            color: var(--primary);
+        }
 
-        /* Slider */
-        input[type="range"] { -webkit-appearance: none; width: 100%; height: 4px; background-color: var(--surface-container-high); border-radius: 2px; cursor: pointer; }
+        /* -- Status Image -- */
+        #status-image-container {
+            position: relative;
+            width: 180px;
+            height: 180px;
+            margin: 0 auto 2rem;
+        }
+
+        #status-image {
+            width: 100%;
+            height: 100%;
+            object-fit: contain;
+            filter: drop-shadow(0 8px 24px color-mix(in srgb, var(--primary) 30%, transparent 70%));
+        }
+
+        /* -- Range Sliders -- */
+        input[type="range"] {
+            -webkit-appearance: none;
+            appearance: none;
+            width: 100%;
+            height: 8px;
+            border-radius: 4px;
+            background: color-mix(in srgb, var(--surface-container-high) 80%, transparent 20%);
+            outline: none;
+        }
+
         input[type="range"]::-webkit-slider-thumb {
-            -webkit-appearance: none; appearance: none;
-            width: 20px; height: 20px; border-radius: 50%;
-            background-color: var(--primary);
-            border: none;
+            -webkit-appearance: none;
+            appearance: none;
+            width: 24px;
+            height: 24px;
+            border-radius: 50%;
+            background: var(--primary);
+            cursor: pointer;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.3);
         }
+
         input[type="range"]::-moz-range-thumb {
-            width: 20px; height: 20px; border-radius: 50%; cursor: pointer;
-            background-color: var(--primary);
+            width: 24px;
+            height: 24px;
+            border-radius: 50%;
+            background: var(--primary);
+            cursor: pointer;
             border: none;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.3);
+        }
+
+        /* Responsive adjustments */
+        @media (max-width: 640px) {
+            #status-image-container {
+                width: 140px;
+                height: 140px;
+            }
+            .display-small { font-size: 28px; line-height: 36px; }
+            .headline-medium { font-size: 24px; line-height: 32px; }
         }
     </style>
 </head>
-<body class="flex items-center justify-center min-h-screen p-4 relative">
-    <!-- Subtle backdrop orbs -->
+<body class="ventilation-good">
+    <!-- Backdrop orbs -->
     <div class="backdrop-orb backdrop-orb-1"></div>
     <div class="backdrop-orb backdrop-orb-2"></div>
-    <div class="backdrop-orb backdrop-orb-3"></div>
 
-    <div class="w-full max-w-7xl mx-auto px-4 relative z-10 container-responsive" style="max-width: 100vw;">
-        <header class="text-center mb-8">
-            <!-- Ventilation Status Video/Image -->
-            <div id="status-image-container" class="mb-8 flex justify-center">
-                <video id="status-video" class="w-48 h-48 rounded-full object-cover border-4 shadow-2xl hidden" autoplay loop muted playsinline>
-                    <source src="" type="video/mp4">
-                </video>
-                <img id="status-image" src="" alt="Ventilation status" class="w-48 h-48 rounded-full object-cover border-4 shadow-2xl">
-            </div>
-            <h1 id="main-title" class="headline-medium ventilation-accent mb-4">Villa Kunterbunt Kellerlüftungsberater</h1>
-            <p class="mt-2 body-medium ventilation-text-secondary max-w-sm mx-auto leading-relaxed">Get smart advice on when to open your windows for optimal basement ventilation.</p>
-        </header>
+    <div class="max-w-7xl mx-auto px-4 py-8 relative">
+        <!-- Header -->
+        <div class="text-center mb-8">
+            <h1 class="headline-medium mb-2" style="color: var(--on-surface);">Villa Kunterbunt</h1>
+            <p class="label-large ventilation-text-secondary">Kellerlüftungsberater · Thun</p>
+        </div>
+
+        <!-- Status Circle -->
+        <div id="status-image-container">
+            <img id="status-image" src="images/good.png" alt="Status">
+        </div>
 
         <!-- Main Content Grid -->
-        <div class="grid grid-cols-1 lg:grid-cols-2 gap-8 lg:gap-6">
-            <!-- Input Controls Card -->
-            <div class="p-8 shadow-2xl ventilation-card organic-card">
-            <!-- Mode Switch -->
-            <div class="flex items-center justify-center space-x-4 mb-6">
-                <span class="label-large ventilation-text-secondary">Manual</span>
-                <label for="mode-switch" class="relative inline-flex items-center cursor-pointer">
-                    <input type="checkbox" id="mode-switch" class="sr-only mode-switch" checked>
-                    <div class="switch">
-                        <div class="switch-thumb"></div>
-                    </div>
-                </label>
-                <span class="label-large" style="color: var(--on-surface);">Auto (Live Weather)</span>
-            </div>
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6 md:gap-8">
 
-            <!-- Auto Mode View -->
-            <div id="auto-mode" class="">
-                 <div class="text-center mb-4">
-                    <p class="title-large" style="color: var(--on-surface);">Weather for Thun, Switzerland</p>
-                    <p id="loading-message" class="body-medium ventilation-accent">Fetching live weather data...</p>
-                    <!-- Persistent sample data warning -->
-                    <div id="sample-data-warning" class="hidden mt-2 px-3 py-1 bg-yellow-500/20 border border-yellow-500/40 rounded-full inline-block">
-                        <p class="text-sm font-medium text-yellow-200 flex items-center gap-2">
-                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m21.73 18-8-14a2 2 0 0 0-3.46 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z"></path><line x1="12" x2="12" y1="9" y2="13"></line><line x1="12" x2="12.01" y1="17" y2="17"></line></svg>
-                            Using Sample Data
-                        </p>
+            <!-- Input Card -->
+            <div class="p-6 md:p-8 shadow-2xl ventilation-card organic-card">
+                <h2 class="title-large mb-6" style="color: var(--on-surface);">Current Conditions</h2>
+
+                <!-- Airthings Data Display -->
+                <div id="airthings-data" class="mb-6 p-4 organic-small" style="background: color-mix(in srgb, var(--surface-container-high) 50%, transparent 50%);">
+                    <div class="flex items-center justify-between mb-3">
+                        <h3 class="label-large" style="color: var(--on-surface);">🏠 Basement (Airthings)</h3>
+                        <div id="airthings-status" class="text-xs px-2 py-1 rounded-full" style="background: color-mix(in srgb, var(--primary) 20%, transparent 80%); color: var(--primary);">
+                            Loading...
+                        </div>
                     </div>
-                 </div>
-                 <div id="weather-data-container" class="hidden space-y-6">
-                    <div class="bg-black/20 p-4 lg:p-6 organic-small backdrop-blur-sm">
-                        <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 sm:gap-2 md:gap-4 lg:gap-6 text-center">
+
+                    <div class="grid grid-cols-2 gap-3">
                         <div>
-                        <p class="text-3xl sm:text-2xl md:text-3xl lg:text-4xl font-normal" style="color: var(--on-surface);"><span id="auto-temp-out">--</span>°</p>
-                        <p class="text-sm sm:text-xs md:text-sm lg:text-base font-medium ventilation-text-secondary">Temperature</p>
-                        </div>
-                        <div class="border-t sm:border-t-0 sm:border-l sm:border-r border-gray-600/30 pt-4 sm:pt-0">
-                        <p class="text-3xl sm:text-2xl md:text-3xl lg:text-4xl font-normal" style="color: var(--on-surface);"><span id="auto-rh-out">--</span>%</p>
-                        <p class="text-sm sm:text-xs md:text-sm lg:text-base font-medium ventilation-text-secondary">Humidity</p>
-                        </div>
-                        <div class="border-t sm:border-t-0 border-gray-600/30 pt-4 sm:pt-0">
-                        <p class="text-3xl sm:text-2xl md:text-3xl lg:text-4xl font-normal" style="color: var(--on-surface);"><span id="auto-dewpoint-out">--</span>°</p>
-                        <p class="text-sm sm:text-xs md:text-sm lg:text-base font-medium ventilation-text-secondary">Dew Point</p>
-                        </div>
-                        </div>
-                    </div>
-                     <div>
-                        <label for="basement-temp-auto" class="block label-large text-gray-300 mb-2">Your Basement Temperature</label>
-                        <div class="flex items-center space-x-4">
-                            <input type="range" id="basement-temp-auto" min="0" max="30" value="20" step="0.5">
-                            <span id="basement-temp-auto-value" class="font-bold text-lg w-16 text-center" style="color: var(--on-surface);">20°C</span>
-                        </div>
-                    </div>
-                 </div>
-            </div>
-            
-            <!-- Manual Mode View -->
-            <div id="manual-mode" class="space-y-4 hidden">
-                <div>
-                    <label for="temp-in" class="block label-large text-gray-300 mb-2">Basement Temperature</label>
-                    <div class="flex items-center space-x-4">
-                        <input type="range" id="temp-in" min="0" max="30" value="20" step="0.5">
-                        <span id="temp-in-value" class="font-bold text-lg w-16 text-center" style="color: var(--on-surface);">20°C</span>
-                    </div>
-                </div>
-                <div>
-                    <label for="temp-out" class="block label-large text-gray-300 mb-2">Outside Temperature</label>
-                    <div class="flex items-center space-x-4">
-                        <input type="range" id="temp-out" min="-10" max="35" value="15" step="0.5">
-                        <span id="temp-out-value" class="font-bold text-lg w-16 text-center" style="color: var(--on-surface);">15°C</span>
-                    </div>
-                </div>
-                <div>
-                    <label for="rh-out" class="block label-large text-gray-300 mb-2">Outside Relative Humidity</label>
-                    <div class="flex items-center space-x-4">
-                        <input type="range" id="rh-out" min="20" max="100" value="89" step="1">
-                        <span id="rh-out-value" class="font-bold text-lg w-16 text-center" style="color: var(--on-surface);">89%</span>
-                    </div>
-                </div>
-            </div>
-            </div>
-
-            <!-- Enhanced Results Section -->
-            <div id="results-card" class="p-8 shadow-2xl ventilation-card organic-card">
-            <h2 class="title-large text-center mb-6" style="color: var(--on-surface);">Outcome</h2>
-            <div class="text-center mb-6">
-                <p class="label-large ventilation-text-secondary">Expected Basement Humidity</p>
-                <p id="final-humidity" class="display-small ventilation-accent font-bold">--%</p>
-            </div>
-            <div id="recommendation-box" class="flex items-center p-6 organic-small transition-all duration-300 mb-6">
-                <div id="recommendation-icon" class="mr-4"></div>
-                <div>
-                    <h3 id="recommendation-title" class="title-large"></h3>
-                    <p id="recommendation-summary" class="body-medium"></p>
-                </div>
-            </div>
-            
-            <!-- Venting Session Tracking -->
-            <div id="venting-session-card" class="p-4 organic-small mb-6" style="background: color-mix(in srgb, var(--surface-container-high) 80%, transparent 20%);">
-                <h3 class="text-lg font-medium mb-3" style="color: var(--on-surface);">Track Venting Session</h3>
-                
-                <!-- Session Not Started -->
-                <div id="session-start-view" class="">
-                    <button id="start-venting-btn" class="w-full px-4 py-3 rounded-lg font-medium transition-colors flex items-center justify-center gap-2" style="background-color: var(--primary); color: var(--on-primary);">
-                        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="6" height="11" x="6" y="2" rx="3"/><path d="m20 12-1.5-6L15 7l-3 1 3 3-3 1 3.5 1L20 12Z"/><path d="M6 16a2 2 0 0 1 1.33-.89l1.67-.22"/><path d="M8 18a2 2 0 0 1 1.33-.89l1.67-.22"/><path d="M6 19v1a2 2 0 0 0 2 2h2.5"/></svg>
-                        Start Venting Session
-                    </button>
-                    <p class="text-sm mt-2 text-center" style="color: var(--on-surface-variant);">Click when you open windows to start tracking</p>
-                </div>
-                
-                <!-- Session In Progress -->
-                <div id="session-active-view" class="hidden">
-                    <div class="rounded-lg p-3 mb-3" style="background: color-mix(in srgb, var(--primary) 15%, transparent 85%); border: 1px solid color-mix(in srgb, var(--primary) 40%, transparent 60%);">
-                        <div class="flex justify-between items-center">
-                            <span class="font-medium flex items-center gap-2" style="color: var(--primary);">
-                                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2a3 3 0 0 0-3 3v7a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3Z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/><circle cx="12" cy="19" r="3"/></svg>
-                                Venting in progress...
-                            </span>
-                            <span id="session-timer" class="text-sm" style="color: var(--on-surface-variant);">00:00</span>
-                        </div>
-                        <p class="text-sm mt-1" style="color: var(--on-surface-variant);">Started: <span id="session-start-time"></span></p>
-                    </div>
-                    <button id="stop-venting-btn" class="w-full px-4 py-3 rounded-lg font-medium transition-colors flex items-center justify-center gap-2" style="background-color: #ef4444; color: white;">
-                        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="18" height="18" x="3" y="3" rx="2" ry="2"/></svg>
-                        Stop & Record Results
-                    </button>
-                </div>
-                
-                <!-- Session Results Input -->
-                <div id="session-results-view" class="hidden">
-                    <div class="space-y-3">
-                        <div class="text-sm" style="color: var(--on-surface-variant);">
-                            <p>Session completed! Duration: <span id="final-duration" class="font-medium"></span></p>
-                            <p>Predicted result: <span id="predicted-result" class="font-medium"></span>%</p>
+                            <p class="text-xs ventilation-text-secondary">Temperature</p>
+                            <p id="airthings-temp" class="text-xl font-semibold" style="color: var(--primary);">--°C</p>
                         </div>
                         <div>
-                            <label for="actual-humidity-input" class="block text-sm font-medium mb-2" style="color: var(--on-surface);">What's the actual basement humidity now?</label>
-                            <div class="flex space-x-2">
-                                <input type="number" id="actual-humidity-input" min="0" max="100" placeholder="e.g. 45" class="flex-1 px-3 py-2 rounded-lg" style="background: color-mix(in srgb, var(--surface-container-high) 70%, transparent 30%); border: 1px solid color-mix(in srgb, var(--on-surface-variant) 30%, transparent 70%); color: var(--on-surface);">
-                                <span class="flex items-center text-sm" style="color: var(--on-surface-variant);">%</span>
-                            </div>
+                            <p class="text-xs ventilation-text-secondary">Humidity</p>
+                            <p id="airthings-humidity" class="text-xl font-semibold" style="color: var(--primary);">--%</p>
                         </div>
-                        <div class="flex space-x-2">
-                            <button id="save-session-btn" class="flex-1 px-4 py-2 rounded-lg font-medium transition-colors flex items-center justify-center gap-2" style="background-color: #3b82f6; color: white;">
-                                <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15.2 3a2 2 0 0 1 1.4.6l3.8 3.8a2 2 0 0 1 .6 1.4V19a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2z"/><path d="M17 21v-7a1 1 0 0 0-1-1H8a1 1 0 0 0-1 1v7"/><path d="M7 3v4a1 1 0 0 0 1 1h8"/></svg>
-                                Save Session
-                            </button>
-                            <button id="cancel-session-btn" class="px-4 py-2 rounded-lg font-medium transition-colors flex items-center justify-center gap-2" style="background-color: #6b7280; color: white;">
-                                <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m18 6-12 12"/><path d="m6 6 12 12"/></svg>
-                                Cancel
-                            </button>
+                        <div>
+                            <p class="text-xs ventilation-text-secondary">VOC</p>
+                            <p id="airthings-voc" class="text-sm" style="color: var(--on-surface);">-- ppb</p>
+                        </div>
+                        <div>
+                            <p class="text-xs ventilation-text-secondary">Mold Risk</p>
+                            <p id="airthings-mold" class="text-sm" style="color: var(--on-surface);">--/10</p>
                         </div>
                     </div>
                 </div>
-            </div>
-            
-            <!-- Enhanced Dynamic Advisor -->
-            <div class="border-t border-gray-600/20 pt-6">
-                <div id="dynamic-advisor-container" class="flex items-start space-x-3 ventilation-text-secondary">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="flex-shrink-0 mt-1"><path d="m9 12 2 2 4-4"></path><path d="M21 12c.552 0 1-.448 1-1s-.448-1-1-1-1 .448-1 1 .448 1 1 1"></path><path d="M17 7h4a2 2 0 0 1 2 2v6a2 2 0 0 1-2 2h-4"></path><path d="M7 7H3a2 2 0 0 0-2 2v6a2 2 0 0 0 2 2h4"></path></svg>
-                    <div class="flex-1">
-                        <h4 class="label-large mb-2" style="color: var(--on-surface);">Smart Advisor</h4>
-                        <p id="dynamic-advisor-text" class="body-medium leading-relaxed">Loading intelligent basement ventilation advice...</p>
-                    </div>
-                </div>
-            </div>
-            </div>
-        </div>
 
-        <!-- Enhanced Forecast Card -->
-        <div class="mt-8">
-            <!-- Forecast Toggle Button (outside the card so it's always visible) -->
-            <div class="flex justify-center mb-4">
-                <button id="toggle-forecast" class="px-4 py-2 bg-black/20 rounded-full text-sm hover:bg-black/30 transition-colors" style="color: var(--on-surface-variant);">
-                    Show Forecast
-                </button>
-            </div>
-            
-            <div id="forecast-card" class="hidden p-4 sm:p-8 shadow-2xl ventilation-card organic-card-alt forecast-card">
-                <div class="flex items-center justify-center mb-6">
-                    <h2 class="title-large" style="color: var(--on-surface);">📈 Next 6 Hours</h2>
+                <!-- Weather Data Display -->
+                <div id="weather-loading" class="text-center py-4">
+                    <p class="body-medium ventilation-text-secondary">Fetching weather data...</p>
                 </div>
-            
-            <!-- Forecast Loading State -->
-            <div id="forecast-loading" class="text-center py-8">
-                <p class="body-medium ventilation-text-secondary">Loading 6-hour forecast...</p>
-            </div>
-            
-            <!-- Forecast Content -->
-            <div id="forecast-content" class="hidden">
-                <!-- Timeline Visualization -->
-                <div class="mb-6 forecast-grid">
-                    <div class="relative overflow-hidden">
-                        <!-- Temperature Chart -->
-                        <div class="mb-4">
-                            <p class="text-xs sm:text-sm ventilation-text-secondary mb-2">Temperature (°C)</p>
-                            <div class="h-16 sm:h-20 relative overflow-hidden" id="temperature-chart">
-                                <!-- Temperature line will be drawn here with SVG -->
-                            </div>
+
+                <div id="weather-data" class="hidden space-y-4">
+                    <div class="grid grid-cols-2 gap-4">
+                        <div>
+                            <p class="label-large mb-2 ventilation-text-secondary">Outside Temp</p>
+                            <p id="outside-temp" class="text-2xl font-semibold" style="color: var(--on-surface);">--°C</p>
                         </div>
-                        
-                        <!-- Humidity Bars -->
-                        <div class="mb-4">
-                            <p class="text-xs sm:text-sm ventilation-text-secondary mb-2">Outside Humidity (%)</p>
-                            <div class="h-12 sm:h-16 relative flex items-end justify-between humidity-chart-mobile" id="humidity-chart">
-                                <!-- Humidity bars will be added here -->
-                            </div>
-                        </div>
-                        
-                        <!-- Basement Humidity Prediction -->
-                        <div class="mb-4">
-                            <p class="text-xs sm:text-sm ventilation-text-secondary mb-2">Predicted Basement Humidity (%)</p>
-                            <div class="h-12 sm:h-16 relative flex items-end justify-between humidity-chart-mobile" id="basement-humidity-chart">
-                                <!-- Basement humidity bars will be added here -->
-                            </div>
-                        </div>
-                        
-                        <!-- Ventilation Quality Zones -->
-                        <div class="mb-4">
-                            <p class="text-xs sm:text-sm ventilation-text-secondary mb-2">Quality</p>
-                            <div class="h-8 sm:h-12 relative flex" id="quality-zones">
-                                <!-- Color-coded quality zones will be added here -->
-                            </div>
-                        </div>
-                        
-                        <!-- Time Labels -->
-                        <div class="flex justify-between text-xs ventilation-text-secondary time-labels-mobile" id="time-labels">
-                            <!-- Time labels will be added here -->
+                        <div>
+                            <p class="label-large mb-2 ventilation-text-secondary">Outside Humidity</p>
+                            <p id="outside-humidity" class="text-2xl font-semibold" style="color: var(--on-surface);">--%</p>
                         </div>
                     </div>
+                    <div>
+                        <p class="label-large mb-2 ventilation-text-secondary">Outside Dew Point</p>
+                        <p id="outside-dewpoint" class="text-xl" style="color: var(--on-surface);">--°C</p>
+                    </div>
                 </div>
-                
-                <!-- Optimal Windows Summary -->
-                <div id="optimal-windows" class="space-y-3 sm:space-y-4">
-                    <!-- Optimal window recommendations will be added here -->
+            </div>
+
+            <!-- Results Card -->
+            <div class="p-6 md:p-8 shadow-2xl ventilation-card organic-card">
+                <h2 class="title-large mb-6" style="color: var(--on-surface);">Recommendation</h2>
+
+                <div class="text-center mb-6">
+                    <p class="label-large ventilation-text-secondary">Expected Basement Humidity</p>
+                    <p id="final-humidity" class="display-small ventilation-accent font-bold">--%</p>
                 </div>
-                
-                <!-- Extended Forecast Fallback -->
-                <div id="extended-forecast" class="hidden mt-4 sm:mt-6 p-3 sm:p-4 bg-black/20 rounded-xl">
-                    <h3 class="text-sm sm:text-base font-medium mb-2 sm:mb-3" style="color: var(--on-surface);">📅 No Good Opportunities Today</h3>
-                    <div id="extended-forecast-content">
-                        <!-- Extended forecast content will be added here -->
+
+                <div id="recommendation-box" class="flex items-center p-6 organic-small transition-all duration-300 mb-6">
+                    <div id="recommendation-icon" class="mr-4"></div>
+                    <div>
+                        <h3 id="recommendation-title" class="title-large"></h3>
+                        <p id="recommendation-summary" class="body-medium"></p>
+                    </div>
+                </div>
+
+                <!-- Smart Advisor -->
+                <div class="border-t border-gray-600/20 pt-6">
+                    <div class="flex items-start space-x-3 ventilation-text-secondary">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="flex-shrink-0 mt-1"><path d="m9 12 2 2 4-4"></path><path d="M21 12c.552 0 1-.448 1-1s-.448-1-1-1-1 .448-1 1 .448 1 1 1"></path><path d="M17 7h4a2 2 0 0 1 2 2v6a2 2 0 0 1-2 2h-4"></path><path d="M7 7H3a2 2 0 0 0-2 2v6a2 2 0 0 0 2 2h4"></path></svg>
+                        <div class="flex-1">
+                            <h4 class="label-large mb-2" style="color: var(--on-surface);">Smart Advisor</h4>
+                            <p id="dynamic-advisor-text" class="body-medium leading-relaxed">Analyzing conditions...</p>
+                        </div>
                     </div>
                 </div>
             </div>
         </div>
-        
-        <!-- History Analytics Card -->
-        <div class="mt-8">
-            <!-- History Toggle Button -->
-            <div class="flex justify-center mb-4">
-                <button id="toggle-history" class="px-4 py-2 bg-black/20 rounded-full text-sm hover:bg-black/30 transition-colors" style="color: var(--on-surface-variant);">
-                    Show History
-                </button>
-            </div>
-            
-            <div id="history-card" class="hidden p-4 sm:p-8 shadow-2xl ventilation-card organic-card-alt">
-                <div class="flex items-center justify-center mb-6">
-                    <h2 class="title-large" style="color: var(--on-surface);">📊 Venting History Analytics</h2>
-                </div>
-            
-                <!-- History Loading State -->
-                <div id="history-loading" class="text-center py-8">
-                    <p class="body-medium ventilation-text-secondary">Loading your venting history...</p>
-                </div>
-                
-                <!-- No History State -->
-                <div id="history-empty" class="hidden text-center py-8">
-                    <div class="mb-4 opacity-50">
-                        <svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1" stroke-linecap="round" stroke-linejoin="round" class="mx-auto"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14,2 14,8 20,8"></polyline><line x1="16" x2="8" y1="13" y2="13"></line><line x1="16" x2="8" y1="17" y2="17"></line><polyline points="10,9 9,9 8,9"></polyline></svg>
-                    </div>
-                    <p class="body-medium ventilation-text-secondary mb-2">No venting sessions recorded yet</p>
-                    <p class="text-sm" style="color: var(--on-surface-variant);">Start tracking sessions to see analytics and trends</p>
-                </div>
-            
-                <!-- History Content -->
-                <div id="history-content" class="hidden space-y-6">
-                    <!-- Success Rate Gauge -->
-                    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
-                        <div class="bg-black/20 p-4 sm:p-6 organic-small backdrop-blur-sm text-center">
-                            <p class="text-sm ventilation-text-secondary mb-2">Success Rate</p>
-                            <div class="relative w-20 h-20 mx-auto mb-2">
-                                <svg class="w-20 h-20 transform -rotate-90" viewBox="0 0 36 36">
-                                    <path class="text-gray-600" stroke="currentColor" stroke-width="3" fill="none"
-                                          d="m18,2.0845 a 15.9155,15.9155 0 0,1 0,31.831 a 15.9155,15.9155 0 0,1 0,-31.831" />
-                                    <path id="success-rate-arc" class="text-green-400" stroke="currentColor" stroke-width="3" fill="none" stroke-linecap="round"
-                                          d="m18,2.0845 a 15.9155,15.9155 0 0,1 0,31.831 a 15.9155,15.9155 0 0,1 0,-31.831" stroke-dasharray="0, 100" />
-                                </svg>
-                                <div class="absolute inset-0 flex items-center justify-center">
-                                    <span id="success-rate-text" class="text-xl font-bold" style="color: var(--on-surface);">--%</span>
-                                </div>
-                            </div>
-                            <p id="success-rate-subtitle" class="text-xs" style="color: var(--on-surface-variant);">-- of -- sessions</p>
-                        </div>
-                        
-                        <div class="bg-black/20 p-4 sm:p-6 organic-small backdrop-blur-sm text-center">
-                            <p class="text-sm ventilation-text-secondary mb-2">Best Achievement</p>
-                            <p id="best-humidity" class="text-2xl sm:text-3xl font-bold" style="color: var(--primary);">--%</p>
-                            <p id="best-humidity-date" class="text-xs" style="color: var(--on-surface-variant);">--</p>
-                        </div>
-                        
-                        <div class="bg-black/20 p-4 sm:p-6 organic-small backdrop-blur-sm text-center">
-                            <p class="text-sm ventilation-text-secondary mb-2">Current Streak</p>
-                            <div class="flex items-center justify-center gap-2 mb-1">
-                                <span id="current-streak" class="text-2xl sm:text-3xl font-bold" style="color: var(--primary);">--</span>
-                                <span class="text-lg" style="color: var(--on-surface);">🔥</span>
-                            </div>
-                            <p class="text-xs" style="color: var(--on-surface-variant);">successful sessions</p>
-                        </div>
-                    </div>
-                    
-                    <!-- Recent Sessions Timeline -->
-                    <div class="bg-black/20 p-4 sm:p-6 organic-small backdrop-blur-sm">
-                        <h3 class="text-lg font-medium mb-4" style="color: var(--on-surface);">Recent Sessions</h3>
-                        <div id="recent-sessions-timeline" class="space-y-3">
-                            <!-- Recent sessions will be populated here -->
-                        </div>
-                        <div id="sessions-empty" class="hidden text-center py-4">
-                            <p class="text-sm" style="color: var(--on-surface-variant);">No recent sessions to display</p>
-                        </div>
-                    </div>
-                    
-                    <!-- Performance Analytics -->
-                    <div class="bg-black/20 p-4 sm:p-6 organic-small backdrop-blur-sm">
-                        <h3 class="text-lg font-medium mb-4" style="color: var(--on-surface);">Smart Analytics</h3>
-                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                            <div>
-                                <p class="text-sm ventilation-text-secondary mb-2">⏱️ Average Duration</p>
-                                <p id="avg-duration" class="font-semibold" style="color: var(--on-surface);">-- hours</p>
-                            </div>
-                            <div>
-                                <p class="text-sm ventilation-text-secondary mb-2">🎯 Prediction Accuracy</p>
-                                <p id="prediction-accuracy" class="font-semibold" style="color: var(--on-surface);">±-- %</p>
-                            </div>
-                            <div>
-                                <p class="text-sm ventilation-text-secondary mb-2">⭐ Best Time of Day</p>
-                                <p id="best-time" class="font-semibold" style="color: var(--on-surface);">-- hours</p>
-                            </div>
-                            <div>
-                                <p class="text-sm ventilation-text-secondary mb-2">📈 Improvement Trend</p>
-                                <p id="improvement-trend" class="font-semibold" style="color: var(--on-surface);">--</p>
-                            </div>
-                        </div>
-                    </div>
-                    
-                    <!-- Insights & Recommendations -->
-                    <div id="history-insights" class="bg-gradient-to-r from-green-500/10 to-blue-500/10 border border-green-500/30 p-4 sm:p-6 organic-small backdrop-blur-sm">
-                        <h3 class="text-lg font-medium mb-3 flex items-center gap-2" style="color: var(--on-surface);">💡 Personal Insights</h3>
-                        <div id="insights-content" class="space-y-2">
-                            <!-- Insights will be populated here -->
-                        </div>
-                    </div>
-                </div>
-            </div>
+
+        <!-- Refresh Button -->
+        <div class="text-center mt-8">
+            <button id="refresh-btn" class="px-6 py-3 rounded-full font-medium transition-all duration-300" style="background-color: var(--primary); color: var(--on-primary);">
+                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="inline-block mr-2"><path d="M21.5 2v6h-6M2.5 22v-6h6M2 11.5a10 10 0 0 1 18.8-4.3M22 12.5a10 10 0 0 1-18.8 4.2"/></svg>
+                Refresh Data
+            </button>
         </div>
     </div>
 
 <script>
+    // --- CONFIGURATION ---
+    const AIRTHINGS_API_URL = 'https://script.google.com/macros/s/AKfycbz87bTwgcvTHScTlfwWyyEMjdZ_cEmGDLNWqMorcodVgwoxCHjeV263wKcPJds53bIS4A/exec';
+    const WEATHER_API_URL = 'https://api.open-meteo.com/v1/forecast';
+    const THUN_LAT = 46.7578;
+    const THUN_LON = 7.6274;
+    const AIRTHINGS_CACHE_DURATION = 5 * 60 * 1000; // 5 minutes
+
     // --- DOM ELEMENTS ---
     const body = document.body;
-    const modeSwitch = document.getElementById('mode-switch');
-    const autoModeDiv = document.getElementById('auto-mode');
-    const manualModeDiv = document.getElementById('manual-mode');
     const statusImage = document.getElementById('status-image');
-    const statusVideo = document.getElementById('status-video');
-    
-    // Manual Inputs
-    const tempInSlider = document.getElementById('temp-in');
-    const tempOutSlider = document.getElementById('temp-out');
-    const rhOutSlider = document.getElementById('rh-out');
-    const tempInValue = document.getElementById('temp-in-value');
-    const tempOutValue = document.getElementById('temp-out-value');
-    const rhOutValue = document.getElementById('rh-out-value');
 
-    // Auto Inputs & Displays
-    const basementTempAutoSlider = document.getElementById('basement-temp-auto');
-    const basementTempAutoValue = document.getElementById('basement-temp-auto-value');
-    const autoTempOutDisplay = document.getElementById('auto-temp-out');
-    const autoRhOutDisplay = document.getElementById('auto-rh-out');
-    const autoDewPointDisplay = document.getElementById('auto-dewpoint-out');
-    const loadingMessage = document.getElementById('loading-message');
-    const weatherDataContainer = document.getElementById('weather-data-container');
-    const sampleDataWarning = document.getElementById('sample-data-warning');
+    // Airthings elements
+    const airthingsStatus = document.getElementById('airthings-status');
+    const airthingsTemp = document.getElementById('airthings-temp');
+    const airthingsHumidity = document.getElementById('airthings-humidity');
+    const airthingsVoc = document.getElementById('airthings-voc');
+    const airthingsMold = document.getElementById('airthings-mold');
 
-    // Global weather trend data
-    let currentWeatherTrend = null;
-    let forecastData = null;
-    let optimalWindows = [];
-    
-    // Venting session tracking
-    let currentVentingSession = null;
-    const GOOGLE_SHEETS_URL = 'https://script.google.com/macros/s/AKfycbzvhJcFS-fbwiWCy0FHvNREGq8PsJbB3Ua_pij_vJxsLiRSGpcPq1orNSZ8NbNtd_X14A/exec';
-    
-    // History analytics data
-    let historyData = null;
-    let historyAnalytics = null;
+    // Weather elements
+    const weatherLoading = document.getElementById('weather-loading');
+    const weatherData = document.getElementById('weather-data');
+    const outsideTemp = document.getElementById('outside-temp');
+    const outsideHumidity = document.getElementById('outside-humidity');
+    const outsideDewpoint = document.getElementById('outside-dewpoint');
 
-    // Results
+    // Results elements
     const finalHumidityDisplay = document.getElementById('final-humidity');
-    const mainTitle = document.getElementById('main-title');
     const recommendationBox = document.getElementById('recommendation-box');
     const recommendationIcon = document.getElementById('recommendation-icon');
     const recommendationTitle = document.getElementById('recommendation-title');
     const recommendationSummary = document.getElementById('recommendation-summary');
-    
-    // Dynamic Advisor (now in results card)
     const dynamicAdvisorText = document.getElementById('dynamic-advisor-text');
-    const dynamicAdvisorContainer = document.getElementById('dynamic-advisor-container');
-    
-    // Forecast Card Elements
-    const forecastCard = document.getElementById('forecast-card');
-    const toggleForecastBtn = document.getElementById('toggle-forecast');
-    const forecastLoading = document.getElementById('forecast-loading');
-    const forecastContent = document.getElementById('forecast-content');
-    const temperatureChart = document.getElementById('temperature-chart');
-    const humidityChart = document.getElementById('humidity-chart');
-    const qualityZones = document.getElementById('quality-zones');
-    const timeLabels = document.getElementById('time-labels');
-    const optimalWindowsDiv = document.getElementById('optimal-windows');
-    const extendedForecast = document.getElementById('extended-forecast');
-    const extendedForecastContent = document.getElementById('extended-forecast-content');
-    
-    // History Card Elements
-    const historyCard = document.getElementById('history-card');
-    const toggleHistoryBtn = document.getElementById('toggle-history');
-    const historyLoading = document.getElementById('history-loading');
-    const historyEmpty = document.getElementById('history-empty');
-    const historyContent = document.getElementById('history-content');
+
+    // Buttons
+    const refreshBtn = document.getElementById('refresh-btn');
+
+    // --- STATE ---
+    let airthingsData = null;
+    let lastAirthingsFetch = null;
+    let weatherCurrentData = null;
 
     // --- SVG ICONS ---
     const ICONS = {
@@ -748,7 +335,7 @@
         warning: `<svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="m21.73 18-8-14a2 2 0 0 0-3.46 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z"></path><line x1="12" x2="12" y1="9" y2="13"></line><line x1="12" x2="12.01" y1="17" y2="17"></line></svg>`
     };
 
-    // --- CORE LOGIC ---
+    // --- CORE CALCULATIONS ---
     function calculateFinalHumidity(tempIn, tempOut, rhOut) {
         const calcEs = (temp) => 6.112 * Math.exp((17.67 * temp) / (temp + 243.5));
         const esOut = calcEs(tempOut);
@@ -765,1517 +352,228 @@
         const dewPoint = (b * alpha) / (a - alpha);
         return dewPoint;
     }
-    
-    function updateUI() {
-        let tempIn, tempOut, rhOut;
-        updateContextualInfo(); 
 
-        if (modeSwitch.checked) {
-            tempIn = parseFloat(basementTempAutoSlider.value);
-            tempOut = parseFloat(autoTempOutDisplay.textContent);
-            rhOut = parseFloat(autoRhOutDisplay.textContent);
-            if (isNaN(tempOut) || isNaN(rhOut) || autoTempOutDisplay.textContent === '--') {
-                // No weather data available, show placeholder results
-                finalHumidityDisplay.textContent = '--%';
-                recommendationTitle.textContent = 'No Weather Data';
-                recommendationSummary.textContent = 'Unable to provide recommendations without live weather data. Please switch to manual mode.';
-                recommendationBox.className = 'flex items-center p-4 rounded-xl transition-all duration-300 bg-gray-500/20 text-gray-300';
-                recommendationIcon.innerHTML = ICONS.warning;
-                applyVentilationTheme('caution');
-                return;
+    // --- API FUNCTIONS ---
+    async function fetchAirthingsData() {
+        try {
+            // Check cache
+            if (airthingsData && lastAirthingsFetch && (Date.now() - lastAirthingsFetch) < AIRTHINGS_CACHE_DURATION) {
+                console.log('Using cached Airthings data');
+                return airthingsData;
             }
-        } else {
-            tempIn = parseFloat(tempInSlider.value);
-            tempOut = parseFloat(tempOutSlider.value);
-            rhOut = parseFloat(rhOutSlider.value);
+
+            console.log('Fetching Airthings data...');
+            airthingsStatus.textContent = 'Loading...';
+            airthingsStatus.style.background = 'color-mix(in srgb, var(--primary) 20%, transparent 80%)';
+
+            const response = await fetch(AIRTHINGS_API_URL);
+
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+
+            const data = await response.json();
+
+            if (data.success) {
+                airthingsData = data;
+                lastAirthingsFetch = Date.now();
+                console.log('Airthings data received:', data);
+
+                // Update UI
+                airthingsTemp.textContent = data.data.temperature ? `${data.data.temperature}°C` : '--°C';
+                airthingsHumidity.textContent = data.data.humidity ? `${data.data.humidity}%` : '--%';
+                airthingsVoc.textContent = data.data.voc ? `${data.data.voc} ppb` : '-- ppb';
+                airthingsMold.textContent = data.data.mold !== null ? `${data.data.mold}/10` : '--/10';
+
+                airthingsStatus.textContent = 'Connected';
+                airthingsStatus.style.background = 'color-mix(in srgb, #4caf50 20%, transparent 80%)';
+                airthingsStatus.style.color = '#4caf50';
+
+                return data;
+            } else {
+                throw new Error(data.error || 'Unknown error from Airthings API');
+            }
+        } catch (error) {
+            console.error('Error fetching Airthings data:', error);
+            airthingsStatus.textContent = 'Error';
+            airthingsStatus.style.background = 'color-mix(in srgb, #f44336 20%, transparent 80%)';
+            airthingsStatus.style.color = '#f44336';
+            return null;
+        }
+    }
+
+    async function fetchWeatherData() {
+        try {
+            weatherLoading.classList.remove('hidden');
+            weatherData.classList.add('hidden');
+
+            console.log('Fetching weather data...');
+            const url = `${WEATHER_API_URL}?latitude=${THUN_LAT}&longitude=${THUN_LON}&current=temperature_2m,relative_humidity_2m,dewpoint_2m&timezone=Europe/Berlin`;
+
+            const response = await fetch(url);
+
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+
+            const data = await response.json();
+            weatherCurrentData = data.current;
+
+            console.log('Weather data received:', weatherCurrentData);
+
+            // Update UI
+            outsideTemp.textContent = `${Math.round(weatherCurrentData.temperature_2m)}°C`;
+            outsideHumidity.textContent = `${Math.round(weatherCurrentData.relative_humidity_2m)}%`;
+            outsideDewpoint.textContent = `${Math.round(weatherCurrentData.dewpoint_2m)}°C`;
+
+            weatherLoading.classList.add('hidden');
+            weatherData.classList.remove('hidden');
+
+            return data;
+        } catch (error) {
+            console.error('Error fetching weather data:', error);
+            weatherLoading.innerHTML = '<p class="body-medium text-red-400">Failed to fetch weather data. Please refresh.</p>';
+            return null;
+        }
+    }
+
+    // --- UI UPDATE FUNCTIONS ---
+    function updateUI() {
+        if (!airthingsData || !airthingsData.data || !weatherCurrentData) {
+            dynamicAdvisorText.textContent = 'Waiting for data...';
+            return;
         }
 
-        const finalHumidity = calculateFinalHumidity(tempIn, tempOut, rhOut);
-        const dewPointOut = calculateDewPoint(tempOut, rhOut);
+        const basementTemp = airthingsData.data.temperature;
+        const basementHumidity = airthingsData.data.humidity;
+        const outsideTempValue = weatherCurrentData.temperature_2m;
+        const outsideHumidityValue = weatherCurrentData.relative_humidity_2m;
+        const outsideDewpointValue = weatherCurrentData.dewpoint_2m;
+
+        if (!basementTemp || !basementHumidity || !outsideTempValue || !outsideHumidityValue) {
+            dynamicAdvisorText.textContent = 'Incomplete data. Please wait or refresh.';
+            return;
+        }
+
+        // Calculate expected humidity
+        const finalHumidity = calculateFinalHumidity(basementTemp, outsideTempValue, outsideHumidityValue);
         finalHumidityDisplay.textContent = `${finalHumidity}%`;
 
-        let rec = {};
-        let ventilationStatus = 'good'; // default
-        
-        if (dewPointOut >= tempIn - 1.5) {
-            rec = { title: "Do Not Ventilate!", summary: `High condensation risk. The outside air is too moist (${dewPointOut.toFixed(1)}°C dew point).`, color: 'bg-red-500/20 text-red-300', icon: ICONS.bad };
-            ventilationStatus = 'danger';
-        } else if (tempOut > tempIn) {
-            rec = { title: "Do Not Ventilate!", summary: `The outside air is warmer. This will heat your basement and likely add moisture.`, color: 'bg-red-500/20 text-red-300', icon: ICONS.bad };
-            ventilationStatus = 'danger';
-        } else if (finalHumidity < 60) {
-            rec = { title: "Yes, Ventilate!", summary: `Ideal conditions. You will effectively cool and dehumidify your basement.`, color: 'bg-green-500/20 text-green-300', icon: ICONS.good };
-            ventilationStatus = 'good';
-        } else if (finalHumidity < 75) {
-            rec = { title: "Ventilate with Caution", summary: `This will help cool, but won't significantly lower humidity. Safe from condensation.`, color: 'bg-yellow-500/20 text-yellow-300', icon: ICONS.warning };
-            ventilationStatus = 'caution';
+        // Determine recommendation
+        let recommendation = 'neutral';
+        let title = '';
+        let summary = '';
+        let icon = '';
+        let advice = '';
+        let theme = 'caution';
+
+        const tempDiff = basementTemp - outsideTempValue;
+        const condensationRisk = outsideDewpointValue > basementTemp;
+
+        if (condensationRisk) {
+            recommendation = 'bad';
+            title = 'Do Not Ventilate';
+            summary = 'Condensation risk detected';
+            icon = ICONS.bad;
+            theme = 'danger';
+            advice = `🚫 The outside dew point (${Math.round(outsideDewpointValue)}°C) is higher than your basement temperature (${basementTemp}°C). Opening windows will cause condensation and mold growth.`;
+        } else if (finalHumidity >= 75) {
+            recommendation = 'bad';
+            title = 'Do Not Ventilate';
+            summary = 'Humidity will increase significantly';
+            icon = ICONS.bad;
+            theme = 'danger';
+            advice = `❌ Ventilating now would raise basement humidity to ${finalHumidity}%, which is too high (target: <60%, acceptable: <75%). Wait for better conditions.`;
+        } else if (finalHumidity >= 60 && finalHumidity < 75) {
+            recommendation = 'caution';
+            title = 'Ventilate with Caution';
+            summary = 'Moderate improvement expected';
+            icon = ICONS.warning;
+            theme = 'caution';
+            advice = `⚠️ Ventilating will result in ${finalHumidity}% humidity (acceptable but not optimal). Current basement: ${basementHumidity}%. Consider waiting for better conditions if possible.`;
         } else {
-            rec = { title: "Do Not Ventilate", summary: `This will make your basement more humid. The final humidity is too high.`, color: 'bg-red-500/20 text-red-300', icon: ICONS.bad };
-            ventilationStatus = 'danger';
+            recommendation = 'good';
+            title = 'Good Time to Ventilate';
+            summary = 'Optimal conditions';
+            icon = ICONS.good;
+            theme = 'good';
+            advice = `✅ Excellent ventilation conditions! Expected humidity: ${finalHumidity}% (optimal: <60%). Current basement: ${basementHumidity}%. Open windows to improve air quality.`;
         }
-        
-        // Apply ventilation-based theme
-        applyVentilationTheme(ventilationStatus);
-        
-        recommendationTitle.textContent = rec.title;
-        recommendationSummary.textContent = rec.summary;
-        recommendationBox.className = `flex items-center p-4 rounded-xl transition-all duration-300 ${rec.color}`;
-        recommendationIcon.innerHTML = rec.icon;
+
+        // Add VOC and mold risk context
+        if (airthingsData.data.voc && airthingsData.data.voc > 250) {
+            advice += ` Your VOC level (${airthingsData.data.voc} ppb) is elevated - ventilating will help improve air quality.`;
+        }
+        if (airthingsData.data.mold && airthingsData.data.mold > 5) {
+            advice += ` ⚠️ Mold risk is ${airthingsData.data.mold}/10 - prioritize ventilation when conditions allow.`;
+        }
+
+        // Update UI
+        recommendationIcon.innerHTML = icon;
+        recommendationTitle.textContent = title;
+        recommendationSummary.textContent = summary;
+        dynamicAdvisorText.textContent = advice;
+
+        // Apply theme
+        applyVentilationTheme(theme);
     }
 
-    // --- CONTEXT & DYNAMIC ADVISOR ---
-    function applyVentilationTheme(ventilationStatus) {
-        // Remove existing ventilation classes
-        body.className = body.className.replace(/ventilation-\w+/g, '');
-        
-        if (ventilationStatus) {
-            body.classList.add(`ventilation-${ventilationStatus}`);
-            
-            // Update status media based on ventilation recommendation
-            // You can choose between animated GIFs or videos
-            const useVideo = true; // Set to true for videos, false for GIFs
-            
-            if (useVideo) {
-                // Video option - better performance for complex animations
-                const statusVideos = {
-                    'good': './images/good.mp4',       // Gentle breathing/pulsing green animation
-                    'caution': './images/caution.mp4', // Warning pulse yellow/orange animation  
-                    'danger': './images/danger.mp4'    // Urgent red alert animation
-                };
-                
-                if (statusVideos[ventilationStatus]) {
-                    statusVideo.src = statusVideos[ventilationStatus];
-                    statusVideo.classList.remove('hidden');
-                    statusImage.classList.add('hidden');
-                } else {
-                    statusVideo.src = statusVideos['good'];
-                    statusVideo.classList.remove('hidden');
-                    statusImage.classList.add('hidden');
-                }
-            } else {
-                // GIF option - easier to implement, works everywhere
-                const statusImages = {
-                    'good': './images/good.gif',       // Animated green status (e.g., gentle pulsing, checkmark animation)
-                    'caution': './images/caution.gif', // Animated yellow/orange (e.g., warning triangle pulse)
-                    'danger': './images/danger.gif'    // Animated red status (e.g., alert animation, X mark)
-                };
-                
-                if (statusImages[ventilationStatus]) {
-                    statusImage.src = statusImages[ventilationStatus];
-                    statusImage.classList.remove('hidden');
-                    statusVideo.classList.add('hidden');
-                } else {
-                    statusImage.src = statusImages['good'];
-                    statusImage.classList.remove('hidden');
-                    statusVideo.classList.add('hidden');
-                }
-            }
-        }
-    }
+    function applyVentilationTheme(theme) {
+        body.classList.remove('ventilation-good', 'ventilation-caution', 'ventilation-danger');
+        body.classList.add(`ventilation-${theme}`);
 
-    function getSeason(d) {
-        const month = d.getMonth();
-        if (month < 2 || month === 11) return 'Winter';
-        if (month >= 2 && month < 5) return 'Spring';
-        if (month >= 5 && month < 8) return 'Summer';
-        return 'Autumn';
-    }
+        const images = {
+            good: 'images/good.png',
+            caution: 'images/caution.png',
+            danger: 'images/danger.png'
+        };
 
-    function updateContextualInfo() {
-        const now = new Date();
-        const hour = now.getHours();
-        const season = getSeason(now);
-        
-        let hint = "General Tip: Ventilate when outside is cooler and the dew point is lower than your basement's temperature.";
-        let trend = "Stable";
-        
-        // Use real weather trend if available (from API), otherwise fall back to time-based logic
-        if (currentWeatherTrend && modeSwitch.checked) {
-            trend = currentWeatherTrend;
-        } else {
-            // Fallback to time-based trend estimation
-            if ((season === 'Summer' || season === 'Spring') && (hour > 4 && hour < 12)) {
-                trend = "Rising ↗";
-            } else if (hour > 17 || hour < 3) {
-                trend = "Falling ↘";
-            }
-        }
-        
-        dynamicAdvisorContainer.classList.remove('ventilation-accent');
-        dynamicAdvisorText.classList.remove('font-bold');
-
-        // Get current conditions for enhanced basement-specific advice
-        let tempIn, tempOut, rhOut;
-        if (modeSwitch.checked) {
-            tempIn = parseFloat(basementTempAutoSlider.value);
-            tempOut = parseFloat(autoTempOutDisplay.textContent);
-            rhOut = parseFloat(autoRhOutDisplay.textContent);
-        } else {
-            tempIn = parseFloat(tempInSlider.value);
-            tempOut = parseFloat(tempOutSlider.value);
-            rhOut = parseFloat(rhOutSlider.value);
-        }
-
-        // Enhanced basement ventilation advice
-        if (!isNaN(tempIn) && !isNaN(tempOut) && !isNaN(rhOut)) {
-            const dewPointOut = calculateDewPoint(tempOut, rhOut);
-            const finalHumidity = calculateFinalHumidity(tempIn, tempOut, rhOut);
-            
-            // High-priority warnings (dangerous conditions)
-            if (dewPointOut >= tempIn - 1.5) {
-                hint = `⚠️ High condensation risk! Outside dew point (${dewPointOut.toFixed(1)}°C) is too close to your basement temperature. Wait for drier conditions.`;
-                dynamicAdvisorContainer.classList.add('ventilation-accent');
-                dynamicAdvisorText.classList.add('font-bold');
-            } 
-            else if (tempOut > tempIn + 3) {
-                hint = `🔥 Outside much warmer (${tempOut.toFixed(1)}°C vs ${tempIn}°C). Ventilating will heat and significantly humidify your basement.`;
-                dynamicAdvisorContainer.classList.add('ventilation-accent');
-                dynamicAdvisorText.classList.add('font-bold');
-            }
-            else if (rhOut > 95 && tempOut > tempIn) {
-                hint = `💧 Extremely humid outside (${rhOut}%) + warmer temps = recipe for basement moisture problems. Avoid ventilation.`;
-                dynamicAdvisorContainer.classList.add('ventilation-accent');
-                dynamicAdvisorText.classList.add('font-bold');
-            }
-            // Optimal conditions (encouraging advice)
-            else if (finalHumidity < 45 && tempOut < tempIn - 4) {
-                hint = `✨ Excellent conditions! Cool, dry air will perfectly dehumidify your basement. Ventilate for 3-4 hours maximum.`;
-            }
-            else if (finalHumidity < 55 && dewPointOut < tempIn - 4) {
-                if (trend === "Falling ↘" && (hour >= 20 || hour <= 6)) {
-                    hint = `🌙 Perfect timing! Night cooling + low dew point = ideal basement ventilation. Expected humidity: ${finalHumidity}%.`;
-                } else {
-                    hint = `👍 Great conditions! Ventilation will achieve ${finalHumidity}% humidity - perfect for preventing mold in basements.`;
-                }
-            }
-            // Good conditions with specific guidance
-            else if (finalHumidity < 65 && tempOut < tempIn - 1) {
-                if (season === 'Winter' && tempOut < 5) {
-                    hint = `❄️ Winter advantage: Cold air = dry air! Brief 1-2 hour sessions dehumidify effectively. Monitor heating costs.`;
-                } else if (trend === "Falling ↘") {
-                    hint = `📉 Good timing! Falling temperatures favor basement ventilation. Target humidity: ${finalHumidity}%.`;
-                } else {
-                    hint = `✅ Solid conditions. Ventilation will cool and moderately dehumidify (${finalHumidity}%). Safe from condensation.`;
-                }
-            }
-            // Marginal conditions
-            else if (finalHumidity < 75 && dewPointOut < tempIn - 2) {
-                hint = `⚠️ Marginal benefit. Ventilation cools but won't dramatically reduce humidity (${finalHumidity}%). Monitor closely.`;
-            }
-            // Poor conditions
-            else if (finalHumidity >= 75) {
-                hint = `❌ Not recommended. Would result in ${finalHumidity}% humidity - too high for basements, promotes mold growth.`;
-            }
-            // Time-specific optimizations
-            else if (season === 'Summer' && trend === "Rising ↗" && hour >= 6 && hour <= 10 && tempOut < tempIn) {
-                hint = `☀️ Summer morning: Temperatures rising. If you ventilate, close windows by 10 AM to avoid heat trapping.`;
-                dynamicAdvisorContainer.classList.add('ventilation-accent');
-            }
-            else if ((hour >= 22 || hour <= 5) && tempOut < tempIn && rhOut < 80) {
-                hint = `🌜 Night ventilation: Often optimal for basements. Coolest temps, lower humidity. Monitor dew point closely.`;
-            }
-        }
-        // Seasonal fallbacks when specific conditions aren't available
-        else {
-            if (season === 'Winter') {
-                hint = "❄️ Winter strategy: Cold air holds less moisture. Short ventilation bursts (1-2 hours) effectively dry basements.";
-            } else if (season === 'Summer') {
-                hint = "☀️ Summer tip: Best basement ventilation windows are late evening through early morning when coolest.";
-            } else if (season === 'Spring') {
-                hint = "🌸 Spring opportunity: Mild, variable weather. Watch for sudden humidity/temperature swings during transitions.";
-            } else {
-                hint = "🍂 Autumn advantage: Cooling temperatures excellent for basement ventilation. Watch humidity during rainy periods.";
-            }
-        }
-        
-        dynamicAdvisorText.textContent = hint;
+        statusImage.src = images[theme] || images.good;
     }
 
     // --- EVENT LISTENERS ---
-    function setupEventListeners() {
-        [tempInSlider, tempOutSlider, rhOutSlider].forEach(slider => {
-            slider.addEventListener('input', () => {
-                tempInValue.textContent = `${tempInSlider.value}°C`;
-                tempOutValue.textContent = `${tempOutSlider.value}°C`;
-                rhOutValue.textContent = `${rhOutSlider.value}%`;
-                updateUI();
-            });
-        });
+    refreshBtn.addEventListener('click', async () => {
+        refreshBtn.disabled = true;
+        refreshBtn.style.opacity = '0.5';
 
-        basementTempAutoSlider.addEventListener('input', () => {
-             basementTempAutoValue.textContent = `${basementTempAutoSlider.value}°C`;
-             updateUI();
-             if (forecastData) {
-                 updateForecastAnalysis();
-             }
-        });
-        
-        toggleForecastBtn.addEventListener('click', () => {
-            const isHidden = forecastCard.classList.contains('hidden');
-            
-            if (isHidden) {
-                // Show the forecast card
-                forecastCard.classList.remove('hidden');
-                toggleForecastBtn.textContent = 'Hide Forecast';
-            } else {
-                // Hide the forecast card
-                forecastCard.classList.add('hidden');
-                toggleForecastBtn.textContent = 'Show Forecast';
-            }
-        });
-        
-        toggleHistoryBtn.addEventListener('click', async () => {
-            const isHidden = historyCard.classList.contains('hidden');
-            
-            if (isHidden) {
-                // Show the history card and load data
-                historyCard.classList.remove('hidden');
-                toggleHistoryBtn.textContent = 'Hide History';
-                if (!historyData) {
-                    await fetchHistoryData();
-                }
-            } else {
-                // Hide the history card
-                historyCard.classList.add('hidden');
-                toggleHistoryBtn.textContent = 'Show History';
-            }
-        });
+        await Promise.all([
+            fetchAirthingsData(),
+            fetchWeatherData()
+        ]);
 
-        modeSwitch.addEventListener('change', () => {
-            if (modeSwitch.checked) {
-                autoModeDiv.classList.remove('hidden');
-                manualModeDiv.classList.add('hidden');
-                fetchWeatherData();
-            } else {
-                autoModeDiv.classList.add('hidden');
-                manualModeDiv.classList.remove('hidden');
-                currentWeatherTrend = null; // Clear weather trend when switching to manual
-                forecastCard.classList.add('hidden'); // Hide forecast card in manual mode
-                toggleForecastBtn.textContent = 'Show Forecast'; // Reset button text
-                
-                // Clear any error messages from auto mode
-                loadingMessage.classList.add('hidden');
-                loadingMessage.innerHTML = 'Fetching live weather data...';
-                
-                updateUI();
-            }
-        });
-        
-        // Handle window resize to update charts responsively
-        window.addEventListener('resize', () => {
-            if (forecastData && !forecastCard.classList.contains('hidden')) {
-                updateForecastCard();
-            }
-        });
-        
-        // Venting Session Event Listeners
-        document.getElementById('start-venting-btn').addEventListener('click', startVentingSession);
-        document.getElementById('stop-venting-btn').addEventListener('click', stopVentingSession);
-        document.getElementById('save-session-btn').addEventListener('click', saveVentingSession);
-        document.getElementById('cancel-session-btn').addEventListener('click', cancelVentingSession);
-    }
+        updateUI();
 
-    // --- API & AUTO MODE LOGIC ---
-    async function fetchWeatherData() {
-        loadingMessage.classList.remove('hidden');
-        loadingMessage.textContent = 'Fetching live weather data from Open-Meteo...';
-        weatherDataContainer.classList.add('hidden');
+        refreshBtn.disabled = false;
+        refreshBtn.style.opacity = '1';
+    });
 
-        // Thun, Switzerland coordinates
-        const latitude = 46.7578;
-        const longitude = 7.6274;
-        
-        try {
-            // Enhanced Open-Meteo API call - get current weather AND 6-hour detailed forecast
-            const response = await fetch(
-                `https://api.open-meteo.com/v1/forecast?latitude=${latitude}&longitude=${longitude}&current=temperature_2m,relative_humidity_2m,dewpoint_2m&hourly=temperature_2m,relative_humidity_2m,dewpoint_2m&forecast_hours=6&timezone=Europe/Berlin`
-            );
-            
-            if (!response.ok) {
-                throw new Error(`HTTP error! status: ${response.status}`);
-            }
-            
-            const weatherData = await response.json();
-            
-            // Extract current weather data
-            const temperature = weatherData.current.temperature_2m;
-            const humidity = weatherData.current.relative_humidity_2m;
-            const dewPoint = weatherData.current.dewpoint_2m;
-            
-            // Calculate temperature trend from hourly forecast
-            const hourlyTemps = weatherData.hourly.temperature_2m;
-            let trend = "Stable";
-            if (hourlyTemps && hourlyTemps.length >= 3) {
-                const currentTemp = hourlyTemps[0];
-                const temp3h = hourlyTemps[2];
-                const tempDiff = temp3h - currentTemp;
-                
-                if (tempDiff > 1) {
-                    trend = "Rising ↗";
-                } else if (tempDiff < -1) {
-                    trend = "Falling ↘";
-                } else {
-                    trend = "Stable";
-                }
-            }
-            currentWeatherTrend = trend;
-            
-            // Update displays with real data
-            autoTempOutDisplay.textContent = temperature.toFixed(1);
-            autoRhOutDisplay.textContent = humidity;
-            autoDewPointDisplay.textContent = dewPoint.toFixed(1);
-            
-            // Show success message briefly
-            loadingMessage.textContent = `✓ Live data from Thun (${new Date().toLocaleTimeString()})`;
-            sampleDataWarning.classList.add('hidden'); // Hide sample data warning
-            setTimeout(() => {
-                loadingMessage.classList.add('hidden');
-            }, 2000);
-            
-            weatherDataContainer.classList.remove('hidden');
-            
-            // Process forecast data for the forecast card
-            await processForecastData(weatherData);
-            
-            updateUI();
-            
-        } catch (error) {
-            console.error('Weather API Error:', error);
-            
-            // Clear any existing data displays
-            autoTempOutDisplay.textContent = '--';
-            autoRhOutDisplay.textContent = '--';
-            autoDewPointDisplay.textContent = '--';
-            currentWeatherTrend = null;
-            
-            // Show error message with manual mode suggestion
-            loadingMessage.innerHTML = `
-                <div class="text-center space-y-3">
-                    <p class="text-red-300 font-medium">⚠️ Unable to fetch live weather data</p>
-                    <p class="text-sm" style="color: var(--on-surface-variant);">API temporarily unavailable. Please switch to manual mode below.</p>
-                    <button id="switch-to-manual-btn" class="px-4 py-2 bg-blue-500 hover:bg-blue-600 text-white text-sm font-medium rounded-lg transition-colors">
-                        Switch to Manual Mode
-                    </button>
-                </div>
-            `;
-            
-            // Add event listener to switch to manual mode
-            setTimeout(() => {
-                const switchBtn = document.getElementById('switch-to-manual-btn');
-                if (switchBtn) {
-                    switchBtn.addEventListener('click', () => {
-                        modeSwitch.checked = false;
-                        modeSwitch.dispatchEvent(new Event('change'));
-                    });
-                }
-            }, 100);
-            
-            // Keep weather container hidden - no data to show
-            weatherDataContainer.classList.add('hidden');
-            
-            // Hide forecast card since we have no data
-            forecastCard.classList.add('hidden');
-            toggleForecastBtn.textContent = 'Show Forecast';
-        }
-    }
+    // --- INITIALIZATION ---
+    async function initialize() {
+        console.log('Initializing Villa Kunterbunt...');
 
-    // --- VENTING SESSION TRACKING ---
-    function startVentingSession() {
-        const now = new Date();
-        
-        // Get current conditions to store with the session
-        let tempIn, tempOut, rhOut;
-        if (modeSwitch.checked) {
-            tempIn = parseFloat(basementTempAutoSlider.value);
-            tempOut = parseFloat(autoTempOutDisplay.textContent);
-            rhOut = parseFloat(autoRhOutDisplay.textContent);
-        } else {
-            tempIn = parseFloat(tempInSlider.value);
-            tempOut = parseFloat(tempOutSlider.value);
-            rhOut = parseFloat(rhOutSlider.value);
-        }
-        
-        const predictedHumidity = calculateFinalHumidity(tempIn, tempOut, rhOut);
-        
-        // Store session data
-        currentVentingSession = {
-            startTime: now,
-            basementTempBefore: tempIn,
-            outsideTemp: tempOut,
-            outsideHumidity: rhOut,
-            predictedHumidity: predictedHumidity,
-            timer: null
-        };
-        
+        // Fetch both data sources
+        await Promise.all([
+            fetchAirthingsData(),
+            fetchWeatherData()
+        ]);
+
         // Update UI
-        document.getElementById('session-start-view').classList.add('hidden');
-        document.getElementById('session-active-view').classList.remove('hidden');
-        document.getElementById('session-start-time').textContent = now.toLocaleTimeString();
-        document.getElementById('predicted-result').textContent = predictedHumidity;
-        
-        // Start timer
-        updateSessionTimer();
-        currentVentingSession.timer = setInterval(updateSessionTimer, 1000);
-    }
-    
-    function updateSessionTimer() {
-        if (!currentVentingSession) return;
-        
-        const now = new Date();
-        const elapsed = Math.floor((now - currentVentingSession.startTime) / 1000);
-        const hours = Math.floor(elapsed / 3600);
-        const minutes = Math.floor((elapsed % 3600) / 60);
-        const seconds = elapsed % 60;
-        
-        const timeString = hours > 0 
-            ? `${hours}:${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`
-            : `${minutes}:${seconds.toString().padStart(2, '0')}`;
-            
-        document.getElementById('session-timer').textContent = timeString;
-    }
-    
-    function stopVentingSession() {
-        if (!currentVentingSession) return;
-        
-        // Stop timer
-        clearInterval(currentVentingSession.timer);
-        
-        // Calculate duration
-        const now = new Date();
-        const durationMs = now - currentVentingSession.startTime;
-        const durationMinutes = Math.round(durationMs / 60000);
-        
-        // Store end time and duration
-        currentVentingSession.endTime = now;
-        currentVentingSession.durationMinutes = durationMinutes;
-        
-        // Update UI to show results input
-        document.getElementById('session-active-view').classList.add('hidden');
-        document.getElementById('session-results-view').classList.remove('hidden');
-        
-        // Show duration
-        const hours = Math.floor(durationMinutes / 60);
-        const mins = durationMinutes % 60;
-        const durationText = hours > 0 ? `${hours}h ${mins}m` : `${mins}m`;
-        document.getElementById('final-duration').textContent = durationText;
-    }
-    
-    async function saveVentingSession() {
-        const actualHumidityInput = document.getElementById('actual-humidity-input');
-        const actualHumidity = parseFloat(actualHumidityInput.value);
-        
-        if (!actualHumidity || actualHumidity < 0 || actualHumidity > 100) {
-            alert('Please enter a valid humidity percentage (0-100)');
-            return;
-        }
-        
-        // Determine if session was successful
-        const success = actualHumidity < 75 && actualHumidity <= currentVentingSession.predictedHumidity + 10;
-        
-        // Prepare data for Google Sheets
-        const sessionData = {
-            timestamp: currentVentingSession.startTime.toISOString(),
-            startTime: currentVentingSession.startTime.toLocaleTimeString(),
-            endTime: currentVentingSession.endTime.toLocaleTimeString(),
-            durationMinutes: currentVentingSession.durationMinutes,
-            basementTempBefore: currentVentingSession.basementTempBefore,
-            outsideTemp: currentVentingSession.outsideTemp,
-            outsideHumidity: currentVentingSession.outsideHumidity,
-            predictedHumidity: currentVentingSession.predictedHumidity,
-            actualHumidity: actualHumidity,
-            success: success
-        };
-        
-        // Show loading state
-        const saveBtn = document.getElementById('save-session-btn');
-        const originalHTML = saveBtn.innerHTML;
-        saveBtn.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12a9 9 0 1 1-6.219-8.56"/></svg> Saving...`;
-        saveBtn.disabled = true;
-        
-        try {
-            console.log('Sending session data to Google Sheets:', sessionData);
-            console.log('Google Sheets URL:', GOOGLE_SHEETS_URL);
-            
-            // Send to Google Sheets
-            const response = await fetch(GOOGLE_SHEETS_URL, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'text/plain'
-                },
-                body: JSON.stringify(sessionData)
-            });
-            
-            console.log('Response status:', response.status);
-            console.log('Response ok:', response.ok);
-            
-            // Try to read response text for debugging
-            const responseText = await response.text();
-            console.log('Response text:', responseText);
-            
-            let responseData;
-            try {
-                responseData = JSON.parse(responseText);
-                console.log('Parsed response data:', responseData);
-            } catch (parseError) {
-                console.error('Failed to parse response as JSON:', parseError);
-                console.log('Raw response:', responseText);
-                throw new Error(`Invalid response format: ${responseText}`);
-            }
-            
-            if (response.ok && responseData.result === 'success') {
-                // Success! Reset UI
-                resetVentingSessionUI();
-                
-                // Show success message
-                const successIcon = success 
-                    ? `<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20,6 9,17 4,12"/></svg>`
-                    : `<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m21.73 18-8-14a2 2 0 0 0-3.46 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z"/><line x1="12" x2="12" y1="9" y2="13"/><line x1="12" x2="12.01" y1="17" y2="17"/></svg>`;
-                const successColor = success ? 'text-green-300' : 'text-yellow-300';
-                const successMessage = success ? 'Session saved successfully!' : 'Session saved (suboptimal results)';
-                
-                // Temporarily show success in the advisor
-                const advisor = document.getElementById('dynamic-advisor-text');
-                const originalAdvice = advisor.textContent;
-                advisor.innerHTML = `<span class="${successColor} font-medium flex items-center gap-2">${successIcon} ${successMessage}</span> Check your <a href="https://sheets.google.com" target="_blank" class="underline">Google Sheet</a> to view the data.`;
-                
-                setTimeout(() => {
-                    advisor.textContent = originalAdvice;
-                }, 5000);
-                
-            } else {
-                throw new Error(`Request failed: ${response.status} - ${responseData?.error || responseText}`);
-            }
-            
-        } catch (error) {
-            console.error('Error saving session:', error);
-            console.error('Full error details:', {
-                message: error.message,
-                name: error.name,
-                stack: error.stack
-            });
-            
-            let errorMessage = 'Failed to save session.';
-            if (window.location.protocol === 'file:') {
-                errorMessage = 'CORS Error: Please run this from a web server (not file://). See browser console for details.';
-            }
-            
-            alert(errorMessage + ' Please try again or check your internet connection.');
-            
-            // Reset button
-            saveBtn.innerHTML = originalHTML;
-            saveBtn.disabled = false;
-        }
-    }
-    
-    function cancelVentingSession() {
-        if (confirm('Are you sure you want to cancel this session? Data will not be saved.')) {
-            resetVentingSessionUI();
-        }
-    }
-    
-    function resetVentingSessionUI() {
-        // Clear session data
-        if (currentVentingSession && currentVentingSession.timer) {
-            clearInterval(currentVentingSession.timer);
-        }
-        currentVentingSession = null;
-        
-        // Reset UI
-        document.getElementById('session-start-view').classList.remove('hidden');
-        document.getElementById('session-active-view').classList.add('hidden');
-        document.getElementById('session-results-view').classList.add('hidden');
-        
-        // Clear inputs
-        document.getElementById('actual-humidity-input').value = '';
-        
-        // Reset button state
-        const saveBtn = document.getElementById('save-session-btn');
-        saveBtn.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15.2 3a2 2 0 0 1 1.4.6l3.8 3.8a2 2 0 0 1 .6 1.4V19a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2z"/><path d="M17 21v-7a1 1 0 0 0-1-1H8a1 1 0 0 0-1 1v7"/><path d="M7 3v4a1 1 0 0 0 1 1h8"/></svg> Save Session`;
-        saveBtn.disabled = false;
+        updateUI();
+
+        // Auto-refresh every 5 minutes
+        setInterval(async () => {
+            console.log('Auto-refreshing data...');
+            await Promise.all([
+                fetchAirthingsData(),
+                fetchWeatherData()
+            ]);
+            updateUI();
+        }, 5 * 60 * 1000);
     }
 
-    // --- INITIALIZATION ---
-    function initialize() {
-        setupEventListeners();
-        applyVentilationTheme('good'); // Start with a default theme
-        
-        // Since auto mode is default, fetch weather data on startup
-        if (modeSwitch.checked) {
-            fetchWeatherData();
-        }
-        
-        updateUI(); 
-        setInterval(updateContextualInfo, 60000); 
-        
-        // Expose test function for debugging
-        window.testGoogleSheets = testGoogleSheetsConnection;
-    }
-    
-    // --- HISTORY ANALYTICS LOGIC ---
-    
-    async function fetchHistoryData() {
-        historyLoading.classList.remove('hidden');
-        historyContent.classList.add('hidden');
-        historyEmpty.classList.add('hidden');
-        
-        try {
-            console.log('Fetching history data from Google Sheets...');
-            
-            // Fetch data from Google Sheets using GET method to retrieve existing data
-            const response = await fetch(`${GOOGLE_SHEETS_URL}?action=getHistory`, {
-                method: 'GET'
-            });
-            
-            if (!response.ok) {
-                throw new Error(`HTTP error! status: ${response.status}`);
-            }
-            
-            const responseText = await response.text();
-            console.log('History response:', responseText);
-            
-            let data;
-            try {
-                data = JSON.parse(responseText);
-            } catch (parseError) {
-                console.error('Failed to parse history response:', parseError);
-                throw new Error('Invalid response format from Google Sheets');
-            }
-            
-            if (data.result === 'success' && Array.isArray(data.data)) {
-                historyData = data.data;
-                console.log('History data loaded:', historyData.length, 'sessions');
-                
-                if (historyData.length === 0) {
-                    historyLoading.classList.add('hidden');
-                    historyEmpty.classList.remove('hidden');
-                } else {
-                    historyAnalytics = analyzeHistoryData(historyData);
-                    updateHistoryCard();
-                    historyLoading.classList.add('hidden');
-                    historyContent.classList.remove('hidden');
-                }
-            } else {
-                console.warn('No history data available or invalid format');
-                historyLoading.classList.add('hidden');
-                historyEmpty.classList.remove('hidden');
-            }
-            
-        } catch (error) {
-            console.error('Error fetching history data:', error);
-            
-            // Show empty state with error context
-            historyLoading.classList.add('hidden');
-            historyEmpty.classList.remove('hidden');
-            
-            // Create mock data for development/demo purposes
-            console.log('Creating mock history data for demonstration');
-            historyData = createMockHistoryData();
-            historyAnalytics = analyzeHistoryData(historyData);
-            updateHistoryCard();
-            historyLoading.classList.add('hidden');
-            historyContent.classList.remove('hidden');
-        }
-    }
-    
-    function createMockHistoryData() {
-        // Create realistic mock data for demonstration
-        const mockSessions = [];
-        const now = new Date();
-        
-        // Generate 15 mock sessions over the past month
-        for (let i = 0; i < 15; i++) {
-            const sessionDate = new Date(now.getTime() - (i * 2 * 24 * 60 * 60 * 1000)); // Every 2 days
-            const basementTemp = 18 + Math.random() * 4; // 18-22°C
-            const outsideTemp = 5 + Math.random() * 15; // 5-20°C
-            const outsideHumidity = 60 + Math.random() * 30; // 60-90%
-            const predictedHumidity = Math.round(calculateFinalHumidity(basementTemp, outsideTemp, outsideHumidity));
-            const actualHumidity = Math.round(predictedHumidity + (Math.random() - 0.5) * 20); // ±10% variance
-            const safeActualHumidity = Math.max(30, Math.min(90, actualHumidity));
-            const duration = Math.round(60 + Math.random() * 180); // 1-4 hours
-            
-            // Ensure success is properly calculated
-            const isSuccess = safeActualHumidity < 75 && safeActualHumidity <= predictedHumidity + 10;
-            
-            mockSessions.push({
-                timestamp: sessionDate.toISOString(),
-                startTime: sessionDate.toLocaleTimeString(),
-                endTime: new Date(sessionDate.getTime() + duration * 60 * 1000).toLocaleTimeString(),
-                durationMinutes: duration,
-                basementTempBefore: Math.round(basementTemp * 10) / 10,
-                outsideTemp: Math.round(outsideTemp * 10) / 10,
-                outsideHumidity: Math.round(outsideHumidity),
-                predictedHumidity: predictedHumidity,
-                actualHumidity: safeActualHumidity,
-                success: isSuccess
-            });
-        }
-        
-        return mockSessions.reverse(); // Oldest first
-    }
-    
-    function analyzeHistoryData(sessions) {
-        if (!sessions || sessions.length === 0) {
-            return null;
-        }
-        
-        // Filter out any sessions with missing or invalid data
-        const validSessions = sessions.filter(s => {
-            return s && 
-                   typeof s.actualHumidity === 'number' && !isNaN(s.actualHumidity) &&
-                   typeof s.predictedHumidity === 'number' && !isNaN(s.predictedHumidity) &&
-                   typeof s.durationMinutes === 'number' && !isNaN(s.durationMinutes) &&
-                   s.timestamp && new Date(s.timestamp).getTime() > 0;
-        });
-        
-        if (validSessions.length === 0) {
-            return null;
-        }
-        
-        // Basic metrics
-        const totalSessions = validSessions.length;
-        const successfulSessions = validSessions.filter(s => s.success === true).length;
-        const successRate = (successfulSessions / totalSessions) * 100;
-        
-        // Best achievement (lowest humidity)
-        const bestSession = validSessions.reduce((best, current) => {
-            if (!best || current.actualHumidity < best.actualHumidity) {
-                return current;
-            }
-            return best;
-        }, null);
-        
-        // Current streak
-        let currentStreak = 0;
-        for (let i = validSessions.length - 1; i >= 0; i--) {
-            if (validSessions[i].success === true) {
-                currentStreak++;
-            } else {
-                break;
-            }
-        }
-        
-        // Average duration
-        const avgDuration = validSessions.reduce((sum, s) => sum + s.durationMinutes, 0) / validSessions.length;
-        
-        // Prediction accuracy
-        const accuracyDiffs = validSessions.map(s => Math.abs(s.actualHumidity - s.predictedHumidity));
-        const avgAccuracy = accuracyDiffs.reduce((sum, diff) => sum + diff, 0) / accuracyDiffs.length;
-        
-        // Best time of day analysis
-        const timeAnalysis = {};
-        validSessions.forEach(session => {
-            const sessionDate = new Date(session.timestamp);
-            if (sessionDate.getTime() > 0) { // Valid date
-                const hour = sessionDate.getHours();
-                const timeSlot = hour < 6 ? 'Night' : hour < 12 ? 'Morning' : hour < 18 ? 'Afternoon' : 'Evening';
-                
-                if (!timeAnalysis[timeSlot]) {
-                    timeAnalysis[timeSlot] = { total: 0, successful: 0 };
-                }
-                timeAnalysis[timeSlot].total++;
-                if (session.success === true) {
-                    timeAnalysis[timeSlot].successful++;
-                }
-            }
-        });
-        
-        const bestTimeSlot = Object.entries(timeAnalysis).reduce((best, [slot, data]) => {
-            const successRate = data.successful / data.total;
-            return successRate > best.rate ? { slot, rate: successRate } : best;
-        }, { slot: 'Morning', rate: 0 }); // Default to Morning instead of Unknown
-        
-        // Improvement trend (comparing recent vs older sessions)
-        const halfPoint = Math.floor(validSessions.length / 2);
-        const recentSessions = validSessions.slice(halfPoint);
-        const olderSessions = validSessions.slice(0, halfPoint);
-        
-        const recentSuccessRate = recentSessions.length > 0 ? recentSessions.filter(s => s.success === true).length / recentSessions.length : 0;
-        const olderSuccessRate = olderSessions.length > 0 ? olderSessions.filter(s => s.success === true).length / olderSessions.length : 0;
-        const improvementTrend = recentSuccessRate - olderSuccessRate;
-        
-        // Generate insights
-        const insights = generateInsights({
-            sessions: validSessions,
-            successRate,
-            bestSession,
-            avgDuration,
-            avgAccuracy,
-            bestTimeSlot,
-            improvementTrend,
-            currentStreak
-        });
-        
-        return {
-            totalSessions,
-            successfulSessions,
-            successRate,
-            bestSession,
-            currentStreak,
-            avgDuration,
-            avgAccuracy,
-            bestTimeSlot,
-            improvementTrend,
-            insights,
-            recentSessions: validSessions.slice(-10).reverse() // Last 10, most recent first
-        };
-    }
-    
-    function generateInsights(analytics) {
-        const insights = [];
-        const { successRate, avgDuration, avgAccuracy, bestTimeSlot, improvementTrend, currentStreak, sessions } = analytics;
-        
-        // Success rate insights
-        if (successRate >= 80) {
-            insights.push("🎯 Excellent success rate! You've mastered basement ventilation timing.");
-        } else if (successRate >= 60) {
-            insights.push("👍 Good success rate. Consider fine-tuning your session timing.");
-        } else if (successRate < 40) {
-            insights.push("⚠️ Low success rate. Focus on ventilating when outside dew point is well below basement temperature.");
-        }
-        
-        // Duration insights
-        if (avgDuration > 240) { // > 4 hours
-            insights.push("⏰ Your sessions average over 4 hours. Shorter sessions (2-3h) might be more efficient.");
-        } else if (avgDuration < 60) { // < 1 hour
-            insights.push("⚡ Short sessions detected. Consider extending to 1.5-3 hours for better dehumidification.");
-        }
-        
-        // Time pattern insights
-        if (bestTimeSlot.slot === 'Night') {
-            insights.push("🌙 You're most successful during night hours when temperatures are coolest.");
-        } else if (bestTimeSlot.slot === 'Morning') {
-            insights.push("🌅 Morning ventilation works well for you. Cool air from overnight cooling is ideal.");
-        }
-        
-        // Improvement trend
-        if (improvementTrend > 0.2) {
-            insights.push("📈 Great improvement! Your recent sessions are significantly more successful.");
-        } else if (improvementTrend < -0.2) {
-            insights.push("📉 Recent sessions show declining success. Review your timing and weather conditions.");
-        }
-        
-        // Streak insights
-        if (currentStreak >= 5) {
-            insights.push("🔥 Impressive streak! You're consistently making good ventilation decisions.");
-        } else if (currentStreak === 0 && sessions.length > 3) {
-            insights.push("🎯 Your last session didn't meet targets. Check condensation risk and timing.");
-        }
-        
-        // Accuracy insights
-        if (avgAccuracy < 5) {
-            insights.push("🎯 Excellent prediction accuracy! The app's calculations align well with your results.");
-        } else if (avgAccuracy > 15) {
-            insights.push("🔍 Predictions vary from actual results. External factors like wind or thermal mass may affect outcomes.");
-        }
-        
-        return insights.slice(0, 4); // Limit to top 4 insights
-    }
-    
-    function updateHistoryCard() {
-        if (!historyAnalytics) return;
-        
-        const {
-            totalSessions,
-            successfulSessions,
-            successRate,
-            bestSession,
-            currentStreak,
-            avgDuration,
-            avgAccuracy,
-            bestTimeSlot,
-            improvementTrend,
-            insights,
-            recentSessions
-        } = historyAnalytics;
-        
-        // Update success rate gauge
-        const successRateArc = document.getElementById('success-rate-arc');
-        const successRateText = document.getElementById('success-rate-text');
-        const successRateSubtitle = document.getElementById('success-rate-subtitle');
-        
-        const safeSuccessRate = typeof successRate === 'number' && !isNaN(successRate) ? successRate : 0;
-        const safeTotalSessions = typeof totalSessions === 'number' ? totalSessions : 0;
-        const safeSuccessfulSessions = typeof successfulSessions === 'number' ? successfulSessions : 0;
-        
-        successRateText.textContent = `${Math.round(safeSuccessRate)}%`;
-        successRateSubtitle.textContent = `${safeSuccessfulSessions} of ${safeTotalSessions} sessions`;
-        successRateArc.style.strokeDasharray = `${safeSuccessRate}, 100`;
-        
-        // Color code the arc based on success rate
-        successRateArc.classList.remove('text-green-400', 'text-yellow-400', 'text-red-400');
-        if (safeSuccessRate >= 80) {
-            successRateArc.classList.add('text-green-400');
-        } else if (safeSuccessRate >= 60) {
-            successRateArc.classList.add('text-yellow-400');
-        } else {
-            successRateArc.classList.add('text-red-400');
-        }
-        
-        // Update best achievement
-        if (bestSession && typeof bestSession.actualHumidity === 'number') {
-            document.getElementById('best-humidity').textContent = `${bestSession.actualHumidity}%`;
-            const bestDate = new Date(bestSession.timestamp);
-            document.getElementById('best-humidity-date').textContent = bestDate.getTime() > 0 ? bestDate.toLocaleDateString() : 'Unknown Date';
-        } else {
-            document.getElementById('best-humidity').textContent = '--';
-            document.getElementById('best-humidity-date').textContent = 'No data yet';
-        }
-        
-        // Update current streak
-        const safeCurrentStreak = typeof currentStreak === 'number' ? currentStreak : 0;
-        document.getElementById('current-streak').textContent = safeCurrentStreak;
-        
-        // Update analytics
-        const safeAvgDuration = typeof avgDuration === 'number' && !isNaN(avgDuration) ? avgDuration : 0;
-        const hours = Math.floor(safeAvgDuration / 60);
-        const minutes = Math.round(safeAvgDuration % 60);
-        document.getElementById('avg-duration').textContent = hours > 0 ? `${hours}h ${minutes}m` : `${minutes}m`;
-        
-        const safeAvgAccuracy = typeof avgAccuracy === 'number' && !isNaN(avgAccuracy) ? avgAccuracy : 0;
-        document.getElementById('prediction-accuracy').textContent = `±${Math.round(safeAvgAccuracy)}%`;
-        
-        const safeBestTimeSlot = bestTimeSlot && bestTimeSlot.slot ? bestTimeSlot.slot : 'Unknown';
-        document.getElementById('best-time').textContent = safeBestTimeSlot;
-        
-        const safeImprovementTrend = typeof improvementTrend === 'number' && !isNaN(improvementTrend) ? improvementTrend : 0;
-        const trendText = safeImprovementTrend > 0.1 ? 'Improving ↗️' : 
-                         safeImprovementTrend < -0.1 ? 'Declining ↘️' : 'Stable ➡️';
-        document.getElementById('improvement-trend').textContent = trendText;
-        
-        // Update recent sessions timeline
-        updateRecentSessionsTimeline(recentSessions);
-        
-        // Update insights
-        updateInsights(insights);
-    }
-    
-    function updateRecentSessionsTimeline(sessions) {
-        const timeline = document.getElementById('recent-sessions-timeline');
-        
-        if (!sessions || sessions.length === 0) {
-            timeline.classList.add('hidden');
-            document.getElementById('sessions-empty').classList.remove('hidden');
-            return;
-        }
-        
-        timeline.classList.remove('hidden');
-        document.getElementById('sessions-empty').classList.add('hidden');
-        
-        timeline.innerHTML = sessions.map(session => {
-            // Safely handle date parsing
-            const date = new Date(session.timestamp);
-            const isValidDate = date.getTime() > 0;
-            const dateStr = isValidDate ? date.toLocaleDateString() : 'Unknown Date';
-            const timeStr = isValidDate ? date.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'}) : 'Unknown Time';
-            
-            // Safely handle session properties
-            const actualHumidity = typeof session.actualHumidity === 'number' ? session.actualHumidity : 0;
-            const predictedHumidity = typeof session.predictedHumidity === 'number' ? session.predictedHumidity : 0;
-            const durationMinutes = typeof session.durationMinutes === 'number' ? session.durationMinutes : 0;
-            const success = session.success === true;
-            
-            const statusIcon = success ? '✅' : 
-                              actualHumidity <= predictedHumidity + 15 ? '⚠️' : '❌';
-            const statusColor = success ? 'text-green-300' : 
-                               actualHumidity <= predictedHumidity + 15 ? 'text-yellow-300' : 'text-red-300';
-            
-            const durationHours = Math.floor(durationMinutes / 60);
-            const durationMins = durationMinutes % 60;
-            const durationText = durationHours > 0 ? `${durationHours}h ${durationMins}m` : `${durationMins}m`;
-            
-            const predictionDiff = actualHumidity - predictedHumidity;
-            const accuracyText = predictionDiff > 0 ? `+${predictionDiff}%` : `${predictionDiff}%`;
-            
-            return `
-                <div class="flex items-center justify-between p-3 bg-black/10 rounded-lg">
-                    <div class="flex items-center gap-3">
-                        <span class="text-lg ${statusColor}">${statusIcon}</span>
-                        <div>
-                            <p class="text-sm font-medium" style="color: var(--on-surface);">${dateStr} at ${timeStr}</p>
-                            <p class="text-xs" style="color: var(--on-surface-variant);">Duration: ${durationText} • Result: ${actualHumidity}%</p>
-                        </div>
-                    </div>
-                    <div class="text-right">
-                        <p class="text-sm font-medium ${statusColor}">${actualHumidity}%</p>
-                        <p class="text-xs" style="color: var(--on-surface-variant);">vs ${predictedHumidity}% (${accuracyText})</p>
-                    </div>
-                </div>
-            `;
-        }).join('');
-    }
-    
-    function updateInsights(insights) {
-        const insightsContent = document.getElementById('insights-content');
-        
-        if (insights.length === 0) {
-            insightsContent.innerHTML = `<p class="text-sm" style="color: var(--on-surface-variant);">Not enough data for personalized insights yet.</p>`;
-            return;
-        }
-        
-        insightsContent.innerHTML = insights.map(insight => 
-            `<p class="text-sm leading-relaxed" style="color: var(--on-surface);">${insight}</p>`
-        ).join('');
-    }
-    
-    // Debug function to test Google Sheets connection
-    async function testGoogleSheetsConnection() {
-        console.log('Testing Google Sheets connection...');
-        
-        const testData = {
-            timestamp: new Date().toISOString(),
-            startTime: '12:00:00',
-            endTime: '12:05:00', 
-            durationMinutes: 5,
-            basementTempBefore: 20,
-            outsideTemp: 15,
-            outsideHumidity: 80,
-            predictedHumidity: 65,
-            actualHumidity: 62,
-            success: true
-        };
-        
-        try {
-            const response = await fetch(GOOGLE_SHEETS_URL, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'text/plain'
-                },
-                body: JSON.stringify(testData)
-            });
-            
-            const responseText = await response.text();
-            console.log('Test response:', response.status, responseText);
-            
-            if (response.ok) {
-                console.log('✅ Google Sheets connection successful!');
-                return true;
-            } else {
-                console.log('❌ Google Sheets connection failed:', response.status);
-                return false;
-            }
-        } catch (error) {
-            console.error('❌ Connection test error:', error);
-            return false;
-        }
-    }
-
-    // --- FORECAST CARD LOGIC ---
-    
-    async function processForecastData(weatherData) {
-        const hourlyData = weatherData.hourly;
-        const currentBasementTemp = parseFloat(basementTempAutoSlider.value);
-        
-        forecastData = {
-            hours: [],
-            optimalWindows: []
-        };
-        
-        // Process each hour of forecast data
-        for (let i = 0; i < hourlyData.time.length; i++) {
-            const temp = hourlyData.temperature_2m[i];
-            const humidity = hourlyData.relative_humidity_2m[i];
-            const dewPoint = hourlyData.dewpoint_2m[i];
-            
-            // Calculate ventilation metrics for this hour
-            const finalHumidity = calculateFinalHumidity(currentBasementTemp, temp, humidity);
-            const ventilationScore = calculateVentilationScore(currentBasementTemp, temp, humidity, dewPoint, finalHumidity);
-            const recommendation = getVentilationRecommendation(ventilationScore, finalHumidity, dewPoint, currentBasementTemp);
-            
-            forecastData.hours.push({
-                time: hourlyData.time[i],
-                temperature: temp,
-                humidity: humidity,
-                dewPoint: dewPoint,
-                finalHumidity: finalHumidity,
-                ventilationScore: ventilationScore,
-                recommendation: recommendation
-            });
-        }
-        
-        // Find optimal ventilation windows
-        forecastData.optimalWindows = findOptimalWindows(forecastData.hours, currentBasementTemp);
-        
-        // Show forecast card and update UI
-        updateForecastCard();
-        forecastCard.classList.remove('hidden');
-        toggleForecastBtn.textContent = 'Hide Forecast';
-    }
-    
-    async function createMockForecastData() {
-        const currentBasementTemp = parseFloat(basementTempAutoSlider.value);
-        const now = new Date();
-        
-        forecastData = {
-            hours: [],
-            optimalWindows: []
-        };
-        
-        // Create mock 6-hour forecast data
-        const baseTemp = 16.5;
-        const baseHumidity = 85;
-        
-        for (let i = 0; i < 6; i++) {
-            const futureTime = new Date(now.getTime() + i * 60 * 60 * 1000);
-            // Simulate temperature dropping and humidity varying
-            const temp = baseTemp - (i * 1.2) + (Math.sin(i * 0.5) * 2);
-            const humidity = baseHumidity - (i * 3) + (Math.cos(i * 0.7) * 5);
-            const dewPoint = calculateDewPoint(temp, humidity);
-            const finalHumidity = calculateFinalHumidity(currentBasementTemp, temp, humidity);
-            const ventilationScore = calculateVentilationScore(currentBasementTemp, temp, humidity, dewPoint, finalHumidity);
-            const recommendation = getVentilationRecommendation(ventilationScore, finalHumidity, dewPoint, currentBasementTemp);
-            
-            forecastData.hours.push({
-                time: futureTime.toISOString(),
-                temperature: Math.round(temp * 10) / 10,
-                humidity: Math.round(humidity),
-                dewPoint: Math.round(dewPoint * 10) / 10,
-                finalHumidity: finalHumidity,
-                ventilationScore: ventilationScore,
-                recommendation: recommendation
-            });
-        }
-        
-        // Find optimal windows in mock data
-        forecastData.optimalWindows = findOptimalWindows(forecastData.hours, currentBasementTemp);
-        
-        // Show forecast card and update UI
-        updateForecastCard();
-        forecastCard.classList.remove('hidden');
-        toggleForecastBtn.textContent = 'Hide Forecast';
-    }
-    
-    function calculateVentilationScore(basementTemp, outsideTemp, outsideHumidity, dewPoint, finalHumidity) {
-        // Use the same strict logic as the main outcome tab
-        // Safety first: Check for dangerous conditions
-        if (dewPoint >= basementTemp - 1.5) {
-            return 0; // Condensation risk - no ventilation
-        }
-        
-        if (outsideTemp > basementTemp) {
-            return 0; // Will heat basement - no ventilation
-        }
-        
-        // Apply the same thresholds as main outcome tab
-        if (finalHumidity < 60) {
-            return 85; // "Yes, Ventilate!" equivalent
-        } else if (finalHumidity < 75) {
-            return 50; // "Ventilate with Caution" equivalent
-        } else {
-            return 10; // "Do Not Ventilate" equivalent
-        }
-    }
-    
-    function getVentilationRecommendation(score, finalHumidity, dewPoint, basementTemp) {
-        // Align with main outcome tab logic exactly
-        if (dewPoint >= basementTemp - 1.5) {
-            return 'dangerous'; // "Do Not Ventilate!" - condensation risk
-        }
-        
-        if (score >= 80) {
-            return 'excellent'; // "Yes, Ventilate!" - finalHumidity < 60
-        } else if (score >= 45) {
-            return 'good'; // "Ventilate with Caution" - finalHumidity < 75
-        } else {
-            return 'poor'; // "Do Not Ventilate" - finalHumidity >= 75
-        }
-    }
-    
-    function findOptimalWindows(hours, basementTemp) {
-        const windows = [];
-        let currentWindow = null;
-        
-        for (let i = 0; i < hours.length; i++) {
-            const hour = hours[i];
-            // Only consider windows that match main outcome tab's "Yes, Ventilate!" or "Ventilate with Caution" recommendations
-            const isGoodForVentilation = hour.recommendation === 'excellent' || hour.recommendation === 'good';
-            
-            if (isGoodForVentilation) {
-                if (!currentWindow) {
-                    // Start new window
-                    currentWindow = {
-                        startTime: hour.time,
-                        startIndex: i,
-                        endTime: hour.time,
-                        endIndex: i,
-                        avgScore: hour.ventilationScore,
-                        avgFinalHumidity: hour.finalHumidity,
-                        minTemp: hour.temperature,
-                        maxTemp: hour.temperature
-                    };
-                } else {
-                    // Extend current window
-                    currentWindow.endTime = hour.time;
-                    currentWindow.endIndex = i;
-                    currentWindow.avgScore = (currentWindow.avgScore + hour.ventilationScore) / 2;
-                    currentWindow.avgFinalHumidity = Math.round((currentWindow.avgFinalHumidity + hour.finalHumidity) / 2);
-                    currentWindow.minTemp = Math.min(currentWindow.minTemp, hour.temperature);
-                    currentWindow.maxTemp = Math.max(currentWindow.maxTemp, hour.temperature);
-                }
-            } else {
-                if (currentWindow) {
-                    // Close current window and add to results only if it's truly beneficial
-                    const duration = currentWindow.endIndex - currentWindow.startIndex + 1;
-                    currentWindow.duration = duration;
-                    currentWindow.quality = currentWindow.avgScore >= 80 ? 'excellent' : 'good';
-                    
-                    // Additional validation: ensure window meets main outcome standards
-                    if (currentWindow.avgFinalHumidity < 75) { // Only add if humidity result is acceptable
-                        windows.push(currentWindow);
-                    }
-                    currentWindow = null;
-                }
-            }
-        }
-        
-        // Close any remaining window with validation
-        if (currentWindow) {
-            const duration = currentWindow.endIndex - currentWindow.startIndex + 1;
-            currentWindow.duration = duration;
-            currentWindow.quality = currentWindow.avgScore >= 80 ? 'excellent' : 'good';
-            
-            // Additional validation: ensure window meets main outcome standards
-            if (currentWindow.avgFinalHumidity < 75) { // Only add if humidity result is acceptable
-                windows.push(currentWindow);
-            }
-        }
-        
-        return windows;
-    }
-    
-    function updateForecastCard() {
-        if (!forecastData) return;
-        
-        forecastLoading.classList.add('hidden');
-        forecastContent.classList.remove('hidden');
-        
-        // Update charts with a slight delay to ensure proper sizing
-        setTimeout(() => {
-            updateTemperatureChart();
-            updateHumidityChart();
-            updateBasementHumidityChart();
-            updateQualityZones();
-            updateTimeLabels();
-            updateOptimalWindows();
-        }, 100);
-    }
-    
-    function updateTemperatureChart() {
-        const temps = forecastData.hours.map(h => h.temperature);
-        const minTemp = Math.min(...temps) - 1;
-        const maxTemp = Math.max(...temps) + 1;
-        const tempRange = maxTemp - minTemp;
-        
-        // Wait for next frame to ensure container is properly sized
-        requestAnimationFrame(() => {
-            // Get accurate container width, ensuring it doesn't exceed screen width
-            const containerRect = temperatureChart.getBoundingClientRect();
-            const screenPadding = window.innerWidth < 640 ? 32 : 64; // Less padding on mobile
-            const maxWidth = Math.min(window.innerWidth - screenPadding, containerRect.width);
-            const width = Math.max(window.innerWidth < 640 ? 250 : 300, Math.min(maxWidth, containerRect.width || 350));
-            const height = window.innerWidth < 640 ? 56 : 80; // More compact on mobile
-            
-            // Create SVG for temperature line
-            let svgPath = '';
-            const effectiveWidth = width - 40; // Leave margin for labels
-            
-            for (let i = 0; i < temps.length; i++) {
-                const x = 20 + (i / (temps.length - 1)) * effectiveWidth; // 20px left margin
-                const y = height - 20 - ((temps[i] - minTemp) / tempRange) * (height - 40); // 20px top/bottom margins
-                
-                if (i === 0) {
-                    svgPath += `M ${x} ${y}`;
-                } else {
-                    svgPath += ` L ${x} ${y}`;
-                }
-            }
-            
-            temperatureChart.innerHTML = `
-                <svg width="${width}" height="${height}" class="w-full h-full" style="max-width: 100%;" viewBox="0 0 ${width} ${height}" preserveAspectRatio="xMidYMid meet">
-                    <defs>
-                        <linearGradient id="tempGradient" x1="0%" y1="0%" x2="0%" y2="100%">
-                            <stop offset="0%" style="stop-color:var(--primary);stop-opacity:0.3" />
-                            <stop offset="100%" style="stop-color:var(--primary);stop-opacity:0.1" />
-                        </linearGradient>
-                    </defs>
-                    <path d="${svgPath} L ${20 + effectiveWidth} ${height - 20} L 20 ${height - 20} Z" fill="url(#tempGradient)" />
-                    <path d="${svgPath}" stroke="var(--primary)" stroke-width="2" fill="none" />
-                    ${temps.map((temp, i) => {
-                        const x = 20 + (i / (temps.length - 1)) * effectiveWidth;
-                        const y = height - 20 - ((temp - minTemp) / tempRange) * (height - 40);
-                        return `<circle cx="${x}" cy="${y}" r="${window.innerWidth < 640 ? '2' : '3'}" fill="var(--primary)" />`;
-                    }).join('')}
-                </svg>
-                <div class="absolute top-1 left-1 text-xs" style="color: var(--on-surface-variant);">${maxTemp.toFixed(1)}°</div>
-                <div class="absolute bottom-1 left-1 text-xs" style="color: var(--on-surface-variant);">${minTemp.toFixed(1)}°</div>
-            `;
-        });
-    }
-    
-    function updateHumidityChart() {
-        const humidities = forecastData.hours.map(h => h.humidity);
-        const maxHumidity = Math.max(...humidities);
-        const isMobile = window.innerWidth < 640;
-        const chartHeight = isMobile ? 48 : 64; // Responsive height
-        
-        humidityChart.innerHTML = humidities.map((humidity, i) => {
-            const height = (humidity / maxHumidity) * chartHeight;
-            const color = humidity > 85 ? '#f44336' : humidity > 70 ? '#ff9800' : '#4caf50';
-            const barWidth = isMobile ? 'w-6' : 'w-8';
-            const fontSize = isMobile ? 'text-xs' : 'text-xs';
-            
-            return `
-                <div class="flex flex-col items-center flex-1 min-w-0"> 
-                    <div class="${barWidth} rounded-t mx-auto" style="height: ${height}px; background-color: ${color}; opacity: 0.7; max-width: 100%;"></div>
-                    <span class="${fontSize} mt-1 truncate" style="color: var(--on-surface-variant);">${humidity}%</span>
-                </div>
-            `;
-        }).join('');
-    }
-    
-    function updateBasementHumidityChart() {
-        const basementHumidities = forecastData.hours.map(h => h.finalHumidity);
-        const maxBasementHumidity = Math.max(...basementHumidities, 100); // Ensure scale goes to at least 100%
-        const isMobile = window.innerWidth < 640;
-        const chartHeight = isMobile ? 48 : 64; // Responsive height
-        
-        const basementHumidityChart = document.getElementById('basement-humidity-chart');
-        basementHumidityChart.innerHTML = basementHumidities.map((humidity, i) => {
-            const height = (humidity / maxBasementHumidity) * chartHeight;
-            // Color coding based on basement humidity levels (more stringent than outside humidity)
-            let color = '#4caf50'; // Good (green)
-            if (humidity >= 75) {
-                color = '#f44336'; // High/Bad (red) - promotes mold
-            } else if (humidity >= 60) {
-                color = '#ff9800'; // Moderate (orange/yellow) - caution level
-            }
-            
-            const barWidth = isMobile ? 'w-6' : 'w-8';
-            const fontSize = isMobile ? 'text-xs' : 'text-xs';
-            
-            return `
-                <div class="flex flex-col items-center flex-1 min-w-0"> 
-                    <div class="${barWidth} rounded-t mx-auto" style="height: ${height}px; background-color: ${color}; opacity: 0.8; max-width: 100%;"></div>
-                    <span class="${fontSize} mt-1 truncate" style="color: var(--on-surface-variant);">${humidity}%</span>
-                </div>
-            `;
-        }).join('');
-    }
-    
-    function updateQualityZones() {
-        qualityZones.innerHTML = forecastData.hours.map((hour, i) => {
-            let bgColor = '#4caf50'; // green for good
-            let opacity = '0.3';
-            
-            switch(hour.recommendation) {
-                case 'excellent':
-                    bgColor = '#4caf50';
-                    opacity = '0.8';
-                    break;
-                case 'good':
-                    bgColor = '#4caf50';
-                    opacity = '0.5';
-                    break;
-                case 'marginal':
-                    bgColor = '#ff9800';
-                    opacity = '0.4';
-                    break;
-                case 'poor':
-                case 'dangerous':
-                    bgColor = '#f44336';
-                    opacity = '0.6';
-                    break;
-            }
-            
-            return `<div class="flex-1 h-full" style="background-color: ${bgColor}; opacity: ${opacity}; margin-right: ${i < forecastData.hours.length - 1 ? '1px' : '0'};"></div>`;
-        }).join('');
-    }
-    
-    function updateTimeLabels() {
-        timeLabels.innerHTML = forecastData.hours.map(hour => {
-            const time = new Date(hour.time);
-            return `<span>${time.getHours()}:00</span>`;
-        }).join('');
-    }
-    
-    function updateOptimalWindows() {
-        if (forecastData.optimalWindows.length === 0) {
-            optimalWindowsDiv.innerHTML = `
-                <div class="text-center py-4">
-                    <p class="text-sm sm:body-medium ventilation-text-secondary">❌ No optimal ventilation windows in the next 6 hours</p>
-                </div>
-            `;
-            // TODO: Show extended forecast fallback
-            return;
-        }
-        
-        const isMobile = window.innerWidth < 640;
-        
-        optimalWindowsDiv.innerHTML = forecastData.optimalWindows.map(window => {
-            const startTime = new Date(window.startTime);
-            const endTime = new Date(window.endTime);
-            const qualityIcon = window.quality === 'excellent' ? '🌟' : '👍';
-            const qualityColor = window.quality === 'excellent' ? 'text-green-300' : 'text-green-400';
-            
-            return `
-                <div class="${isMobile ? 'optimal-window-mobile' : 'p-4'} bg-green-500/10 border border-green-500/30 rounded-xl overflow-hidden">
-                    <div class="flex items-start sm:items-center justify-between mb-2 gap-2 ${isMobile ? 'flex-col' : ''}">
-                        <h4 class="font-semibold ${qualityColor} flex items-center gap-2 text-sm sm:text-base min-w-0">
-                            <span class="flex-shrink-0">${qualityIcon}</span>
-                            <span class="truncate">${window.quality === 'excellent' ? 'Perfect' : 'Good'} Window</span>
-                        </h4>
-                        <span class="text-xs sm:text-sm flex-shrink-0" style="color: var(--on-surface-variant);">Score: ${Math.round(window.avgScore)}/100</span>
-                    </div>
-                    <p class="text-sm sm:body-medium mb-2" style="color: var(--on-surface);">
-                        <strong>${startTime.getHours()}:00 - ${endTime.getHours()}:00</strong> 
-                        (${window.duration} hour${window.duration > 1 ? 's' : ''})
-                    </p>
-                    <p class="text-xs sm:text-sm" style="color: var(--on-surface-variant);">
-                        Expected humidity: <strong>${window.avgFinalHumidity}%</strong><br>
-                        Temp: ${window.minTemp.toFixed(1)}°C - ${window.maxTemp.toFixed(1)}°C<br>
-                        <em style="color: var(--primary);">Meets safety standards ✓</em>
-                    </p>
-                </div>
-            `;
-        }).join('');
-    }
-    
-    function updateForecastAnalysis() {
-        if (forecastData) {
-            // Recalculate forecast analysis with new basement temperature
-            const newBasementTemp = parseFloat(basementTempAutoSlider.value);
-            
-            // Update all hours with new calculations
-            forecastData.hours.forEach(hour => {
-                hour.finalHumidity = calculateFinalHumidity(newBasementTemp, hour.temperature, hour.humidity);
-                hour.ventilationScore = calculateVentilationScore(newBasementTemp, hour.temperature, hour.humidity, hour.dewPoint, hour.finalHumidity);
-                hour.recommendation = getVentilationRecommendation(hour.ventilationScore, hour.finalHumidity, hour.dewPoint, newBasementTemp);
-            });
-            
-            // Recalculate optimal windows
-            forecastData.optimalWindows = findOptimalWindows(forecastData.hours, newBasementTemp);
-            
-            // Update the forecast card display
-            updateForecastCard();
-        }
-    }
-
-    // --- INITIALIZATION ---
-    function initialize() {
-        setupEventListeners();
-        applyVentilationTheme('good'); // Start with a default theme
-        
-        // Since auto mode is default, fetch weather data on startup
-        if (modeSwitch.checked) {
-            fetchWeatherData();
-        }
-        
-        updateUI(); 
-        setInterval(updateContextualInfo, 60000); 
-    }
-
+    // Start the app
     initialize();
 </script>
 
 </body>
 </html>
-

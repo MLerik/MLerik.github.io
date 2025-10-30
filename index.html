@@ -137,35 +137,16 @@
             height: 150px;
             margin: 0 auto 1.5rem;
             border-radius: 32px; /* Match card border radius */
-            background: linear-gradient(145deg,
-                color-mix(in srgb, var(--surface-container-high) 60%, transparent 40%),
-                color-mix(in srgb, var(--surface-container) 60%, transparent 40%));
-            padding: 15px;
-            overflow: hidden;
+            overflow: hidden; /* Clip the image to rounded shape */
             box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
             transition: all 0.5s ease;
-        }
-
-        .status-indicator::before {
-            content: '';
-            position: absolute;
-            inset: 0;
-            border-radius: 32px;
-            padding: 3px;
-            background: linear-gradient(145deg, transparent, var(--status-color, #4caf50));
-            -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
-            -webkit-mask-composite: xor;
-            mask-composite: exclude;
-            opacity: 0.5;
-            transition: opacity 0.5s ease;
         }
 
         .status-indicator img {
             width: 100%;
             height: 100%;
-            object-fit: contain;
-            position: relative;
-            z-index: 1;
+            object-fit: cover; /* Cover the container while maintaining aspect ratio */
+            border-radius: 32px; /* Also round the image itself for extra smoothness */
         }
 
         /* Status-specific glow animations */
@@ -300,10 +281,9 @@
             .status-indicator {
                 width: 120px;
                 height: 120px;
-                padding: 12px;
                 border-radius: 24px;
             }
-            .status-indicator::before {
+            .status-indicator img {
                 border-radius: 24px;
             }
             .display-small { font-size: 28px; line-height: 36px; }

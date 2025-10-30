@@ -169,11 +169,17 @@
             transition: all 0.5s ease;
         }
 
-        .status-indicator img {
+        .status-indicator img,
+        .status-indicator video {
             width: 100%;
             height: 100%;
             object-fit: cover; /* Cover the container while maintaining aspect ratio */
             border-radius: 32px; /* Also round the image itself for extra smoothness */
+        }
+
+        /* Ensure videos are centered and properly cropped from 16:9 to square */
+        .status-indicator video {
+            object-position: center center;
         }
 
         /* Status-specific glow animations */
@@ -249,7 +255,8 @@
             animation: container-glow-good 2s ease-in-out infinite;
         }
 
-        .status-good img {
+        .status-good img,
+        .status-good video {
             animation: pulse-good 2s ease-in-out infinite;
         }
 
@@ -258,7 +265,8 @@
             animation: container-glow-caution 2s ease-in-out infinite;
         }
 
-        .status-caution img {
+        .status-caution img,
+        .status-caution video {
             animation: pulse-caution 2s ease-in-out infinite;
         }
 
@@ -267,7 +275,8 @@
             animation: container-glow-danger 2s ease-in-out infinite;
         }
 
-        .status-danger img {
+        .status-danger img,
+        .status-danger video {
             animation: pulse-danger 2s ease-in-out infinite;
         }
 
@@ -361,7 +370,9 @@
             <div id="basement-card" class="p-6 md:p-8 shadow-2xl ventilation-card organic-card">
                 <!-- Basement Status Indicator -->
                 <div class="status-indicator">
-                    <img id="basement-status-image" class="status-good" src="images/good.png" alt="Basement Status">
+                    <video id="basement-status-video" class="status-good" autoplay loop muted playsinline>
+                        <source src="images/good_basement_condition.mp4" type="video/mp4">
+                    </video>
                 </div>
 
                 <h2 class="title-large mb-4 text-center" style="color: var(--on-surface);">Basement Air Quality</h2>
@@ -476,7 +487,7 @@
     // Card elements
     const basementCard = document.getElementById('basement-card');
     const ventilationCard = document.getElementById('ventilation-card');
-    const basementStatusImage = document.getElementById('basement-status-image');
+    const basementStatusVideo = document.getElementById('basement-status-video');
     const ventilationStatusImage = document.getElementById('ventilation-status-image');
 
     // Airthings elements
@@ -532,6 +543,51 @@
         const alpha = Math.log(rh / 100) + (a * temp) / (b + temp);
         const dewPoint = (b * alpha) / (a - alpha);
         return dewPoint;
+    }
+
+    function calculateVentilationDuration(humidityDiff, currentHumidity, voc) {
+        // Calculate recommended ventilation duration based on:
+        // 1. Humidity difference (higher diff = longer ventilation)
+        // 2. Current humidity level (higher = more urgent)
+        // 3. VOC levels (higher = longer ventilation for air quality)
+
+        let baseDuration = 30; // Base: 30 minutes
+
+        // Adjust for humidity difference
+        if (humidityDiff > 20) {
+            baseDuration = 60; // 1 hour for large improvement
+        } else if (humidityDiff > 10) {
+            baseDuration = 45; // 45 min for moderate improvement
+        } else if (humidityDiff > 5) {
+            baseDuration = 30; // 30 min for small improvement
+        } else {
+            baseDuration = 20; // 20 min for minimal improvement
+        }
+
+        // Add time if current humidity is high
+        if (currentHumidity >= 65) {
+            baseDuration += 15;
+        } else if (currentHumidity >= 60) {
+            baseDuration += 10;
+        }
+
+        // Add time if VOC is elevated
+        if (voc && voc > 500) {
+            baseDuration += 15;
+        } else if (voc && voc > 300) {
+            baseDuration += 10;
+        }
+
+        return Math.min(baseDuration, 90); // Cap at 90 minutes
+    }
+
+    function formatDuration(minutes) {
+        if (minutes >= 60) {
+            const hours = Math.floor(minutes / 60);
+            const mins = minutes % 60;
+            return mins > 0 ? `${hours}h ${mins}min` : `${hours} hour${hours > 1 ? 's' : ''}`;
+        }
+        return `${minutes} minutes`;
     }
 
     // --- API FUNCTIONS ---
@@ -620,35 +676,43 @@
 
     // --- UI UPDATE FUNCTIONS ---
     function assessBasementAirQuality(basementHumidity, voc, moldRisk) {
-        // Assess overall basement air quality
+        // Assess overall basement air quality based on basement-specific standards
         let status = 'good';
         let issues = [];
 
-        // Check humidity (most important for basements)
-        if (basementHumidity >= 70) {
+        // Check humidity (critical for basements - stricter than general indoor standards)
+        // EPA and building science recommend basements stay below 60% to prevent mold
+        if (basementHumidity >= 65) {
             status = 'danger';
-            issues.push(`High humidity (${basementHumidity}%)`);
-        } else if (basementHumidity >= 60) {
+            issues.push(`Dangerously high humidity (${basementHumidity}%)`);
+        } else if (basementHumidity >= 55) {
             status = status === 'danger' ? 'danger' : 'caution';
             issues.push(`Elevated humidity (${basementHumidity}%)`);
         }
+        // Good: < 55% (ideal basement humidity is 30-50%)
 
-        // Check VOC levels
+        // Check VOC levels (WHO and EPA standards)
+        // < 300 ppb: Good
+        // 300-500 ppb: Elevated
+        // > 500 ppb: Poor
         if (voc && voc > 500) {
             status = 'danger';
-            issues.push(`High VOC (${voc} ppb)`);
-        } else if (voc && voc > 250) {
+            issues.push(`Poor air quality - High VOC (${voc} ppb)`);
+        } else if (voc && voc > 300) {
             status = status === 'danger' ? 'danger' : 'caution';
-            issues.push(`Elevated VOC (${voc} ppb)`);
+            issues.push(`Moderate air quality - VOC (${voc} ppb)`);
         }
 
-        // Check mold risk
+        // Check mold risk (Airthings scale 0-10)
+        // 0-4: Low risk
+        // 5-6: Moderate risk
+        // 7-10: High risk
         if (moldRisk && moldRisk >= 7) {
             status = 'danger';
             issues.push(`High mold risk (${moldRisk}/10)`);
         } else if (moldRisk && moldRisk >= 5) {
             status = status === 'danger' ? 'danger' : 'caution';
-            issues.push(`Elevated mold risk (${moldRisk}/10)`);
+            issues.push(`Moderate mold risk (${moldRisk}/10)`);
         }
 
         return { status, issues };
@@ -675,11 +739,15 @@
 
         // Assess basement air quality
         const basementAssessment = assessBasementAirQuality(basementHumidity, basementVoc, basementMold);
-        applyCardStatus(basementCard, basementStatusImage, basementAssessment.status);
+        applyCardStatus(basementCard, basementStatusVideo, basementAssessment.status, true); // true = video
 
         // Calculate expected humidity for ventilation
         const finalHumidity = calculateFinalHumidity(basementTemp, outsideTempValue, outsideHumidityValue);
         finalHumidityDisplay.textContent = `${finalHumidity}%`;
+
+        // Calculate recommended ventilation duration
+        const humidityDiff = basementHumidity - finalHumidity;
+        const ventilationDuration = calculateVentilationDuration(humidityDiff, basementHumidity, basementVoc);
 
         // Determine ventilation recommendation
         let recommendation = 'neutral';
@@ -719,11 +787,16 @@
             summary = 'Optimal conditions';
             icon = ICONS.good;
             theme = 'good';
-            advice = `✅ Excellent ventilation conditions! Expected humidity: ${finalHumidity}% (optimal: <60%). Current basement: ${basementHumidity}%. Open windows to improve air quality.`;
+            advice = `✅ Excellent ventilation conditions! Expected humidity: ${finalHumidity}% (optimal: <55%). Current basement: ${basementHumidity}%. ⏱️ Recommended duration: ${formatDuration(ventilationDuration)}.`;
+        }
+
+        // Add duration to caution message
+        if (recommendation === 'caution') {
+            advice += ` ⏱️ If you proceed, ventilate for about ${formatDuration(ventilationDuration)}.`;
         }
 
         // Add VOC and mold risk context
-        if (airthingsData.data.voc && airthingsData.data.voc > 250) {
+        if (airthingsData.data.voc && airthingsData.data.voc > 300) {
             advice += ` Your VOC level (${airthingsData.data.voc} ppb) is elevated - ventilating will help improve air quality.`;
         }
         if (airthingsData.data.mold && airthingsData.data.mold > 5) {
@@ -745,26 +818,41 @@
         applyVentilationTheme(worstStatus);
     }
 
-    function applyCardStatus(card, statusImage, status) {
+    function applyCardStatus(card, statusElement, status, isVideo = false) {
         // Remove all status classes from card
         card.classList.remove('card-status-good', 'card-status-caution', 'card-status-danger');
 
-        // Remove all status classes from status indicator container and image
-        const statusContainer = statusImage.parentElement;
+        // Remove all status classes from status indicator container and element
+        const statusContainer = statusElement.parentElement;
         statusContainer.classList.remove('status-good', 'status-caution', 'status-danger');
-        statusImage.classList.remove('status-good', 'status-caution', 'status-danger');
+        statusElement.classList.remove('status-good', 'status-caution', 'status-danger');
 
         // Add appropriate status class to card and status indicator
         card.classList.add(`card-status-${status}`);
         statusContainer.classList.add(`status-${status}`);
 
-        // Update image
-        const images = {
-            good: 'images/good.png',
-            caution: 'images/caution.png',
-            danger: 'images/danger.png'
-        };
-        statusImage.src = images[status] || images.good;
+        // Update media source
+        if (isVideo) {
+            // For video elements (basement status)
+            const videos = {
+                good: 'images/good_basement_condition.mp4',
+                caution: 'images/fair_basement_condition.mp4',
+                danger: 'images/terrible_basement_condition.mp4'
+            };
+            const videoSource = statusElement.querySelector('source');
+            if (videoSource) {
+                videoSource.src = videos[status] || videos.good;
+                statusElement.load(); // Reload video with new source
+            }
+        } else {
+            // For image elements (ventilation status)
+            const images = {
+                good: 'images/good.png',
+                caution: 'images/caution.png',
+                danger: 'images/danger.png'
+            };
+            statusElement.src = images[status] || images.good;
+        }
     }
 
     function applyVentilationTheme(theme) {

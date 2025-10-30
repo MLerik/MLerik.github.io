@@ -555,9 +555,9 @@
         warning: `<svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="m21.73 18-8-14a2 2 0 0 0-3.46 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z"></path><line x1="12" x2="12" y1="9" y2="13"></line><line x1="12" x2="12.01" y1="17" y2="17"></line></svg>`
     };
 
-    // Trend icon mapping - stock market style indicators
-    function getTrendIcon(trend, isGood = 'falling') {
-        console.log('getTrendIcon called with trend:', trend, 'isGood:', isGood);
+    // Context-aware trend icon with smart coloring
+    function getTrendIcon(trend, currentValue, metric) {
+        console.log('getTrendIcon called:', {trend, currentValue, metric});
 
         // Lucide icons: chevron-up, chevron-down, arrow-right
         const icons = {
@@ -566,20 +566,48 @@
             stable: '<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"></path><path d="m12 5 7 7-7 7"></path></svg>'
         };
 
-        // Stock market colors: green for good, red for bad, blue for stable/neutral
-        const colors = {
-            rising: isGood === 'rising' ? '#10b981' : (isGood === 'neutral' ? '#3b82f6' : '#ef4444'),
-            falling: isGood === 'falling' ? '#10b981' : (isGood === 'neutral' ? '#3b82f6' : '#ef4444'),
-            stable: '#3b82f6'
-        };
-
         if (!trend || !icons[trend]) {
             console.log('Returning empty string - trend not valid');
             return '';
         }
 
-        const result = `<span style="color: ${colors[trend]}; display: inline-flex; align-items: center; font-weight: bold;" title="${trend.toUpperCase()}">${icons[trend]}</span>`;
-        console.log('Returning trend HTML:', result);
+        // Determine if current state is good or bad, then apply context-aware coloring
+        let color = '#94a3b8'; // default gray
+        let isCurrentBad = false;
+
+        if (metric === 'temperature') {
+            // Temperature: ideal is 15-20°C for basement
+            isCurrentBad = currentValue < 12 || currentValue > 22;
+            if (trend === 'rising' && currentValue < 15) color = '#10b981'; // cold, warming up = good
+            else if (trend === 'rising' && currentValue >= 20) color = '#ef4444'; // hot, getting hotter = bad
+            else if (trend === 'falling' && currentValue > 22) color = '#10b981'; // too hot, cooling = good
+            else if (trend === 'falling' && currentValue <= 15) color = '#ef4444'; // cold, getting colder = bad
+            else if (trend === 'stable' && !isCurrentBad) color = '#10b981'; // stable in good range = good
+            else if (trend === 'stable' && isCurrentBad) color = '#f59e0b'; // stable in bad range = warning
+        } else if (metric === 'humidity') {
+            // Humidity: <55% good, 55-65% caution, ≥65% danger
+            isCurrentBad = currentValue >= 55;
+            if (trend === 'falling' && currentValue >= 55) color = '#10b981'; // high, going down = good
+            else if (trend === 'falling' && currentValue < 55) color = '#10b981'; // already good, still improving = good
+            else if (trend === 'rising' && currentValue < 55) color = '#f59e0b'; // good but rising = warning
+            else if (trend === 'rising' && currentValue >= 55) color = '#ef4444'; // high and rising = bad
+            else if (trend === 'stable' && currentValue < 55) color = '#10b981'; // stable in good range = good
+            else if (trend === 'stable' && currentValue >= 65) color = '#ef4444'; // stable in danger zone = bad
+            else if (trend === 'stable' && currentValue >= 55) color = '#f59e0b'; // stable in caution zone = warning
+        } else if (metric === 'voc') {
+            // VOC: <300 good, 300-500 caution, >500 danger
+            isCurrentBad = currentValue >= 300;
+            if (trend === 'falling' && currentValue >= 300) color = '#10b981'; // high, going down = good
+            else if (trend === 'falling' && currentValue < 300) color = '#10b981'; // already good, still improving = good
+            else if (trend === 'rising' && currentValue < 300) color = '#f59e0b'; // good but rising = warning
+            else if (trend === 'rising' && currentValue >= 300) color = '#ef4444'; // high and rising = bad
+            else if (trend === 'stable' && currentValue < 300) color = '#10b981'; // stable in good range = good
+            else if (trend === 'stable' && currentValue >= 500) color = '#ef4444'; // stable in danger zone = bad
+            else if (trend === 'stable' && currentValue >= 300) color = '#f59e0b'; // stable in caution zone = warning
+        }
+
+        const result = `<span style="color: ${color}; display: inline-flex; align-items: center; font-weight: bold;" title="${trend.toUpperCase()}: ${color === '#10b981' ? 'GOOD' : color === '#ef4444' ? 'BAD' : 'WARNING'}">${icons[trend]}</span>`;
+        console.log('Returning trend HTML with color:', color);
         return result;
     }
 
@@ -717,14 +745,12 @@
                 airthingsVoc.textContent = data.data.voc ? `${data.data.voc} ppb` : '-- ppb';
                 airthingsMold.textContent = data.data.mold !== null ? `${data.data.mold}/10` : '--/10';
 
-                // Update trend indicators
-                // For humidity/VOC: falling is good (lower is better)
-                // For temperature: neutral (context-dependent)
+                // Update trend indicators with context-aware colors
                 if (data.trends) {
                     console.log('Trends data:', data.trends);
-                    tempTrend.innerHTML = getTrendIcon(data.trends.temperature, 'neutral');
-                    humidityTrend.innerHTML = getTrendIcon(data.trends.humidity, 'falling');
-                    vocTrend.innerHTML = getTrendIcon(data.trends.voc, 'falling');
+                    tempTrend.innerHTML = getTrendIcon(data.trends.temperature, data.data.temperature, 'temperature');
+                    humidityTrend.innerHTML = getTrendIcon(data.trends.humidity, data.data.humidity, 'humidity');
+                    vocTrend.innerHTML = getTrendIcon(data.trends.voc, data.data.voc, 'voc');
                 } else {
                     console.log('No trends data available - redeploy Google Apps Script if needed');
                     tempTrend.innerHTML = '';

@@ -558,15 +558,15 @@
         // For some metrics, falling is good (humidity, VOC)
         // For others, it depends on context
         const icons = {
-            rising: '<svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" class="inline-block"><polyline points="18 15 12 9 6 15"></polyline></svg>',
-            falling: '<svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" class="inline-block"><polyline points="6 9 12 15 18 9"></polyline></svg>',
-            stable: '<svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" class="inline-block"><line x1="5" x2="19" y1="12" y2="12"></line></svg>'
+            rising: '<svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" class="inline-block align-middle"><polyline points="18 15 12 9 6 15"></polyline></svg>',
+            falling: '<svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" class="inline-block align-middle"><polyline points="6 9 12 15 18 9"></polyline></svg>',
+            stable: '<svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" class="inline-block align-middle"><line x1="5" x2="19" y1="12" y2="12"></line></svg>'
         };
 
         const colors = {
-            rising: isGood === 'rising' ? '#4caf50' : '#f59e0b',
-            falling: isGood === 'falling' ? '#4caf50' : '#f59e0b',
-            stable: '#9ca3af'
+            rising: isGood === 'rising' ? '#4caf50' : '#ff9800',
+            falling: isGood === 'falling' ? '#4caf50' : '#ff9800',
+            stable: '#cbd5e1'
         };
 
         if (!trend || !icons[trend]) {
@@ -574,7 +574,7 @@
             return '';
         }
 
-        const result = `<span style="color: ${colors[trend]};" title="${trend}">${icons[trend]}</span>`;
+        const result = `<span style="color: ${colors[trend]}; display: inline-flex; align-items: center; opacity: 0.9;" title="${trend}">${icons[trend]}</span>`;
         console.log('Returning trend HTML:', result);
         return result;
     }

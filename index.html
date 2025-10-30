@@ -559,18 +559,18 @@
     function getTrendIcon(trend, isGood = 'falling') {
         console.log('getTrendIcon called with trend:', trend, 'isGood:', isGood);
 
-        // Stock market style: Lucide chevron-up, chevron-down, minus icons
+        // Lucide icons: chevron-up, chevron-down, arrow-right
         const icons = {
             rising: '<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="m18 15-6-6-6 6"></path></svg>',
             falling: '<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6"></path></svg>',
-            stable: '<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"></path></svg>'
+            stable: '<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"></path><path d="m12 5 7 7-7 7"></path></svg>'
         };
 
-        // Stock market colors: green for good, red for bad, gray for stable/neutral
+        // Stock market colors: green for good, red for bad, blue for stable/neutral
         const colors = {
             rising: isGood === 'rising' ? '#10b981' : (isGood === 'neutral' ? '#3b82f6' : '#ef4444'),
             falling: isGood === 'falling' ? '#10b981' : (isGood === 'neutral' ? '#3b82f6' : '#ef4444'),
-            stable: '#94a3b8'
+            stable: '#3b82f6'
         };
 
         if (!trend || !icons[trend]) {

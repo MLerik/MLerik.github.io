@@ -99,6 +99,14 @@
       let historical24h = null;
       if (samplesResponse.getResponseCode() === 200) {
         historical24h = JSON.parse(samplesResponse.getContentText());
+        Logger.log('Historical samples response code: 200');
+        Logger.log('Historical data type: ' + typeof historical24h.data);
+        if (historical24h.data) {
+          Logger.log('Historical data is array: ' + Array.isArray(historical24h.data));
+          Logger.log('Historical data length: ' + (Array.isArray(historical24h.data) ? historical24h.data.length : 'N/A'));
+        }
+      } else {
+        Logger.log('Historical samples response code: ' + samplesResponse.getResponseCode());
       }
 
       // Calculate trends from 24h data
@@ -141,7 +149,8 @@
    * Calculate trends from 24h historical data
    */
   function calculateTrends(historical24h, currentData) {
-    if (!historical24h || !historical24h.data || historical24h.data.length === 0) {
+    if (!historical24h || !historical24h.data) {
+      Logger.log('No historical data available for trends');
       return {
         humidity: 'stable',
         voc: 'stable',
@@ -149,7 +158,19 @@
       };
     }
 
-    const samples = historical24h.data;
+    // Ensure data is an array
+    const samples = Array.isArray(historical24h.data) ? historical24h.data : [];
+
+    if (samples.length === 0) {
+      Logger.log('Historical data array is empty');
+      return {
+        humidity: 'stable',
+        voc: 'stable',
+        temperature: 'stable'
+      };
+    }
+
+    Logger.log('Calculating trends from ' + samples.length + ' samples');
 
     // Get average from first quarter vs last quarter to determine trend
     const firstQuarter = samples.slice(0, Math.floor(samples.length / 4));

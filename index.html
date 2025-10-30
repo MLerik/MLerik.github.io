@@ -133,59 +133,133 @@
         /* -- Status Animations -- */
         .status-indicator {
             position: relative;
-            width: 120px;
-            height: 120px;
+            width: 150px;
+            height: 150px;
             margin: 0 auto 1.5rem;
+            border-radius: 32px; /* Match card border radius */
+            background: linear-gradient(145deg,
+                color-mix(in srgb, var(--surface-container-high) 60%, transparent 40%),
+                color-mix(in srgb, var(--surface-container) 60%, transparent 40%));
+            padding: 15px;
+            overflow: hidden;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+            transition: all 0.5s ease;
+        }
+
+        .status-indicator::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            border-radius: 32px;
+            padding: 3px;
+            background: linear-gradient(145deg, transparent, var(--status-color, #4caf50));
+            -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+            -webkit-mask-composite: xor;
+            mask-composite: exclude;
+            opacity: 0.5;
+            transition: opacity 0.5s ease;
         }
 
         .status-indicator img {
             width: 100%;
             height: 100%;
             object-fit: contain;
+            position: relative;
+            z-index: 1;
         }
 
+        /* Status-specific glow animations */
         @keyframes pulse-good {
             0%, 100% {
-                filter: drop-shadow(0 0 20px rgba(76, 175, 80, 0.6));
+                filter: drop-shadow(0 0 15px rgba(76, 175, 80, 0.5));
                 transform: scale(1);
             }
             50% {
-                filter: drop-shadow(0 0 30px rgba(76, 175, 80, 0.8));
-                transform: scale(1.05);
+                filter: drop-shadow(0 0 25px rgba(76, 175, 80, 0.7));
+                transform: scale(1.03);
             }
         }
 
         @keyframes pulse-caution {
             0%, 100% {
-                filter: drop-shadow(0 0 20px rgba(255, 152, 0, 0.6));
+                filter: drop-shadow(0 0 15px rgba(255, 152, 0, 0.5));
                 transform: scale(1);
             }
             50% {
-                filter: drop-shadow(0 0 30px rgba(255, 152, 0, 0.8));
-                transform: scale(1.05);
+                filter: drop-shadow(0 0 25px rgba(255, 152, 0, 0.7));
+                transform: scale(1.03);
             }
         }
 
         @keyframes pulse-danger {
             0%, 100% {
-                filter: drop-shadow(0 0 20px rgba(244, 67, 54, 0.6));
+                filter: drop-shadow(0 0 15px rgba(244, 67, 54, 0.5));
                 transform: scale(1);
             }
             50% {
-                filter: drop-shadow(0 0 30px rgba(244, 67, 54, 0.8));
-                transform: scale(1.05);
+                filter: drop-shadow(0 0 25px rgba(244, 67, 54, 0.7));
+                transform: scale(1.03);
+            }
+        }
+
+        /* Container glow animations */
+        @keyframes container-glow-good {
+            0%, 100% {
+                box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3),
+                            0 0 30px rgba(76, 175, 80, 0.2);
+            }
+            50% {
+                box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3),
+                            0 0 45px rgba(76, 175, 80, 0.4);
+            }
+        }
+
+        @keyframes container-glow-caution {
+            0%, 100% {
+                box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3),
+                            0 0 30px rgba(255, 152, 0, 0.2);
+            }
+            50% {
+                box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3),
+                            0 0 45px rgba(255, 152, 0, 0.4);
+            }
+        }
+
+        @keyframes container-glow-danger {
+            0%, 100% {
+                box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3),
+                            0 0 30px rgba(244, 67, 54, 0.2);
+            }
+            50% {
+                box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3),
+                            0 0 45px rgba(244, 67, 54, 0.4);
             }
         }
 
         .status-good {
+            --status-color: #4caf50;
+            animation: container-glow-good 2s ease-in-out infinite;
+        }
+
+        .status-good img {
             animation: pulse-good 2s ease-in-out infinite;
         }
 
         .status-caution {
+            --status-color: #ff9800;
+            animation: container-glow-caution 2s ease-in-out infinite;
+        }
+
+        .status-caution img {
             animation: pulse-caution 2s ease-in-out infinite;
         }
 
         .status-danger {
+            --status-color: #f44336;
+            animation: container-glow-danger 2s ease-in-out infinite;
+        }
+
+        .status-danger img {
             animation: pulse-danger 2s ease-in-out infinite;
         }
 
@@ -223,9 +297,14 @@
 
         /* Responsive adjustments */
         @media (max-width: 640px) {
-            #status-image-container {
-                width: 140px;
-                height: 140px;
+            .status-indicator {
+                width: 120px;
+                height: 120px;
+                padding: 12px;
+                border-radius: 24px;
+            }
+            .status-indicator::before {
+                border-radius: 24px;
             }
             .display-small { font-size: 28px; line-height: 36px; }
             .headline-medium { font-size: 24px; line-height: 32px; }
@@ -636,13 +715,17 @@
     }
 
     function applyCardStatus(card, statusImage, status) {
-        // Remove all status classes
+        // Remove all status classes from card
         card.classList.remove('card-status-good', 'card-status-caution', 'card-status-danger');
+
+        // Remove all status classes from status indicator container and image
+        const statusContainer = statusImage.parentElement;
+        statusContainer.classList.remove('status-good', 'status-caution', 'status-danger');
         statusImage.classList.remove('status-good', 'status-caution', 'status-danger');
 
-        // Add appropriate status class
+        // Add appropriate status class to card and status indicator
         card.classList.add(`card-status-${status}`);
-        statusImage.classList.add(`status-${status}`);
+        statusContainer.classList.add(`status-${status}`);
 
         // Update image
         const images = {

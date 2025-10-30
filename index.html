@@ -10,6 +10,15 @@
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     <style>
         /* -- Base & M3 Typography -- */
+        * {
+            box-sizing: border-box;
+        }
+
+        html {
+            overflow-x: hidden;
+            width: 100%;
+        }
+
         body {
             font-family: 'Inter', sans-serif;
             -webkit-tap-highlight-color: transparent;
@@ -18,7 +27,10 @@
             transition: background 0.8s ease;
             min-height: 100vh;
             overflow-x: hidden;
-            max-width: 100vw;
+            width: 100%;
+            margin: 0;
+            padding: 0;
+            position: relative;
         }
         .display-small { font-size: 36px; line-height: 44px; font-weight: 400; }
         .headline-medium { font-size: 28px; line-height: 36px; font-weight: 400; }
@@ -62,12 +74,13 @@
 
         /* Subtle backdrop elements */
         .backdrop-orb {
-            position: absolute;
+            position: fixed;
             border-radius: 50%;
             background: radial-gradient(circle, color-mix(in srgb, var(--primary) 15%, transparent 85%) 0%, transparent 70%);
             pointer-events: none;
             z-index: -1;
             animation: float-gentle 8s ease-in-out infinite;
+            will-change: transform;
         }
 
         .backdrop-orb-1 {
@@ -84,6 +97,20 @@
             bottom: 20%;
             left: -100px;
             animation-delay: 3s;
+        }
+
+        /* Hide orbs on very small screens to prevent overflow */
+        @media (max-width: 480px) {
+            .backdrop-orb-1 {
+                width: 200px;
+                height: 200px;
+                right: -100px;
+            }
+            .backdrop-orb-2 {
+                width: 150px;
+                height: 150px;
+                left: -75px;
+            }
         }
 
         @keyframes float-gentle {
@@ -288,6 +315,30 @@
             }
             .display-small { font-size: 28px; line-height: 36px; }
             .headline-medium { font-size: 24px; line-height: 32px; }
+
+            /* Ensure cards don't overflow on mobile */
+            .ventilation-card {
+                max-width: 100%;
+                overflow: hidden;
+            }
+
+            /* Adjust main container padding for very small screens */
+            .max-w-7xl {
+                padding-left: 1rem;
+                padding-right: 1rem;
+            }
+        }
+
+        /* Extra small screens */
+        @media (max-width: 380px) {
+            .status-indicator {
+                width: 100px;
+                height: 100px;
+                border-radius: 20px;
+            }
+            .status-indicator img {
+                border-radius: 20px;
+            }
         }
     </style>
 </head>

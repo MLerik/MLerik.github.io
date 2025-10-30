@@ -553,6 +553,8 @@
 
     // Trend icon mapping
     function getTrendIcon(trend, isGood = 'falling') {
+        console.log('getTrendIcon called with trend:', trend, 'isGood:', isGood);
+
         // For some metrics, falling is good (humidity, VOC)
         // For others, it depends on context
         const icons = {
@@ -568,10 +570,13 @@
         };
 
         if (!trend || !icons[trend]) {
+            console.log('Returning empty string - trend not valid');
             return '';
         }
 
-        return `<span style="color: ${colors[trend]};" title="${trend}">${icons[trend]}</span>`;
+        const result = `<span style="color: ${colors[trend]};" title="${trend}">${icons[trend]}</span>`;
+        console.log('Returning trend HTML:', result);
+        return result;
     }
 
     // Weather icon mapping based on WMO Weather codes

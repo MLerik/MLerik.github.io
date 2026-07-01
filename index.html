@@ -451,19 +451,31 @@
                     <div class="grid grid-cols-2 gap-3">
                         <div>
                             <p class="text-xs ventilation-text-secondary">Temperature</p>
-                            <p id="outside-temp" class="text-xl font-semibold" style="color: var(--on-surface);">--°C</p>
+                            <div class="flex items-center gap-2">
+                                <p id="outside-temp" class="text-xl font-semibold" style="color: var(--on-surface);">--°C</p>
+                                <span id="outside-temp-trend"></span>
+                            </div>
                         </div>
                         <div>
                             <p class="text-xs ventilation-text-secondary">Humidity</p>
-                            <p id="outside-humidity" class="text-xl font-semibold" style="color: var(--on-surface);">--%</p>
+                            <div class="flex items-center gap-2">
+                                <p id="outside-humidity" class="text-xl font-semibold" style="color: var(--on-surface);">--%</p>
+                                <span id="outside-humidity-trend"></span>
+                            </div>
                         </div>
                         <div>
                             <p class="text-xs ventilation-text-secondary">Dew Point</p>
-                            <p id="outside-dewpoint" class="text-lg" style="color: var(--on-surface);">--°C</p>
+                            <div class="flex items-center gap-2">
+                                <p id="outside-dewpoint" class="text-lg" style="color: var(--on-surface);">--°C</p>
+                                <span id="outside-dewpoint-trend"></span>
+                            </div>
                         </div>
                         <div>
                             <p class="text-xs ventilation-text-secondary">Moisture</p>
-                            <p id="outside-abshum" class="text-lg" style="color: var(--on-surface);">-- g/m³</p>
+                            <div class="flex items-center gap-2">
+                                <p id="outside-abshum" class="text-lg" style="color: var(--on-surface);">-- g/m³</p>
+                                <span id="outside-abshum-trend"></span>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -598,6 +610,50 @@
     let settings = loadSettings();
     function saveSettings() { localStorage.setItem(SETTINGS_KEY, JSON.stringify(settings)); }
 
+    // --- BASEMENT READING HISTORY (client-side, for honest short-term trends) ---
+    // The page polls every 5 min, so we can record our own history and compute
+    // "now vs ~1 h ago" — independent of the Apps Script's 24 h trend, which is
+    // used only as a fallback while our own history is still too thin.
+    const HISTORY_KEY = 'vk-history-v1';
+    const HISTORY_MAX_AGE = 6 * 60 * 60 * 1000;              // keep 6 h of samples
+    const TREND_LOOKBACK = 60 * 60 * 1000;                    // compare vs ~1 h ago
+    const TREND_WINDOW = [30 * 60 * 1000, 150 * 60 * 1000];   // accept 30 min – 2.5 h old
+    const BASEMENT_DEADBANDS = { temperature: 0.2, humidity: 1.5, voc: 30 };
+
+    function loadHistory() {
+        try {
+            const arr = JSON.parse(localStorage.getItem(HISTORY_KEY) || '[]');
+            return Array.isArray(arr) ? arr : [];
+        } catch (e) { return []; }
+    }
+
+    function recordBasementSample(d) {
+        const now = Date.now();
+        const hist = loadHistory().filter(s => now - s.t < HISTORY_MAX_AGE);
+        const last = hist[hist.length - 1];
+        if (!last || now - last.t >= 4 * 60 * 1000) { // dedupe cache-served refetches
+            hist.push({ t: now, temperature: d.temperature, humidity: d.humidity, voc: d.voc });
+        }
+        try { localStorage.setItem(HISTORY_KEY, JSON.stringify(hist)); } catch (e) { /* storage full/blocked */ }
+        return hist;
+    }
+
+    // Trend from our own history: latest value vs the sample closest to 1 h ago.
+    // Returns null when history is too thin — caller falls back to server trend.
+    function computeBasementTrend(hist, metric, current) {
+        if (!Number.isFinite(current)) return null;
+        const now = Date.now();
+        const candidates = hist.filter(s =>
+            Number.isFinite(s[metric]) && now - s.t >= TREND_WINDOW[0] && now - s.t <= TREND_WINDOW[1]);
+        if (!candidates.length) return null;
+        const ref = candidates.reduce((best, s) =>
+            Math.abs((now - s.t) - TREND_LOOKBACK) < Math.abs((now - best.t) - TREND_LOOKBACK) ? s : best);
+        const delta = current - ref[metric];
+        const db = BASEMENT_DEADBANDS[metric];
+        const trend = delta > db ? 'rising' : delta < -db ? 'falling' : 'stable';
+        return { trend, delta, ageMin: Math.round((now - ref.t) / 60000) };
+    }
+
     // --- DOM ELEMENTS ---
     const body = document.body;
 
@@ -624,6 +680,10 @@
     const outsideTemp = document.getElementById('outside-temp');
     const outsideHumidity = document.getElementById('outside-humidity');
     const outsideDewpoint = document.getElementById('outside-dewpoint');
+    const outsideTempTrend = document.getElementById('outside-temp-trend');
+    const outsideHumidityTrend = document.getElementById('outside-humidity-trend');
+    const outsideDewpointTrend = document.getElementById('outside-dewpoint-trend');
+    const outsideAbshumTrend = document.getElementById('outside-abshum-trend');
 
     // Results elements
     const finalHumidityDisplay = document.getElementById('final-humidity');
@@ -665,19 +725,20 @@
         warning: `<svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="m21.73 18-8-14a2 2 0 0 0-3.46 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z"></path><line x1="12" x2="12" y1="9" y2="13"></line><line x1="12" x2="12.01" y1="17" y2="17"></line></svg>`
     };
 
-    // Context-aware trend icon with smart coloring
-    function getTrendIcon(trend, currentValue, metric) {
-        console.log('getTrendIcon called:', {trend, currentValue, metric});
+    // Lucide icons: chevron-up, chevron-down, arrow-right (shared by all trend arrows)
+    const TREND_SVGS = {
+        rising: '<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="m18 15-6-6-6 6"></path></svg>',
+        falling: '<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6"></path></svg>',
+        stable: '<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"></path><path d="m12 5 7 7-7 7"></path></svg>'
+    };
 
-        // Lucide icons: chevron-up, chevron-down, arrow-right
-        const icons = {
-            rising: '<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="m18 15-6-6-6 6"></path></svg>',
-            falling: '<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6"></path></svg>',
-            stable: '<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"></path><path d="m12 5 7 7-7 7"></path></svg>'
-        };
+    // Context-aware trend icon for basement metrics with smart coloring.
+    // deltaText (optional) documents the underlying change in the tooltip,
+    // e.g. "+2.1% vs 58 min ago".
+    function getTrendIcon(trend, currentValue, metric, deltaText) {
+        const icons = TREND_SVGS;
 
         if (!trend || !icons[trend]) {
-            console.log('Returning empty string - trend not valid');
             return '';
         }
 
@@ -716,9 +777,17 @@
             else if (trend === 'stable' && currentValue >= 300) color = '#f59e0b'; // stable in caution zone = warning
         }
 
-        const result = `<span style="color: ${color}; display: inline-flex; align-items: center; font-weight: bold;" title="${trend.toUpperCase()}: ${color === '#10b981' ? 'GOOD' : color === '#ef4444' ? 'BAD' : 'WARNING'}">${icons[trend]}</span>`;
-        console.log('Returning trend HTML with color:', color);
-        return result;
+        const judgement = color === '#10b981' ? 'GOOD' : color === '#ef4444' ? 'BAD' : 'WARNING';
+        const title = `${trend.toUpperCase()}${deltaText ? ' (' + deltaText + ')' : ''}: ${judgement}`;
+        return `<span style="color: ${color}; display: inline-flex; align-items: center; font-weight: bold;" title="${title}">${icons[trend]}</span>`;
+    }
+
+    // Trend icon for OUTSIDE metrics, colored by venting impact: cooler/drier
+    // air on the way = good (green), warmer/wetter = caution (amber).
+    function getOutsideTrendIcon(trend, tooltip) {
+        if (!trend || !TREND_SVGS[trend]) return '';
+        const color = trend === 'falling' ? '#10b981' : trend === 'rising' ? '#f59e0b' : '#94a3b8';
+        return `<span style="color: ${color}; display: inline-flex; align-items: center; font-weight: bold;" title="${tooltip}">${TREND_SVGS[trend]}</span>`;
     }
 
     // Weather icon mapping based on WMO Weather codes
@@ -914,6 +983,38 @@
         return out;
     }
 
+    // Index of the hourly slot containing "now" (times from Open-Meteo are local to Thun)
+    function hourlyNowIndex(h) {
+        const next = h.time.findIndex(t => new Date(t).getTime() > Date.now());
+        if (next === -1) return null;
+        return Math.max(0, next - 1);
+    }
+
+    // Trend arrows for the outside conditions: where each value heads over the
+    // next ~2 forecast hours, colored by venting impact (drier/cooler = green)
+    function renderOutsideTrends() {
+        const h = weatherHourlyData;
+        const c = weatherCurrentData;
+        const spans = [outsideTempTrend, outsideHumidityTrend, outsideDewpointTrend, outsideAbshumTrend];
+        if (!h || !h.time || !h.time.length || !c) { spans.forEach(s => s.innerHTML = ''); return; }
+        const i = hourlyNowIndex(h);
+        if (i === null) { spans.forEach(s => s.innerHTML = ''); return; }
+        const j = Math.min(i + 2, h.time.length - 1);
+
+        const arrow = (span, current, future, deadband, unit) => {
+            if (![current, future].every(Number.isFinite)) { span.innerHTML = ''; return; }
+            const d = future - current;
+            const trend = d > deadband ? 'rising' : d < -deadband ? 'falling' : 'stable';
+            span.innerHTML = getOutsideTrendIcon(trend, `Next 2 h: ${d >= 0 ? '+' : ''}${d.toFixed(1)}${unit}`);
+        };
+        arrow(outsideTempTrend, c.temperature_2m, h.temperature_2m[j], 0.5, '°C');
+        arrow(outsideHumidityTrend, c.relative_humidity_2m, h.relative_humidity_2m[j], 3, '%');
+        arrow(outsideDewpointTrend, c.dewpoint_2m, h.dew_point_2m ? h.dew_point_2m[j] : NaN, 0.5, '°C');
+        arrow(outsideAbshumTrend,
+            absoluteHumidity(c.temperature_2m, c.relative_humidity_2m),
+            absoluteHumidity(h.temperature_2m[j], h.relative_humidity_2m[j]), 0.4, ' g/m³');
+    }
+
     // --- HOURLY FORECAST → VENTING WINDOWS ---
     // Grades the next 36 h against the CURRENT basement state and finds the best
     // contiguous venting window (≥2 h). Times from Open-Meteo are local to Thun.
@@ -921,9 +1022,8 @@
         const h = weatherHourlyData;
         if (!h || !h.time || !h.time.length) return null;
 
-        let start = h.time.findIndex(t => new Date(t).getTime() > Date.now());
-        if (start === -1) return null;
-        start = Math.max(0, start - 1); // slot containing "now"
+        const start = hourlyNowIndex(h);
+        if (start === null) return null;
 
         const hours = [];
         for (let i = start; i < Math.min(start + 36, h.time.length); i++) {
@@ -1071,18 +1171,27 @@
                 airthingsVoc.textContent = data.data.voc ? `${data.data.voc} ppb` : '-- ppb';
                 airthingsMold.textContent = data.data.mold !== null ? `${data.data.mold}/10` : '--/10';
 
-                // Update trend indicators with context-aware colors
-                if (data.trends) {
-                    console.log('Trends data:', data.trends);
-                    tempTrend.innerHTML = getTrendIcon(data.trends.temperature, data.data.temperature, 'temperature');
-                    humidityTrend.innerHTML = getTrendIcon(data.trends.humidity, data.data.humidity, 'humidity');
-                    vocTrend.innerHTML = getTrendIcon(data.trends.voc, data.data.voc, 'voc');
-                } else {
-                    console.log('No trends data available - redeploy Google Apps Script if needed');
-                    tempTrend.innerHTML = '';
-                    humidityTrend.innerHTML = '';
-                    vocTrend.innerHTML = '';
-                }
+                // Trend arrows: prefer our own recorded history (now vs ~1 h ago);
+                // fall back to the server's coarser 24 h trend while history is thin
+                const hist = recordBasementSample(data.data);
+                const serverTrends = data.trends || {};
+                const asNum = v => (v === null || v === undefined || v === '' ? NaN : Number(v));
+                const applyTrend = (span, metric, rawValue, unit, decimals) => {
+                    const value = asNum(rawValue);
+                    const own = computeBasementTrend(hist, metric, value);
+                    if (own) {
+                        const sign = own.delta >= 0 ? '+' : '';
+                        span.innerHTML = getTrendIcon(own.trend, value, metric,
+                            `${sign}${own.delta.toFixed(decimals)}${unit} vs ${own.ageMin} min ago`);
+                    } else if (serverTrends[metric]) {
+                        span.innerHTML = getTrendIcon(serverTrends[metric], value, metric, '24 h sensor trend');
+                    } else {
+                        span.innerHTML = '';
+                    }
+                };
+                applyTrend(tempTrend, 'temperature', data.data.temperature, '°C', 1);
+                applyTrend(humidityTrend, 'humidity', data.data.humidity, '%', 1);
+                applyTrend(vocTrend, 'voc', data.data.voc, ' ppb', 0);
 
                 airthingsStatus.textContent = 'Connected';
                 airthingsStatus.style.background = 'color-mix(in srgb, #4caf50 20%, transparent 80%)';
@@ -1138,6 +1247,8 @@
 
             weatherLoading.classList.add('hidden');
             weatherData.classList.remove('hidden');
+
+            renderOutsideTrends();
 
             return data;
         } catch (error) {

@@ -472,6 +472,7 @@
                     <p class="label-large ventilation-text-secondary">Expected Humidity After Venting</p>
                     <p id="final-humidity" class="display-small ventilation-accent font-bold">--%</p>
                     <p id="water-removed" class="text-xs ventilation-text-secondary mt-1"></p>
+                    <p id="temp-estimate" class="text-xs ventilation-text-secondary mt-1"></p>
                 </div>
 
                 <div id="recommendation-box" class="flex items-center p-6 organic-small transition-all duration-300 mb-6">
@@ -618,6 +619,7 @@
     // Results elements
     const finalHumidityDisplay = document.getElementById('final-humidity');
     const waterRemovedDisplay = document.getElementById('water-removed');
+    const tempEstimateDisplay = document.getElementById('temp-estimate');
     const basementDewpointDisplay = document.getElementById('basement-dewpoint');
     const basementAbshumDisplay = document.getElementById('basement-abshum');
     const outsideAbshumDisplay = document.getElementById('outside-abshum');
@@ -779,6 +781,24 @@
         return 1 - Math.exp(-ach * minutes / 60);
     }
 
+    // Temperature after a venting session — lumped thermal model.
+    // The air itself holds almost no heat (~0.4 kWh/K for 330 m³) compared to the
+    // masonry around it (tens of kWh/K in just the first few cm of wall/floor), so:
+    //  - while venting, incoming air is already partially tempered by the surfaces
+    //    it flows past (only `tempering` of the raw air-mix swing is felt), and
+    //  - after closing, the walls pull the air back toward their own temperature
+    //    within ~1 h; only `persistence` of the swing survives.
+    function estimateSessionTemps(tempIn, tempOut, f) {
+        const heavy = settings.oldWalls;
+        const tempering = heavy ? 0.6 : 0.75;
+        const persistence = heavy ? 0.15 : 0.35;
+        const rawSwing = f * (tempOut - tempIn);
+        return {
+            tImmediate: tempIn + tempering * rawSwing,  // right at the end of the session
+            tSettled: tempIn + persistence * rawSwing   // ~1 h after closing the windows
+        };
+    }
+
     // Old ground-coupled masonry lags the seasons: in summer the wall and floor
     // surfaces run noticeably colder than the basement AIR — and condensation
     // forms on the coldest surface, not in the air. Estimate that surface temp.
@@ -813,13 +833,16 @@
 
         const f = exchangeFraction(ach, minutes);
         const ahAfter = ahIn * (1 - f) + ahOut * f;
-        // Thick walls hold the air temperature near tempIn, so evaluate RH there
-        const rhAfter = Math.round(Math.min(100, (ahAfter / absoluteHumidity(env.tempIn, 100)) * 100));
+        // Where the air temperature lands (dips while venting, rebounds toward wall temp)
+        const temps = estimateSessionTemps(env.tempIn, env.tempOut, f);
+        // Evaluate the final RH at the settled temperature, not the pre-vent one
+        const rhAfter = Math.round(Math.min(100, (ahAfter / absoluteHumidity(temps.tSettled, 100)) * 100));
         const litersRemoved = Math.max(0, volume * (ahIn - ahAfter) / 1000);
 
         const out = {
             verdict: 'bad', title: '', summary: '', advice: '',
             minutes, repeatBursts, rhAfter, litersRemoved,
+            tImmediate: temps.tImmediate, tSettled: temps.tSettled,
             dewIn, ahIn, ahOut, wallTemp, tempIn: env.tempIn, tempOut: env.tempOut, condensation, dryingPower
         };
         const I = ADVICE_ICONS;
@@ -871,7 +894,9 @@
             out.advice += ` ${I.alert} Outside is warmer (${Math.round(env.tempOut)}°C vs ${env.tempIn.toFixed(1)}°C): a warmer cellar condenses more easily later — keep it short and close before the day heats up further.`;
         }
         if (freezing) {
-            out.advice += ` ${I.clock} Freezing outside: cold air dries superbly, but keep bursts ≤30 min and repeat 2–3× today.`;
+            out.advice += ` ${I.clock} Freezing outside: cold air dries superbly, but keep bursts ≤30 min and repeat 2–3× today — each burst dips the air to ≈${temps.tImmediate.toFixed(1)}°C, and the walls reheat it to ≈${temps.tSettled.toFixed(1)}°C within the hour.`;
+        } else if (env.tempIn - temps.tImmediate >= 0.8) {
+            out.advice += ` The session cools the cellar to ≈${temps.tImmediate.toFixed(1)}°C; the walls pull it back to ≈${temps.tSettled.toFixed(1)}°C within about an hour.`;
         }
         if (settings.oldWalls && env.rhIn >= 60) {
             out.advice += ' Old masonry re-releases stored moisture after you close up — expect some rebound; several spaced sessions beat one marathon.';
@@ -1204,6 +1229,8 @@
         }
         waterRemovedDisplay.textContent = a.verdict === 'bad' ? '' :
             `≈ ${a.litersRemoved.toFixed(1)} L water removed · ${Math.round(settings.floorArea * settings.ceilingHeight)} m³ · ${settings.ventType === 'cross' ? 'cross-vent' : 'single-sided'}`;
+        tempEstimateDisplay.textContent = a.verdict === 'bad' ? '' :
+            `Temp ${a.tempIn.toFixed(1)}°C → ≈${a.tImmediate.toFixed(1)}°C while venting · back to ≈${a.tSettled.toFixed(1)}°C in ~1 h`;
 
         // Hourly forecast → venting windows (graded against current basement state)
         const forecast = buildForecast(a);

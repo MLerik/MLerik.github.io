@@ -146,88 +146,58 @@
   }
 
   /**
-   * Calculate trends from 24h historical data
+   * Calculate short-term trends: the most recent hour vs the hour before it.
+   *
+   * The old version compared the first vs last quarter of a 24 h window, so the
+   * arrows described "this evening vs last night" and lagged by half a day.
+   * Deadbands are sized for a thermally massive basement, where ±0.2 °C within
+   * an hour is a real move (the old ±1 °C threshold meant "always stable").
    */
   function calculateTrends(historical24h, currentData) {
-    if (!historical24h || !historical24h.data) {
-      Logger.log('No historical data available for trends');
-      return {
-        humidity: 'stable',
-        voc: 'stable',
-        temperature: 'stable'
-      };
+    const stable = { humidity: 'stable', voc: 'stable', temperature: 'stable' };
+
+    if (!historical24h || !Array.isArray(historical24h.data) || historical24h.data.length < 4) {
+      Logger.log('Not enough historical data for trends');
+      return stable;
     }
 
-    // Ensure data is an array
-    const samples = Array.isArray(historical24h.data) ? historical24h.data : [];
+    // Sort ascending by sample time (unix seconds) so "recent" really is recent
+    const samples = historical24h.data.slice().sort(function(a, b) {
+      return (a.time || 0) - (b.time || 0);
+    });
+    const newest = samples[samples.length - 1].time || 0;
+    const HOUR = 3600;
 
-    if (samples.length === 0) {
-      Logger.log('Historical data array is empty');
-      return {
-        humidity: 'stable',
-        voc: 'stable',
-        temperature: 'stable'
-      };
+    const lastHour = samples.filter(function(s) { return s.time > newest - HOUR; });
+    const prevHour = samples.filter(function(s) { return s.time <= newest - HOUR && s.time > newest - 2 * HOUR; });
+
+    if (lastHour.length === 0 || prevHour.length === 0) {
+      Logger.log('Not enough samples in the last two hours for trends');
+      return stable;
     }
 
-    Logger.log('Calculating trends from ' + samples.length + ' samples');
-
-    // Get average from first quarter vs last quarter to determine trend
-    const firstQuarter = samples.slice(0, Math.floor(samples.length / 4));
-    const lastQuarter = samples.slice(-Math.floor(samples.length / 4));
-
-    const trends = {};
-
-    // Calculate humidity trend
-    if (currentData.humidity) {
-      const avgFirst = average(firstQuarter.map(function(s) { return s.humidity; }).filter(function(v) { return v != null; }));
-      const avgLast = average(lastQuarter.map(function(s) { return s.humidity; }).filter(function(v) { return v != null; }));
-
-      if (avgLast > avgFirst + 3) {
-        trends.humidity = 'rising';
-      } else if (avgLast < avgFirst - 3) {
-        trends.humidity = 'falling';
-      } else {
-        trends.humidity = 'stable';
-      }
+    function trendFor(field, deadband) {
+      const recent = average(lastHour.map(function(s) { return s[field]; }).filter(function(v) { return v != null; }));
+      const before = average(prevHour.map(function(s) { return s[field]; }).filter(function(v) { return v != null; }));
+      if (recent === null || before === null) return 'stable';
+      if (recent > before + deadband) return 'rising';
+      if (recent < before - deadband) return 'falling';
+      return 'stable';
     }
 
-    // Calculate VOC trend
-    if (currentData.voc) {
-      const avgFirst = average(firstQuarter.map(function(s) { return s.voc; }).filter(function(v) { return v != null; }));
-      const avgLast = average(lastQuarter.map(function(s) { return s.voc; }).filter(function(v) { return v != null; }));
-
-      if (avgLast > avgFirst + 50) {
-        trends.voc = 'rising';
-      } else if (avgLast < avgFirst - 50) {
-        trends.voc = 'falling';
-      } else {
-        trends.voc = 'stable';
-      }
-    }
-
-    // Calculate temperature trend
-    if (currentData.temp) {
-      const avgFirst = average(firstQuarter.map(function(s) { return s.temp; }).filter(function(v) { return v != null; }));
-      const avgLast = average(lastQuarter.map(function(s) { return s.temp; }).filter(function(v) { return v != null; }));
-
-      if (avgLast > avgFirst + 1) {
-        trends.temperature = 'rising';
-      } else if (avgLast < avgFirst - 1) {
-        trends.temperature = 'falling';
-      } else {
-        trends.temperature = 'stable';
-      }
-    }
-
-    return trends;
+    return {
+      humidity: trendFor('humidity', 1),    // ±1 %RH within an hour is a real move
+      temperature: trendFor('temp', 0.2),   // massive basement: ±0.2 °C is a real move
+      voc: trendFor('voc', 25)
+    };
   }
 
   /**
-   * Calculate average of an array of numbers
+   * Calculate average of an array of numbers (null when empty, so callers
+   * can tell "no data" apart from a real 0)
    */
   function average(arr) {
-    if (!arr || arr.length === 0) return 0;
+    if (!arr || arr.length === 0) return null;
     return arr.reduce(function(a, b) { return a + b; }, 0) / arr.length;
   }
 

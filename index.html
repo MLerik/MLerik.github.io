@@ -496,6 +496,30 @@
                     <p id="temp-estimate" class="text-xs ventilation-text-secondary mt-1"></p>
                 </div>
 
+                <!-- Session Planner: duration slider + forecast-aware simulation -->
+                <div class="mb-6 p-4 organic-small" style="background: color-mix(in srgb, var(--surface-container-high) 50%, transparent 50%);">
+                    <div class="flex items-center justify-between mb-2">
+                        <h3 class="label-large" style="color: var(--on-surface);">Session Planner</h3>
+                        <span id="planner-duration-label" class="text-sm font-semibold" style="color: var(--primary);">--</span>
+                    </div>
+                    <input id="duration-slider" type="range" min="15" max="480" step="15" value="90" aria-label="Venting session length in minutes">
+                    <div class="flex items-center justify-between mt-1">
+                        <p class="text-xs ventilation-text-secondary">15 min</p>
+                        <p id="planner-recommended" class="text-xs ventilation-text-secondary"></p>
+                        <p class="text-xs ventilation-text-secondary">8 h</p>
+                    </div>
+                    <div id="planner-chart-wrap" class="relative mt-3">
+                        <svg id="planner-chart" role="img" aria-label="Predicted basement humidity over the venting session"
+                             style="display: block; width: 100%; touch-action: none; cursor: crosshair;"></svg>
+                        <div id="planner-tooltip" class="hidden"
+                             style="position: absolute; top: 4px; pointer-events: none; z-index: 10; white-space: nowrap; font-size: 11px; padding: 4px 8px; border-radius: 8px; background: var(--surface-container-high); border: 1px solid color-mix(in srgb, var(--primary) 30%, transparent 70%); color: var(--on-surface);"></div>
+                    </div>
+                    <p class="text-xs ventilation-text-secondary mt-2">
+                        Predicted basement humidity while the windows are open, following the hourly forecast.
+                        Red bands = condensation risk on cold walls during that stretch. Drag the slider or the chart.
+                    </p>
+                </div>
+
                 <div id="recommendation-box" class="flex items-center p-6 organic-small transition-all duration-300 mb-6">
                     <div id="recommendation-icon" class="mr-4"></div>
                     <div class="flex-1">
@@ -602,6 +626,8 @@
     const ACH_BY_TYPE = { single: 1.5, cross: 4.0 };
     const CONDENSATION_MARGIN = 1.5; // K safety margin between outside dew point and coldest surface
     const DRYING_MARGIN = 0.3;       // g/m³ — outside air must be at least this much drier to help
+    const PLANNER_MAX = 480;         // session planner horizon (minutes)
+    const PLANNER_STEP = 5;          // simulation step (minutes)
 
     function loadSettings() {
         try { return { ...DEFAULT_SETTINGS, ...JSON.parse(localStorage.getItem(SETTINGS_KEY) || '{}') }; }
@@ -690,6 +716,12 @@
     const waterRemovedDisplay = document.getElementById('water-removed');
     const tempEstimateDisplay = document.getElementById('temp-estimate');
     const finalTempDisplay = document.getElementById('final-temp');
+    const durationSlider = document.getElementById('duration-slider');
+    const plannerDurationLabel = document.getElementById('planner-duration-label');
+    const plannerRecommendedLabel = document.getElementById('planner-recommended');
+    const plannerChart = document.getElementById('planner-chart');
+    const plannerChartWrap = document.getElementById('planner-chart-wrap');
+    const plannerTooltip = document.getElementById('planner-tooltip');
     const basementDewpointDisplay = document.getElementById('basement-dewpoint');
     const basementAbshumDisplay = document.getElementById('basement-abshum');
     const outsideAbshumDisplay = document.getElementById('outside-abshum');
@@ -867,15 +899,93 @@
     //    it flows past (only `tempering` of the raw air-mix swing is felt), and
     //  - after closing, the walls pull the air back toward their own temperature
     //    within ~1 h; only `persistence` of the swing survives.
-    function estimateSessionTemps(tempIn, tempOut, f) {
+    function wallCoupling() {
         const heavy = settings.oldWalls;
-        const tempering = heavy ? 0.6 : 0.75;
-        const persistence = heavy ? 0.15 : 0.35;
+        return { tempering: heavy ? 0.6 : 0.75, persistence: heavy ? 0.15 : 0.35 };
+    }
+
+    function estimateSessionTemps(tempIn, tempOut, f) {
+        const { tempering, persistence } = wallCoupling();
         const rawSwing = f * (tempOut - tempIn);
         return {
             tImmediate: tempIn + tempering * rawSwing,  // right at the end of the session
             tSettled: tempIn + persistence * rawSwing   // ~1 h after closing the windows
         };
+    }
+
+    // Outside conditions at "now + minutes": blend the live observation (t=0)
+    // into the hourly forecast over the first hour (the forecast's "now" slot can
+    // be offset from reality), then linear-interpolate between forecast hours.
+    // Falls back to frozen current conditions when no hourly data is available.
+    function outsideConditionsAt(minutesFromNow) {
+        const c = weatherCurrentData;
+        const cur = {
+            temp: Number(c.temperature_2m),
+            rh: Number(c.relative_humidity_2m),
+            dew: Number(c.dewpoint_2m)
+        };
+        const h = weatherHourlyData;
+        if (!h || !h.time || !h.time.length) return cur;
+        const i0 = hourlyNowIndex(h);
+        if (i0 === null) return cur;
+
+        const target = Date.now() + minutesFromNow * 60000;
+        let k = i0;
+        while (k + 1 < h.time.length && new Date(h.time[k + 1]).getTime() <= target) k++;
+        const k2 = Math.min(k + 1, h.time.length - 1);
+        const t1 = new Date(h.time[k]).getTime();
+        const t2 = new Date(h.time[k2]).getTime();
+        const w = t2 > t1 ? Math.min(1, Math.max(0, (target - t1) / (t2 - t1))) : 0;
+        const lerp = (a, b) => a + (b - a) * w;
+        const fc = {
+            temp: lerp(h.temperature_2m[k], h.temperature_2m[k2]),
+            rh: lerp(h.relative_humidity_2m[k], h.relative_humidity_2m[k2]),
+            dew: h.dew_point_2m ? lerp(h.dew_point_2m[k], h.dew_point_2m[k2]) : NaN
+        };
+        if (!Number.isFinite(fc.dew)) fc.dew = dewPointFrom(fc.temp, fc.rh);
+
+        const blend = Math.min(1, minutesFromNow / 60);
+        const mix = (obs, forecast) => Number.isFinite(obs) ? obs + (forecast - obs) * blend : forecast;
+        return { temp: mix(cur.temp, fc.temp), rh: mix(cur.rh, fc.rh), dew: mix(cur.dew, fc.dew) };
+    }
+
+    // Time-stepped venting simulation against the hourly forecast (5-min steps).
+    // AH_mix and T_mix follow exponential air exchange toward the outside values
+    // AT THAT TIME; the displayed air temp applies the wall-tempering factor.
+    // Under constant outside conditions this reproduces the closed-form model in
+    // assessVentilation exactly.
+    function simulateVenting(env, maxMinutes) {
+        const ach = ACH_BY_TYPE[settings.ventType] || ACH_BY_TYPE.single;
+        const volume = settings.floorArea * settings.ceilingHeight;
+        const wallTemp = estimateWallTemp(env.tempIn);
+        const { tempering, persistence } = wallCoupling();
+        const ahIn0 = absoluteHumidity(env.tempIn, env.rhIn);
+        const decay = Math.exp(-ach * PLANNER_STEP / 60);
+
+        let ahMix = ahIn0;
+        let tMix = env.tempIn;
+        const points = [];
+        const record = (minute, o) => {
+            const tAir = env.tempIn + tempering * (tMix - env.tempIn);
+            const tSettled = env.tempIn + persistence * (tMix - env.tempIn);
+            points.push({
+                minute,
+                rhDuring: Math.min(100, ahMix / absoluteHumidity(tAir, 100) * 100),
+                rhSettled: Math.min(100, ahMix / absoluteHumidity(tSettled, 100) * 100),
+                tAir, tSettled,
+                liters: volume * (ahIn0 - ahMix) / 1000,
+                risk: o.dew >= wallTemp - CONDENSATION_MARGIN
+            });
+        };
+        record(0, outsideConditionsAt(0));
+        for (let m = PLANNER_STEP; m <= maxMinutes; m += PLANNER_STEP) {
+            const o = outsideConditionsAt(m - PLANNER_STEP / 2); // midpoint conditions
+            const ahOut = absoluteHumidity(o.temp, o.rh);
+            ahMix = ahOut + (ahMix - ahOut) * decay;
+            tMix = o.temp + (tMix - o.temp) * decay;
+            record(m, o);
+        }
+        return points;
     }
 
     // Old ground-coupled masonry lags the seasons: in summer the wall and floor
@@ -1302,6 +1412,148 @@
         return { status, issues };
     }
 
+    // --- SESSION PLANNER ---
+    // The slider picks a session length; headline numbers and the chart show
+    // where humidity/temperature land, simulated against the hourly forecast.
+    let plannerSim = null;          // last simulation (5-min points to PLANNER_MAX)
+    let plannerRecommended = 90;    // recommended minutes from the latest assessment
+    let plannerTouched = false;     // user moved the slider this session
+    let plannerGeom = null;         // chart geometry for pointer mapping
+
+    function updatePlanner(a, env) {
+        plannerRecommended = a.minutes;
+        if (!plannerTouched) durationSlider.value = a.minutes;
+        plannerSim = simulateVenting(env, PLANNER_MAX);
+        renderPlanner();
+    }
+
+    function renderPlanner() {
+        if (!plannerSim || !plannerSim.length) return;
+        const minutes = Number(durationSlider.value);
+        const idx = Math.min(plannerSim.length - 1, Math.round(minutes / PLANNER_STEP));
+        const p = plannerSim[idx];
+
+        // Headline numbers: settled state ~1 h after closing at the chosen time
+        const rhShow = Math.round(p.rhSettled);
+        finalHumidityDisplay.textContent = `${rhShow}%`;
+        finalHumidityDisplay.style.color = rhShow >= 65 ? '#ef4444' : rhShow >= 55 ? '#f59e0b' : '#4caf50';
+        finalTempDisplay.textContent = `${p.tSettled.toFixed(1)}°C`;
+        finalTempDisplay.style.color =
+            (p.tSettled < 12 || p.tSettled > 22) ? '#ef4444' :
+            (p.tSettled < 15 || p.tSettled > 20) ? '#f59e0b' : '#4caf50';
+
+        const setup = `${Math.round(settings.floorArea * settings.ceilingHeight)} m³ · ${settings.ventType === 'cross' ? 'cross-vent' : 'single-sided'}`;
+        waterRemovedDisplay.textContent =
+            p.liters >= 0.05 ? `≈ ${p.liters.toFixed(1)} L water removed · ${setup}` :
+            p.liters <= -0.05 ? `⚠ adds ≈ ${Math.abs(p.liters).toFixed(1)} L of water · ${setup}` :
+            `≈ 0 L — barely any moisture change · ${setup}`;
+        tempEstimateDisplay.textContent =
+            `Dips to ≈${p.tAir.toFixed(1)}°C while venting, then settles back within ~1 h`;
+
+        plannerDurationLabel.textContent = formatDuration(minutes);
+        plannerRecommendedLabel.innerHTML = minutes === plannerRecommended
+            ? 'recommended length'
+            : `recommended: ${formatDuration(plannerRecommended)} · <button type="button" style="color: var(--primary); text-decoration: underline; background: none; border: none; padding: 0; font: inherit; cursor: pointer;">reset</button>`;
+
+        drawPlannerChart(idx);
+    }
+
+    function drawPlannerChart(selIdx) {
+        const W = Math.max(280, plannerChartWrap.clientWidth || 600);
+        const H = 150, padL = 30, padR = 10, padT = 10, padB = 20;
+        plannerChart.setAttribute('viewBox', `0 0 ${W} ${H}`);
+        plannerChart.setAttribute('height', H);
+
+        const maxMin = plannerSim[plannerSim.length - 1].minute;
+        const x = m => padL + (m / maxMin) * (W - padL - padR);
+        const rhs = plannerSim.map(q => q.rhDuring);
+        let lo = Math.max(0, Math.floor(Math.min(...rhs, 50) - 3));
+        let hi = Math.min(100, Math.ceil(Math.max(...rhs, 70) + 3));
+        const y = v => padT + (1 - (v - lo) / (hi - lo)) * (H - padT - padB);
+
+        let els = '';
+        // Condensation-risk bands (status red, translucent)
+        let bandStart = null;
+        for (let i = 0; i <= plannerSim.length; i++) {
+            const risky = i < plannerSim.length && plannerSim[i].risk;
+            if (risky && bandStart === null) bandStart = plannerSim[i].minute;
+            if (!risky && bandStart !== null) {
+                const endM = i < plannerSim.length ? plannerSim[i].minute : maxMin;
+                els += `<rect x="${x(bandStart).toFixed(1)}" y="${padT}" width="${Math.max(1, x(endM) - x(bandStart)).toFixed(1)}" height="${H - padT - padB}" fill="#f44336" opacity="0.14"></rect>`;
+                bandStart = null;
+            }
+        }
+        // Humidity threshold guides (only when inside the visible range)
+        for (const th of [{ v: 55, c: '#f59e0b' }, { v: 65, c: '#ef4444' }]) {
+            if (th.v > lo && th.v < hi) {
+                els += `<line x1="${padL}" x2="${W - padR}" y1="${y(th.v).toFixed(1)}" y2="${y(th.v).toFixed(1)}" stroke="${th.c}" stroke-width="1" stroke-dasharray="4 4" opacity="0.5"></line>`;
+                els += `<text x="${W - padR - 2}" y="${(y(th.v) - 3).toFixed(1)}" text-anchor="end" font-size="9" fill="${th.c}" opacity="0.85">${th.v}%</text>`;
+            }
+        }
+        // Time axis: tick + label every 2 h
+        for (let m = 0; m <= maxMin; m += 120) {
+            els += `<line x1="${x(m).toFixed(1)}" x2="${x(m).toFixed(1)}" y1="${H - padB}" y2="${H - padB + 3}" stroke="currentColor" opacity="0.3"></line>`;
+            els += `<text x="${x(m).toFixed(1)}" y="${H - 5}" text-anchor="${m === 0 ? 'start' : 'middle'}" font-size="9" fill="currentColor" opacity="0.55">${m === 0 ? 'now' : (m / 60) + 'h'}</text>`;
+        }
+        // Y range labels
+        els += `<text x="${padL - 4}" y="${(y(hi) + 7).toFixed(1)}" text-anchor="end" font-size="9" fill="currentColor" opacity="0.55">${hi}%</text>`;
+        els += `<text x="${padL - 4}" y="${y(lo).toFixed(1)}" text-anchor="end" font-size="9" fill="currentColor" opacity="0.55">${lo}%</text>`;
+        // Data line: basement RH while venting (fixed data-series blue, distinct
+        // from the reserved status colors used by bands/thresholds)
+        const pts = plannerSim.map(q => `${x(q.minute).toFixed(1)},${y(q.rhDuring).toFixed(1)}`).join(' ');
+        els += `<polyline points="${pts}" fill="none" stroke="#64b5f6" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"></polyline>`;
+        // Selection marker
+        const sp = plannerSim[selIdx];
+        els += `<line x1="${x(sp.minute).toFixed(1)}" x2="${x(sp.minute).toFixed(1)}" y1="${padT}" y2="${H - padB}" stroke="currentColor" opacity="0.45" stroke-width="1.5"></line>`;
+        els += `<circle cx="${x(sp.minute).toFixed(1)}" cy="${y(sp.rhDuring).toFixed(1)}" r="4.5" fill="#64b5f6" stroke="var(--surface-container)" stroke-width="2"></circle>`;
+
+        plannerChart.innerHTML = els;
+        plannerChart.style.color = 'var(--on-surface)';
+        plannerGeom = { W, padL, padR, maxMin };
+    }
+
+    function plannerMinuteFromEvent(e) {
+        if (!plannerGeom) return null;
+        const rect = plannerChart.getBoundingClientRect();
+        const scale = rect.width / plannerGeom.W;
+        const plotX = (e.clientX - rect.left) / scale - plannerGeom.padL;
+        const plotW = plannerGeom.W - plannerGeom.padL - plannerGeom.padR;
+        const m = Math.round(Math.min(1, Math.max(0, plotX / plotW)) * plannerGeom.maxMin / 15) * 15;
+        return Math.max(15, m);
+    }
+
+    durationSlider.addEventListener('input', () => { plannerTouched = true; renderPlanner(); });
+    plannerRecommendedLabel.addEventListener('click', e => {
+        if (e.target.tagName === 'BUTTON') {
+            plannerTouched = false;
+            durationSlider.value = plannerRecommended;
+            renderPlanner();
+        }
+    });
+    const plannerScrub = e => {
+        const m = plannerMinuteFromEvent(e);
+        if (m === null || !plannerSim) return;
+        if (e.buttons === 1 || e.type === 'pointerdown') {
+            durationSlider.value = m;
+            plannerTouched = true;
+            renderPlanner();
+        }
+        const q = plannerSim[Math.min(plannerSim.length - 1, Math.round(m / PLANNER_STEP))];
+        plannerTooltip.textContent = `+${formatDuration(m)} · ${Math.round(q.rhDuring)}%${q.risk ? ' · ⚠ condensation risk' : ''}`;
+        plannerTooltip.classList.remove('hidden');
+        const wrapRect = plannerChartWrap.getBoundingClientRect();
+        const tipW = plannerTooltip.offsetWidth;
+        plannerTooltip.style.left = `${Math.min(wrapRect.width - tipW - 4, Math.max(4, e.clientX - wrapRect.left - tipW / 2))}px`;
+    };
+    plannerChart.addEventListener('pointermove', plannerScrub);
+    plannerChart.addEventListener('pointerdown', plannerScrub);
+    plannerChart.addEventListener('pointerleave', () => plannerTooltip.classList.add('hidden'));
+    let plannerResizeTimer = null;
+    window.addEventListener('resize', () => {
+        clearTimeout(plannerResizeTimer);
+        plannerResizeTimer = setTimeout(() => { if (plannerSim) renderPlanner(); }, 150);
+    });
+
     function updateUI() {
         if (!airthingsData || !airthingsData.data || !weatherCurrentData) {
             dynamicAdvisorText.textContent = 'Waiting for data...';
@@ -1328,37 +1580,22 @@
         applyCardStatus(basementCard, basementStatusVideo, basementAssessment.status, true); // true = video
 
         // Physics-based ventilation assessment
-        const a = assessVentilation({
+        const env = {
             tempIn: basementTemp, rhIn: basementHumidity,
             tempOut: outsideTempValue, rhOut: outsideHumidityValue,
             dewOut: outsideDewpointValue, voc: basementVoc, mold: basementMold
-        });
+        };
+        const a = assessVentilation(env);
 
         // In/out moisture readouts — the actual decision variables, made visible
         basementDewpointDisplay.textContent = `${a.dewIn.toFixed(1)}°C`;
         basementAbshumDisplay.textContent = `${a.ahIn.toFixed(1)} g/m³`;
         outsideAbshumDisplay.textContent = `${a.ahOut.toFixed(1)} g/m³`;
 
-        // Expected humidity after the recommended session (realistic air exchange)
-        finalHumidityDisplay.textContent = `${a.rhAfter}%`;
-        if (a.rhAfter >= 65) {
-            finalHumidityDisplay.style.color = '#ef4444'; // danger red
-        } else if (a.rhAfter >= 55) {
-            finalHumidityDisplay.style.color = '#f59e0b'; // caution orange
-        } else {
-            finalHumidityDisplay.style.color = '#4caf50'; // good green
-        }
-        // Settled temperature ~1 h after closing — colored with the same
-        // basement-comfort thresholds the trend icons use (ideal 15–20°C)
-        finalTempDisplay.textContent = `${a.tSettled.toFixed(1)}°C`;
-        finalTempDisplay.style.color =
-            (a.tSettled < 12 || a.tSettled > 22) ? '#ef4444' :
-            (a.tSettled < 15 || a.tSettled > 20) ? '#f59e0b' : '#4caf50';
-
-        waterRemovedDisplay.textContent = a.verdict === 'bad' ? '' :
-            `≈ ${a.litersRemoved.toFixed(1)} L water removed · ${Math.round(settings.floorArea * settings.ceilingHeight)} m³ · ${settings.ventType === 'cross' ? 'cross-vent' : 'single-sided'}`;
-        tempEstimateDisplay.textContent = a.verdict === 'bad' ? '' :
-            `Dips to ≈${a.tImmediate.toFixed(1)}°C while venting, then settles back within ~1 h`;
+        // Session planner drives the headline numbers and the small lines under
+        // them: it simulates the chosen duration against the hourly forecast
+        // (slider defaults to the recommended session length until touched)
+        updatePlanner(a, env);
 
         // Hourly forecast → venting windows (graded against current basement state)
         const forecast = buildForecast(a);

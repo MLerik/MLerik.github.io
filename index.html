@@ -469,9 +469,18 @@
                 </div>
 
                 <div class="text-center mb-6">
-                    <p class="label-large ventilation-text-secondary">Expected Humidity After Venting</p>
-                    <p id="final-humidity" class="display-small ventilation-accent font-bold">--%</p>
-                    <p id="water-removed" class="text-xs ventilation-text-secondary mt-1"></p>
+                    <p class="label-large ventilation-text-secondary mb-1">Expected After Venting</p>
+                    <div class="flex items-baseline justify-center gap-10">
+                        <div>
+                            <p id="final-humidity" class="display-small ventilation-accent font-bold">--%</p>
+                            <p class="text-xs ventilation-text-secondary">Humidity</p>
+                        </div>
+                        <div>
+                            <p id="final-temp" class="display-small font-bold" style="color: var(--on-surface);">--°C</p>
+                            <p class="text-xs ventilation-text-secondary">Temperature</p>
+                        </div>
+                    </div>
+                    <p id="water-removed" class="text-xs ventilation-text-secondary mt-2"></p>
                     <p id="temp-estimate" class="text-xs ventilation-text-secondary mt-1"></p>
                 </div>
 
@@ -620,6 +629,7 @@
     const finalHumidityDisplay = document.getElementById('final-humidity');
     const waterRemovedDisplay = document.getElementById('water-removed');
     const tempEstimateDisplay = document.getElementById('temp-estimate');
+    const finalTempDisplay = document.getElementById('final-temp');
     const basementDewpointDisplay = document.getElementById('basement-dewpoint');
     const basementAbshumDisplay = document.getElementById('basement-abshum');
     const outsideAbshumDisplay = document.getElementById('outside-abshum');
@@ -1227,10 +1237,17 @@
         } else {
             finalHumidityDisplay.style.color = '#4caf50'; // good green
         }
+        // Settled temperature ~1 h after closing — colored with the same
+        // basement-comfort thresholds the trend icons use (ideal 15–20°C)
+        finalTempDisplay.textContent = `${a.tSettled.toFixed(1)}°C`;
+        finalTempDisplay.style.color =
+            (a.tSettled < 12 || a.tSettled > 22) ? '#ef4444' :
+            (a.tSettled < 15 || a.tSettled > 20) ? '#f59e0b' : '#4caf50';
+
         waterRemovedDisplay.textContent = a.verdict === 'bad' ? '' :
             `≈ ${a.litersRemoved.toFixed(1)} L water removed · ${Math.round(settings.floorArea * settings.ceilingHeight)} m³ · ${settings.ventType === 'cross' ? 'cross-vent' : 'single-sided'}`;
         tempEstimateDisplay.textContent = a.verdict === 'bad' ? '' :
-            `Temp ${a.tempIn.toFixed(1)}°C → ≈${a.tImmediate.toFixed(1)}°C while venting · back to ≈${a.tSettled.toFixed(1)}°C in ~1 h`;
+            `Dips to ≈${a.tImmediate.toFixed(1)}°C while venting, then settles back within ~1 h`;
 
         // Hourly forecast → venting windows (graded against current basement state)
         const forecast = buildForecast(a);

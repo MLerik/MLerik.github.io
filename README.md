@@ -32,20 +32,22 @@ This app calculates whether you should ventilate your basement based on:
 
 ## The Science
 
-The app prevents condensation by ensuring the outside air's dew point is sufficiently below your basement temperature. It calculates final humidity levels after ventilation and provides contextual advice based on:
+The advisor works on **absolute moisture content** (g of water per m³ of air, via the Magnus formula), not on relative-humidity percentages — venting only dries the basement if outside air physically carries less water than the air inside, regardless of what the RH readings suggest.
 
-- **Condensation Prevention**: Warns when outside dew point is too high (< 1.5°C safety margin)
-- **Temperature Logic**: Prevents heating your basement with warm outside air
-- **Humidity Optimization**: Aims for ideal basement humidity levels (< 60% optimal, < 75% acceptable)
-- **Duration Guidance**: Specific time recommendations (1-2 hours winter, 3-4 hours optimal conditions)
+- **Absolute Humidity Comparison**: The core decision variable — outside air must be ≥0.3 g/m³ drier to help; both values are shown in the UI
+- **Wall-Temperature Condensation Guard**: Old ground-coupled masonry runs up to ~2 °C colder than the basement *air* in summer; the dew-point safety check (1.5 °C margin) is made against the estimated coldest *surface*, catching the classic "Sommerkondensation" trap
+- **Realistic Air Exchange**: Ventilation is exponential dilution (f = 1 − e^(−ACH·t)), not instant replacement — single-sided ≈1.5 air changes/h, cross-ventilation ≈4/h, sized to the configured basement volume
+- **Concrete Outcomes**: Predicted humidity after the recommended session and estimated liters of water removed
+- **Seasonal Logic**: Freezing weather → short 30-min bursts repeated through the day; summer → wait for the night window; damp old walls → several spaced sessions beat one marathon (moisture rebound)
 
-## Planned Enhancements 🚀
+## Forecast & Venting Windows 🌙
 
-### Advanced Forecast Card (In Development)
-- **6-Hour Temperature & Humidity Trends**: Visual charts showing upcoming conditions
-- **Optimal Window Identification**: Automatically detect perfect ventilation times coming up
-- **Extended 10-Day Forecast**: When no good opportunities exist in 6 hours, show longer-term options
-- **Proactive Notifications**: "Perfect ventilation window starting at 10 PM tonight!"
+Using Open-Meteo's hourly forecast, the app grades the next 24–36 hours against the current basement state and renders a color-coded timeline:
+
+- **Best-Window Detection**: Finds the best contiguous ≥2 h venting window ("Next good window: today 22:00 → 07:00")
+- **Overnight Summer Venting**: When daytime venting is blocked, the recommendation tells you when tonight's window opens
+- **Close-By Warnings**: When conditions are good *now*, it tells you when the window ends ("shut windows by 09:00") — crucial on summer mornings
+- **Live-Anchored "Now"**: The current hour is graded from live observations so the strip never contradicts the headline recommendation
 
 ## Technology Stack
 
@@ -75,7 +77,15 @@ MLerik.github.io/
 
 ## Recent Updates
 
-**v2.0 - Enhanced Intelligence (Current)**
+**v3.0 - Physics Engine & Forecast (Current)**
+- ✅ Absolute-humidity (g/m³) based decisions — fixes cases where venting was recommended despite adding moisture
+- ✅ Wall-surface condensation guard with safety margin (old-masonry summer trap)
+- ✅ Realistic air-exchange model with configurable basement size & window setup (persisted settings panel)
+- ✅ 24 h venting-window forecast strip with best-window detection and close-by warnings
+- ✅ Water-removal estimate in liters per session
+- ✅ Fixed 0 °C treated as missing data; unified Magnus constants
+
+**v2.0 - Enhanced Intelligence**
 - ✅ Removed basic context card, integrated smart advisor into results
 - ✅ Comprehensive basement-specific guidance with emojis and specific recommendations
 - ✅ Improved responsive layout (2-column desktop, single-column mobile)

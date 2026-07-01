@@ -415,6 +415,14 @@
                             <p class="text-xs ventilation-text-secondary">Mold Risk</p>
                             <p id="airthings-mold" class="text-sm" style="color: var(--on-surface);">--/10</p>
                         </div>
+                        <div>
+                            <p class="text-xs ventilation-text-secondary">Dew Point</p>
+                            <p id="basement-dewpoint" class="text-sm" style="color: var(--on-surface);">--°C</p>
+                        </div>
+                        <div>
+                            <p class="text-xs ventilation-text-secondary">Moisture</p>
+                            <p id="basement-abshum" class="text-sm" style="color: var(--on-surface);">-- g/m³</p>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -449,16 +457,21 @@
                             <p class="text-xs ventilation-text-secondary">Humidity</p>
                             <p id="outside-humidity" class="text-xl font-semibold" style="color: var(--on-surface);">--%</p>
                         </div>
-                        <div class="col-span-2">
+                        <div>
                             <p class="text-xs ventilation-text-secondary">Dew Point</p>
                             <p id="outside-dewpoint" class="text-lg" style="color: var(--on-surface);">--°C</p>
+                        </div>
+                        <div>
+                            <p class="text-xs ventilation-text-secondary">Moisture</p>
+                            <p id="outside-abshum" class="text-lg" style="color: var(--on-surface);">-- g/m³</p>
                         </div>
                     </div>
                 </div>
 
                 <div class="text-center mb-6">
-                    <p class="label-large ventilation-text-secondary">Expected Basement Humidity</p>
+                    <p class="label-large ventilation-text-secondary">Expected Humidity After Venting</p>
                     <p id="final-humidity" class="display-small ventilation-accent font-bold">--%</p>
+                    <p id="water-removed" class="text-xs ventilation-text-secondary mt-1"></p>
                 </div>
 
                 <div id="recommendation-box" class="flex items-center p-6 organic-small transition-all duration-300 mb-6">
@@ -486,6 +499,58 @@
             </div>
         </div>
 
+        <!-- 24h Venting Forecast -->
+        <div class="mt-6 md:mt-8 p-6 md:p-8 shadow-2xl ventilation-card organic-card">
+            <h2 class="title-large mb-1" style="color: var(--on-surface);">Venting Windows · Next 24 h</h2>
+            <p id="forecast-window-text" class="body-medium ventilation-text-secondary mb-5">Loading hourly forecast…</p>
+            <div id="forecast-strip" class="flex items-end" style="gap: 3px; min-height: 38px;"></div>
+            <div id="forecast-labels" class="flex" style="gap: 3px;"></div>
+            <div class="flex flex-wrap gap-x-4 gap-y-1 mt-4 text-xs ventilation-text-secondary">
+                <span class="flex items-center gap-1"><span style="display:inline-block;width:10px;height:10px;border-radius:3px;background:#4caf50;"></span> Great — dry &amp; safe</span>
+                <span class="flex items-center gap-1"><span style="display:inline-block;width:10px;height:10px;border-radius:3px;background:#ff9800;"></span> OK — modest drying</span>
+                <span class="flex items-center gap-1"><span style="display:inline-block;width:10px;height:10px;border-radius:3px;background:color-mix(in srgb, #f44336 40%, transparent 60%);"></span> Keep closed</span>
+            </div>
+        </div>
+
+        <!-- Basement Settings -->
+        <details class="mt-6 md:mt-8 p-6 shadow-2xl ventilation-card organic-card">
+            <summary class="label-large cursor-pointer select-none" style="color: var(--on-surface);">
+                ⚙️ Basement Settings <span id="setting-volume" class="ventilation-text-secondary"></span>
+            </summary>
+            <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mt-4">
+                <label class="block">
+                    <span class="text-xs ventilation-text-secondary">Floor area (m²)</span>
+                    <input id="setting-area" type="number" min="10" max="500" step="5"
+                           class="w-full mt-1 px-3 py-2 organic-small"
+                           style="background: color-mix(in srgb, var(--surface-container-high) 70%, transparent 30%); color: var(--on-surface); border: 1px solid color-mix(in srgb, var(--primary) 25%, transparent 75%);">
+                </label>
+                <label class="block">
+                    <span class="text-xs ventilation-text-secondary">Ceiling height (m)</span>
+                    <input id="setting-height" type="number" min="1.6" max="3.5" step="0.1"
+                           class="w-full mt-1 px-3 py-2 organic-small"
+                           style="background: color-mix(in srgb, var(--surface-container-high) 70%, transparent 30%); color: var(--on-surface); border: 1px solid color-mix(in srgb, var(--primary) 25%, transparent 75%);">
+                </label>
+                <label class="block">
+                    <span class="text-xs ventilation-text-secondary">Window setup</span>
+                    <select id="setting-venttype"
+                            class="w-full mt-1 px-3 py-2 organic-small"
+                            style="background: color-mix(in srgb, var(--surface-container-high) 70%, transparent 30%); color: var(--on-surface); border: 1px solid color-mix(in srgb, var(--primary) 25%, transparent 75%);">
+                        <option value="single">One side only</option>
+                        <option value="cross">Cross-ventilation</option>
+                    </select>
+                </label>
+                <label class="flex items-end gap-2 pb-2 cursor-pointer">
+                    <input id="setting-oldwalls" type="checkbox" style="width:18px;height:18px;accent-color:var(--primary);">
+                    <span class="text-xs ventilation-text-secondary">Old, thick walls</span>
+                </label>
+            </div>
+            <p class="text-xs ventilation-text-secondary mt-3 leading-relaxed">
+                Cross-ventilation (windows open on opposite sides) exchanges air ≈4×/h; single-sided ≈1.5×/h.
+                “Old, thick walls” assumes ground-coupled masonry surfaces run up to ~2 °C colder than the basement air
+                in summer, which tightens the condensation safety check — recommended for Villa Kunterbunt.
+            </p>
+        </details>
+
         <!-- Refresh Button -->
         <div class="text-center mt-8">
             <button id="refresh-btn" class="px-6 py-3 rounded-full font-medium transition-all duration-300" style="background-color: var(--primary); color: var(--on-primary);">
@@ -502,6 +567,26 @@
     const THUN_LAT = 46.7578;
     const THUN_LON = 7.6274;
     const AIRTHINGS_CACHE_DURATION = 5 * 60 * 1000; // 5 minutes
+
+    // --- BASEMENT SETTINGS (persisted, adjustable in the Settings panel) ---
+    const SETTINGS_KEY = 'vk-settings-v1';
+    const DEFAULT_SETTINGS = {
+        floorArea: 150,      // m² — Villa Kunterbunt basement
+        ceilingHeight: 2.2,  // m
+        ventType: 'single',  // 'single' (one side) or 'cross' (opposite windows)
+        oldWalls: true       // old ground-coupled masonry: wall surfaces run colder than the air
+    };
+    // Realistic air-change rates for window ventilation (per hour)
+    const ACH_BY_TYPE = { single: 1.5, cross: 4.0 };
+    const CONDENSATION_MARGIN = 1.5; // K safety margin between outside dew point and coldest surface
+    const DRYING_MARGIN = 0.3;       // g/m³ — outside air must be at least this much drier to help
+
+    function loadSettings() {
+        try { return { ...DEFAULT_SETTINGS, ...JSON.parse(localStorage.getItem(SETTINGS_KEY) || '{}') }; }
+        catch (e) { return { ...DEFAULT_SETTINGS }; }
+    }
+    let settings = loadSettings();
+    function saveSettings() { localStorage.setItem(SETTINGS_KEY, JSON.stringify(settings)); }
 
     // --- DOM ELEMENTS ---
     const body = document.body;
@@ -532,6 +617,10 @@
 
     // Results elements
     const finalHumidityDisplay = document.getElementById('final-humidity');
+    const waterRemovedDisplay = document.getElementById('water-removed');
+    const basementDewpointDisplay = document.getElementById('basement-dewpoint');
+    const basementAbshumDisplay = document.getElementById('basement-abshum');
+    const outsideAbshumDisplay = document.getElementById('outside-abshum');
     const recommendationBox = document.getElementById('recommendation-box');
     const recommendationIcon = document.getElementById('recommendation-icon');
     const recommendationTitle = document.getElementById('recommendation-title');
@@ -547,6 +636,15 @@
     let airthingsData = null;
     let lastAirthingsFetch = null;
     let weatherCurrentData = null;
+    let weatherHourlyData = null;
+
+    // Inline icons reused across advice strings
+    const ADVICE_ICONS = {
+        clock: '<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="inline-block -mt-0.5"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>',
+        alert: '<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="inline-block -mt-0.5"><path d="m21.73 18-8-14a2 2 0 0 0-3.46 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z"></path><line x1="12" x2="12" y1="9" y2="13"></line><line x1="12" x2="12.01" y1="17" y2="17"></line></svg>',
+        x: '<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="inline-block -mt-0.5"><circle cx="12" cy="12" r="10"></circle><path d="m15 9-6 6"></path><path d="m9 9 6 6"></path></svg>',
+        check: '<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="inline-block -mt-0.5"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path><polyline points="22 4 12 14.01 9 11.01"></polyline></svg>'
+    };
 
     // --- SVG ICONS ---
     const ICONS = {
@@ -650,58 +748,251 @@
         return '<svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17.5 19H9a7 7 0 1 1 6.71-9h1.79a4.5 4.5 0 1 1 0 9Z"></path></svg>';
     }
 
-    // --- CORE CALCULATIONS ---
-    function calculateFinalHumidity(tempIn, tempOut, rhOut) {
-        const calcEs = (temp) => 6.112 * Math.exp((17.67 * temp) / (temp + 243.5));
-        const esOut = calcEs(tempOut);
-        const eOut = esOut * (rhOut / 100);
-        const esIn = calcEs(tempIn);
-        const finalRh = (eOut / esIn) * 100;
-        return Math.min(100, Math.round(finalRh));
+    // --- CORE PHYSICS ---
+    // One consistent Magnus formula everywhere (Sonntag 1990 constants).
+
+    // Saturation vapor pressure in hPa
+    function satVaporPressure(tC) {
+        return 6.112 * Math.exp((17.62 * tC) / (243.12 + tC));
     }
 
-    function calculateDewPoint(temp, rh) {
-        const a = 17.625;
-        const b = 243.04;
-        const alpha = Math.log(rh / 100) + (a * temp) / (b + temp);
-        const dewPoint = (b * alpha) / (a - alpha);
-        return dewPoint;
+    // Actual vapor pressure in hPa
+    function vaporPressure(tC, rh) {
+        return satVaporPressure(tC) * (rh / 100);
     }
 
-    function calculateVentilationDuration(humidityDiff, currentHumidity, voc) {
-        // Calculate recommended ventilation duration based on:
-        // 1. Humidity difference (higher diff = longer ventilation)
-        // 2. Current humidity level (higher = more urgent)
-        // 3. VOC levels (higher = longer ventilation for air quality)
+    // Absolute humidity in g/m³ — THE decision variable. Ventilation only dries
+    // the basement if outside air holds fewer grams of water per m³ than inside,
+    // regardless of what the relative humidity percentages say.
+    function absoluteHumidity(tC, rh) {
+        return 216.7 * vaporPressure(tC, rh) / (273.15 + tC);
+    }
 
-        let baseDuration = 30; // Base: 30 minutes
+    function dewPointFrom(tC, rh) {
+        const g = Math.log(rh / 100) + (17.62 * tC) / (243.12 + tC);
+        return (243.12 * g) / (17.62 - g);
+    }
 
-        // Adjust for humidity difference
-        if (humidityDiff > 20) {
-            baseDuration = 60; // 1 hour for large improvement
-        } else if (humidityDiff > 10) {
-            baseDuration = 45; // 45 min for moderate improvement
-        } else if (humidityDiff > 5) {
-            baseDuration = 30; // 30 min for small improvement
+    // Fraction of basement air replaced after `minutes` at a given air-change rate.
+    // Window venting is exponential dilution, not instant replacement: f = 1 - e^(-ACH·t)
+    function exchangeFraction(ach, minutes) {
+        return 1 - Math.exp(-ach * minutes / 60);
+    }
+
+    // Old ground-coupled masonry lags the seasons: in summer the wall and floor
+    // surfaces run noticeably colder than the basement AIR — and condensation
+    // forms on the coldest surface, not in the air. Estimate that surface temp.
+    function estimateWallTemp(tempIn) {
+        if (!settings.oldWalls) return tempIn;
+        const m = new Date().getMonth() + 1;
+        const lag = (m >= 6 && m <= 9) ? 2.0 : (m === 5 || m === 10) ? 1.0 : 0.5;
+        return tempIn - lag;
+    }
+
+    // --- VENTILATION ASSESSMENT ---
+    // env: { tempIn, rhIn, tempOut, rhOut, dewOut, voc, mold }
+    function assessVentilation(env) {
+        const ach = ACH_BY_TYPE[settings.ventType] || ACH_BY_TYPE.single;
+        const volume = settings.floorArea * settings.ceilingHeight;
+        const dewIn = dewPointFrom(env.tempIn, env.rhIn);
+        const ahIn = absoluteHumidity(env.tempIn, env.rhIn);
+        const ahOut = absoluteHumidity(env.tempOut, env.rhOut);
+        const wallTemp = estimateWallTemp(env.tempIn);
+        const dryingPower = ahIn - ahOut; // g/m³ removed per fully exchanged m³ (+ = venting dries)
+        const condensation = env.dewOut >= wallTemp - CONDENSATION_MARGIN;
+        const month = new Date().getMonth() + 1;
+        const isSummer = month >= 6 && month <= 9;
+        const freezing = env.tempOut <= 3;
+        const warming = env.tempOut > env.tempIn + 1;
+
+        // Session length for ≈90% air exchange: t = ln(10)/ACH.
+        // In freezing weather cap at 30 min bursts (pipes, stored goods, overcooled walls).
+        let minutes = Math.round((138 / ach) / 5) * 5;
+        let repeatBursts = false;
+        if (freezing && minutes > 30) { minutes = 30; repeatBursts = true; }
+
+        const f = exchangeFraction(ach, minutes);
+        const ahAfter = ahIn * (1 - f) + ahOut * f;
+        // Thick walls hold the air temperature near tempIn, so evaluate RH there
+        const rhAfter = Math.round(Math.min(100, (ahAfter / absoluteHumidity(env.tempIn, 100)) * 100));
+        const litersRemoved = Math.max(0, volume * (ahIn - ahAfter) / 1000);
+
+        const out = {
+            verdict: 'bad', title: '', summary: '', advice: '',
+            minutes, repeatBursts, rhAfter, litersRemoved,
+            dewIn, ahIn, ahOut, wallTemp, tempIn: env.tempIn, tempOut: env.tempOut, condensation, dryingPower
+        };
+        const I = ADVICE_ICONS;
+
+        // 1) Hard block: condensation on cold surfaces
+        if (condensation) {
+            out.title = 'Do Not Ventilate';
+            out.summary = 'Condensation risk on cold surfaces';
+            out.advice = `${I.x} Outside dew point (${env.dewOut.toFixed(1)}°C) is at or above your coldest wall surfaces (est. ~${wallTemp.toFixed(1)}°C incl. ${CONDENSATION_MARGIN}°C safety margin). Incoming air would condense on walls and floor.`;
+            if (isSummer) out.advice += ' This is the classic summer trap for old cellars — warm daytime air carries far more water than it feels like. Wait for night.';
+            return out;
+        }
+
+        // 2) Hard block: outside air carries more water than inside
+        if (dryingPower < DRYING_MARGIN) {
+            if (Number.isFinite(env.voc) && env.voc > 500) {
+                out.verdict = 'caution';
+                out.title = 'Air-Quality Flush Only';
+                out.summary = 'Outside air is not drier — keep it short';
+                out.minutes = 10;
+                out.advice = `${I.alert} Outside air (${ahOut.toFixed(1)} g/m³) is not drier than your basement (${ahIn.toFixed(1)} g/m³), but VOC is high (${env.voc} ppb). A 5–10 min flush improves air quality with minimal moisture gain.`;
+            } else {
+                out.title = 'Do Not Ventilate';
+                out.summary = 'Outside air is wetter than basement air';
+                out.advice = `${I.x} Outside air holds ${ahOut.toFixed(1)} g/m³ of water vs ${ahIn.toFixed(1)} g/m³ inside — venting would ADD moisture, even though outside RH (${Math.round(env.rhOut)}%) may look lower. Absolute moisture is what matters.`;
+            }
+            return out;
+        }
+
+        // 3) Outside air is genuinely drier → venting helps
+        const strong = dryingPower >= 1.5;
+        if (strong) {
+            out.verdict = 'good';
+            if (rhAfter < 58) {
+                out.title = 'Good Time to Ventilate';
+                out.summary = `Humidity ${Math.round(env.rhIn)}% → ≈${rhAfter}%`;
+            } else {
+                out.title = 'Ventilate — Strong Drying';
+                out.summary = `Removes ≈${litersRemoved.toFixed(1)} L water · repeat sessions today`;
+            }
+            out.advice = `${I.check} Outside air is ${dryingPower.toFixed(1)} g/m³ drier than your basement. One ${minutes}-min ${settings.ventType === 'cross' ? 'cross-vent' : 'single-sided'} session exchanges ≈${Math.round(f * 100)}% of the air, removing ≈${litersRemoved.toFixed(1)} L of water: ${Math.round(env.rhIn)}% → ≈${rhAfter}%.`;
         } else {
-            baseDuration = 20; // 20 min for minimal improvement
+            out.verdict = 'caution';
+            out.title = 'Ventilate — Modest Benefit';
+            out.summary = `Humidity ${Math.round(env.rhIn)}% → ≈${rhAfter}%`;
+            out.advice = `${I.alert} Outside air is only ${dryingPower.toFixed(1)} g/m³ drier — venting helps a little (≈${litersRemoved.toFixed(1)} L removed) but won't reach ideal levels. Check the forecast below for a better window.`;
+        }
+        if (warming) {
+            out.advice += ` ${I.alert} Outside is warmer (${Math.round(env.tempOut)}°C vs ${env.tempIn.toFixed(1)}°C): a warmer cellar condenses more easily later — keep it short and close before the day heats up further.`;
+        }
+        if (freezing) {
+            out.advice += ` ${I.clock} Freezing outside: cold air dries superbly, but keep bursts ≤30 min and repeat 2–3× today.`;
+        }
+        if (settings.oldWalls && env.rhIn >= 60) {
+            out.advice += ' Old masonry re-releases stored moisture after you close up — expect some rebound; several spaced sessions beat one marathon.';
+        }
+        return out;
+    }
+
+    // --- HOURLY FORECAST → VENTING WINDOWS ---
+    // Grades the next 36 h against the CURRENT basement state and finds the best
+    // contiguous venting window (≥2 h). Times from Open-Meteo are local to Thun.
+    function buildForecast(a) {
+        const h = weatherHourlyData;
+        if (!h || !h.time || !h.time.length) return null;
+
+        let start = h.time.findIndex(t => new Date(t).getTime() > Date.now());
+        if (start === -1) return null;
+        start = Math.max(0, start - 1); // slot containing "now"
+
+        const hours = [];
+        for (let i = start; i < Math.min(start + 36, h.time.length); i++) {
+            const temp = h.temperature_2m[i];
+            const rh = h.relative_humidity_2m[i];
+            const dew = h.dew_point_2m ? h.dew_point_2m[i] : dewPointFrom(temp, rh);
+            const precip = h.precipitation ? (h.precipitation[i] || 0) : 0;
+            if (![temp, rh, dew].every(Number.isFinite)) continue;
+            const dry = a.ahIn - absoluteHumidity(temp, rh);
+            let grade = 0; // 0 = keep closed, 1 = ok, 2 = great
+            if (dew < a.wallTemp - CONDENSATION_MARGIN && dry >= DRYING_MARGIN) {
+                grade = (dry >= 1.5 && temp <= a.tempIn + 0.5) ? 2 : 1;
+                if (precip >= 1) grade = 1; // heavy rain: still safe, but not "great"
+            }
+            hours.push({ time: h.time[i], hour: h.time[i].slice(11, 13), temp, rh, dew, precip, grade, dry });
+        }
+        if (!hours.length) return null;
+
+        // Anchor the "now" slot to live observations so the strip never
+        // contradicts the headline recommendation (the hourly model and current
+        // conditions can disagree right at a window boundary)
+        let liveGrade = 0;
+        if (!a.condensation && a.dryingPower >= DRYING_MARGIN) {
+            liveGrade = (a.dryingPower >= 1.5 && a.tempOut <= a.tempIn + 0.5) ? 2 : 1;
+        }
+        hours[0].grade = liveGrade;
+        hours[0].dry = a.dryingPower;
+
+        // Maximal runs of ventable hours, ≥ 2 h long
+        const runs = [];
+        let run = null;
+        hours.forEach((hr, idx) => {
+            if (hr.grade > 0) {
+                if (!run) run = { startIdx: idx, hrs: [] };
+                run.hrs.push(hr);
+                run.endIdx = idx;
+            } else if (run) { runs.push(run); run = null; }
+        });
+        if (run) runs.push(run);
+
+        const candidates = runs.filter(r => r.hrs.length >= 2);
+        candidates.forEach(r => {
+            r.meanDry = r.hrs.reduce((s, x) => s + x.dry, 0) / r.hrs.length;
+            r.score = r.meanDry + (r.hrs.some(x => x.grade === 2) ? 0.75 : 0);
+        });
+        candidates.sort((x, y) => (y.score - x.score) || (x.startIdx - y.startIdx));
+        const best = candidates[0] || null;
+
+        let bestLabel = null;
+        if (best) {
+            const day = best.hrs[0].time.slice(0, 10) === hours[0].time.slice(0, 10) ? 'today' : 'tomorrow';
+            const closeHr = best.endIdx + 1 < hours.length ? `${hours[best.endIdx + 1].hour}:00` : 'open end';
+            const dews = best.hrs.map(x => x.dew);
+            const lo = Math.min(...dews).toFixed(0);
+            const hi = Math.max(...dews).toFixed(0);
+            bestLabel = `${day} ${best.hrs[0].hour}:00 → ${closeHr} (dew point ${lo === hi ? '≈' + lo : lo + '–' + hi}°C)`;
+        }
+        return { hours, best, bestLabel };
+    }
+
+    function renderForecast(forecast) {
+        const strip = document.getElementById('forecast-strip');
+        const labels = document.getElementById('forecast-labels');
+        const text = document.getElementById('forecast-window-text');
+        if (!strip) return;
+        strip.innerHTML = '';
+        labels.innerHTML = '';
+        if (!forecast) {
+            text.textContent = 'Hourly forecast unavailable.';
+            return;
         }
 
-        // Add time if current humidity is high
-        if (currentHumidity >= 65) {
-            baseDuration += 15;
-        } else if (currentHumidity >= 60) {
-            baseDuration += 10;
-        }
+        const GRADE_STYLE = {
+            2: { color: '#4caf50', height: 34, name: 'great' },
+            1: { color: '#ff9800', height: 22, name: 'ok' },
+            0: { color: 'color-mix(in srgb, #f44336 40%, transparent 60%)', height: 10, name: 'keep closed' }
+        };
+        forecast.hours.slice(0, 24).forEach(hr => {
+            const s = GRADE_STYLE[hr.grade];
+            const cell = document.createElement('div');
+            cell.style.cssText = `flex:1; height:${s.height}px; background:${s.color}; border-radius:4px;`;
+            cell.title = `${hr.hour}:00 · ${hr.temp.toFixed(0)}°C · dew ${hr.dew.toFixed(1)}°C${hr.precip >= 0.5 ? ' · rain' : ''} · ${s.name}`;
+            strip.appendChild(cell);
 
-        // Add time if VOC is elevated
-        if (voc && voc > 500) {
-            baseDuration += 15;
-        } else if (voc && voc > 300) {
-            baseDuration += 10;
-        }
+            const lb = document.createElement('div');
+            lb.style.cssText = 'flex:1; text-align:center; font-size:10px;';
+            lb.className = 'ventilation-text-secondary';
+            lb.textContent = Number(hr.hour) % 6 === 0 ? `${hr.hour}h` : '';
+            labels.appendChild(lb);
+        });
 
-        return Math.min(baseDuration, 90); // Cap at 90 minutes
+        const now = forecast.hours[0];
+        if (now.grade > 0) {
+            let endIdx = 0;
+            while (endIdx + 1 < forecast.hours.length && forecast.hours[endIdx + 1].grade > 0) endIdx++;
+            const closes = endIdx + 1 < forecast.hours.length ? `${forecast.hours[endIdx + 1].hour}:00` : null;
+            text.textContent = closes
+                ? `Ventable right now — this window closes around ${closes}. Make sure windows are shut by then.`
+                : 'Ventable right now, and conditions stay good beyond the visible forecast.';
+        } else if (forecast.best) {
+            text.textContent = `Next good window: ${forecast.bestLabel} — starts in ~${forecast.best.startIdx} h.`;
+        } else {
+            text.textContent = 'No good venting window in the next 36 h — keep windows closed and re-check tomorrow.';
+        }
     }
 
     function formatDuration(minutes) {
@@ -781,7 +1072,12 @@
             weatherData.classList.add('hidden');
 
             console.log('Fetching weather data...');
-            const url = `${WEATHER_API_URL}?latitude=${THUN_LAT}&longitude=${THUN_LON}&current=temperature_2m,relative_humidity_2m,dewpoint_2m,weather_code&timezone=Europe/Berlin`;
+            // `current` keeps the legacy dewpoint_2m spelling (working deployment);
+            // hourly uses the canonical dew_point_2m name.
+            const url = `${WEATHER_API_URL}?latitude=${THUN_LAT}&longitude=${THUN_LON}` +
+                `&current=temperature_2m,relative_humidity_2m,dewpoint_2m,weather_code` +
+                `&hourly=temperature_2m,relative_humidity_2m,dew_point_2m,precipitation,weather_code` +
+                `&forecast_days=3&timezone=Europe/Berlin`;
 
             const response = await fetch(url);
 
@@ -791,6 +1087,7 @@
 
             const data = await response.json();
             weatherCurrentData = data.current;
+            weatherHourlyData = data.hourly || null;
 
             console.log('Weather data received:', weatherCurrentData);
 
@@ -865,15 +1162,17 @@
             return;
         }
 
-        const basementTemp = airthingsData.data.temperature;
-        const basementHumidity = airthingsData.data.humidity;
-        const basementVoc = airthingsData.data.voc;
-        const basementMold = airthingsData.data.mold;
-        const outsideTempValue = weatherCurrentData.temperature_2m;
-        const outsideHumidityValue = weatherCurrentData.relative_humidity_2m;
-        const outsideDewpointValue = weatherCurrentData.dewpoint_2m;
+        const num = v => (v === null || v === undefined || v === '' ? NaN : Number(v));
+        const basementTemp = num(airthingsData.data.temperature);
+        const basementHumidity = num(airthingsData.data.humidity);
+        const basementVoc = num(airthingsData.data.voc);
+        const basementMold = num(airthingsData.data.mold);
+        const outsideTempValue = num(weatherCurrentData.temperature_2m);
+        const outsideHumidityValue = num(weatherCurrentData.relative_humidity_2m);
+        const outsideDewpointValue = num(weatherCurrentData.dewpoint_2m);
 
-        if (!basementTemp || !basementHumidity || !outsideTempValue || !outsideHumidityValue) {
+        // 0°C is valid data — check for finite numbers, never truthiness
+        if (![basementTemp, basementHumidity, outsideTempValue, outsideHumidityValue, outsideDewpointValue].every(Number.isFinite)) {
             dynamicAdvisorText.textContent = 'Incomplete data. Please wait or refresh.';
             return;
         }
@@ -882,87 +1181,58 @@
         const basementAssessment = assessBasementAirQuality(basementHumidity, basementVoc, basementMold);
         applyCardStatus(basementCard, basementStatusVideo, basementAssessment.status, true); // true = video
 
-        // Calculate expected humidity for ventilation
-        const finalHumidity = calculateFinalHumidity(basementTemp, outsideTempValue, outsideHumidityValue);
-        finalHumidityDisplay.textContent = `${finalHumidity}%`;
+        // Physics-based ventilation assessment
+        const a = assessVentilation({
+            tempIn: basementTemp, rhIn: basementHumidity,
+            tempOut: outsideTempValue, rhOut: outsideHumidityValue,
+            dewOut: outsideDewpointValue, voc: basementVoc, mold: basementMold
+        });
 
-        // Color the expected humidity based on its value (matching basement humidity thresholds)
-        if (finalHumidity >= 65) {
+        // In/out moisture readouts — the actual decision variables, made visible
+        basementDewpointDisplay.textContent = `${a.dewIn.toFixed(1)}°C`;
+        basementAbshumDisplay.textContent = `${a.ahIn.toFixed(1)} g/m³`;
+        outsideAbshumDisplay.textContent = `${a.ahOut.toFixed(1)} g/m³`;
+
+        // Expected humidity after the recommended session (realistic air exchange)
+        finalHumidityDisplay.textContent = `${a.rhAfter}%`;
+        if (a.rhAfter >= 65) {
             finalHumidityDisplay.style.color = '#ef4444'; // danger red
-        } else if (finalHumidity >= 55) {
+        } else if (a.rhAfter >= 55) {
             finalHumidityDisplay.style.color = '#f59e0b'; // caution orange
         } else {
             finalHumidityDisplay.style.color = '#4caf50'; // good green
         }
+        waterRemovedDisplay.textContent = a.verdict === 'bad' ? '' :
+            `≈ ${a.litersRemoved.toFixed(1)} L water removed · ${Math.round(settings.floorArea * settings.ceilingHeight)} m³ · ${settings.ventType === 'cross' ? 'cross-vent' : 'single-sided'}`;
 
-        // Calculate recommended ventilation duration
-        const humidityDiff = basementHumidity - finalHumidity;
-        const ventilationDuration = calculateVentilationDuration(humidityDiff, basementHumidity, basementVoc);
+        // Hourly forecast → venting windows (graded against current basement state)
+        const forecast = buildForecast(a);
+        renderForecast(forecast);
 
-        // Determine ventilation recommendation
-        let recommendation = 'neutral';
-        let title = '';
-        let summary = '';
-        let icon = '';
-        let advice = '';
-        let theme = 'caution';
-
-        const tempDiff = basementTemp - outsideTempValue;
-        const condensationRisk = outsideDewpointValue > basementTemp;
-
-        const clockIcon = '<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="inline-block -mt-0.5"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>';
-        const alertIcon = '<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="inline-block -mt-0.5"><path d="m21.73 18-8-14a2 2 0 0 0-3.46 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z"></path><line x1="12" x2="12" y1="9" y2="13"></line><line x1="12" x2="12.01" y1="17" y2="17"></line></svg>';
-        const xCircleIcon = '<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="inline-block -mt-0.5"><circle cx="12" cy="12" r="10"></circle><path d="m15 9-6 6"></path><path d="m9 9 6 6"></path></svg>';
-        const checkCircleIcon = '<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="inline-block -mt-0.5"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path><polyline points="22 4 12 14.01 9 11.01"></polyline></svg>';
-
-        if (condensationRisk) {
-            recommendation = 'bad';
-            title = 'Do Not Ventilate';
-            summary = 'Condensation risk detected';
-            icon = ICONS.bad;
-            theme = 'danger';
-            advice = `${xCircleIcon} The outside dew point (${Math.round(outsideDewpointValue)}°C) is higher than your basement temperature (${basementTemp}°C). Opening windows will cause condensation and mold growth.`;
-        } else if (finalHumidity >= 75) {
-            recommendation = 'bad';
-            title = 'Do Not Ventilate';
-            summary = 'Humidity will increase significantly';
-            icon = ICONS.bad;
-            theme = 'danger';
-            advice = `${xCircleIcon} Ventilating now would raise basement humidity to ${finalHumidity}%, which is too high (target: <60%, acceptable: <75%). Wait for better conditions.`;
-        } else if (finalHumidity >= 60 && finalHumidity < 75) {
-            recommendation = 'caution';
-            title = 'Ventilate with Caution';
-            summary = 'Moderate improvement expected';
-            icon = ICONS.warning;
-            theme = 'caution';
-            advice = `${alertIcon} Ventilating will result in ${finalHumidity}% humidity (acceptable but not optimal). Current basement: ${basementHumidity}%. Consider waiting for better conditions if possible.`;
-        } else {
-            recommendation = 'good';
-            title = 'Good Time to Ventilate';
-            summary = 'Optimal conditions';
-            icon = ICONS.good;
-            theme = 'good';
-            advice = `${checkCircleIcon} Excellent ventilation conditions! Expected humidity: ${finalHumidity}% (optimal: <55%). Current basement: ${basementHumidity}%.`;
+        let advice = a.advice;
+        // If venting is blocked now but a good window is coming, say when
+        if (a.verdict === 'bad' && forecast && forecast.best && forecast.best.startIdx <= 18) {
+            advice += ` ${ADVICE_ICONS.clock} Better window ahead: ${forecast.bestLabel}.`;
         }
-
-        // Add VOC and mold risk context
-        if (airthingsData.data.voc && airthingsData.data.voc > 300) {
-            advice += ` Your VOC level (${airthingsData.data.voc} ppb) is elevated - ventilating will help improve air quality.`;
+        // VOC and mold risk context
+        if (Number.isFinite(basementVoc) && basementVoc > 300 && a.verdict !== 'bad') {
+            advice += ` Your VOC level (${basementVoc} ppb) is elevated - ventilating will help improve air quality.`;
         }
-        if (airthingsData.data.mold && airthingsData.data.mold > 5) {
-            advice += ` ${alertIcon} Mold risk is ${airthingsData.data.mold}/10 - prioritize ventilation when conditions allow.`;
+        if (Number.isFinite(basementMold) && basementMold > 5) {
+            advice += ` ${ADVICE_ICONS.alert} Mold risk is ${basementMold}/10 - prioritize ventilation when conditions allow.`;
         }
 
         // Update UI
-        recommendationIcon.innerHTML = icon;
-        recommendationTitle.textContent = title;
-        recommendationSummary.textContent = summary;
+        const theme = a.verdict === 'good' ? 'good' : a.verdict === 'caution' ? 'caution' : 'danger';
+        recommendationIcon.innerHTML = a.verdict === 'good' ? ICONS.good : a.verdict === 'caution' ? ICONS.warning : ICONS.bad;
+        recommendationTitle.textContent = a.title;
+        recommendationSummary.textContent = a.summary;
         dynamicAdvisorText.innerHTML = advice;
 
         // Show/hide duration display based on recommendation
-        if (recommendation === 'good' || recommendation === 'caution') {
+        if (a.verdict === 'good' || a.verdict === 'caution') {
             durationDisplay.classList.remove('hidden');
-            durationText.textContent = formatDuration(ventilationDuration);
+            durationText.textContent = formatDuration(a.minutes) + (a.repeatBursts ? ' × 2–3 today' : '');
 
             // Color duration based on ventilation status
             const durationColors = {
@@ -1044,9 +1314,40 @@
         refreshBtn.style.opacity = '1';
     });
 
+    // --- SETTINGS PANEL ---
+    function initSettingsUI() {
+        const area = document.getElementById('setting-area');
+        const height = document.getElementById('setting-height');
+        const vent = document.getElementById('setting-venttype');
+        const oldW = document.getElementById('setting-oldwalls');
+        const volume = document.getElementById('setting-volume');
+
+        area.value = settings.floorArea;
+        height.value = settings.ceilingHeight;
+        vent.value = settings.ventType;
+        oldW.checked = settings.oldWalls;
+
+        const showVolume = () => {
+            volume.textContent = `· ${Math.round(settings.floorArea * settings.ceilingHeight)} m³`;
+        };
+        const sync = () => {
+            settings.floorArea = Math.min(500, Math.max(10, Number(area.value) || DEFAULT_SETTINGS.floorArea));
+            settings.ceilingHeight = Math.min(3.5, Math.max(1.6, Number(height.value) || DEFAULT_SETTINGS.ceilingHeight));
+            settings.ventType = vent.value === 'cross' ? 'cross' : 'single';
+            settings.oldWalls = !!oldW.checked;
+            saveSettings();
+            showVolume();
+            updateUI();
+        };
+        [area, height, vent, oldW].forEach(el => el.addEventListener('change', sync));
+        showVolume();
+    }
+
     // --- INITIALIZATION ---
     async function initialize() {
         console.log('Initializing Villa Kunterbunt...');
+
+        initSettingsUI();
 
         // Fetch both data sources
         await Promise.all([

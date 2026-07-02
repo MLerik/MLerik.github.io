@@ -517,9 +517,11 @@
                     <p class="text-xs ventilation-text-secondary mt-2">
                         The humidity you'd be left with if you closed the windows at each moment — after the walls
                         have re-released moisture for an hour and the cellar has returned to its usual temperature.
-                        Simulated hour by hour along the forecast, with cumulative extraction through the window.
-                        Red bands = condensation risk on cold walls; amber bands = outside air warm enough to heat
-                        the cellar (never recommended, shown as what-if). Drag the slider or the chart.
+                        Simulated hour by hour along the forecast; the shaded band is forecast uncertainty (it grows
+                        with lead time, and grows extra when the forecast promises drier air than is measured right
+                        now). The recommendation covers only the stretch that helps even at the band's pessimistic
+                        edge. Red bands = condensation risk on cold walls; amber = outside air warm enough to heat
+                        the cellar. Drag the slider or the chart.
                     </p>
                 </div>
 
@@ -945,6 +947,22 @@
     // instant replacement); the displayed air temp applies the wall-tempering
     // factor. Under constant outside conditions this reproduces the closed-form
     // exponential model exactly.
+    // Forecast-error model for the moisture inputs — no categorical rules
+    // about warm or cold hours; confidence is earned by measurement and lead
+    // time only:
+    //  - uncertainty grows with lead time (dew-point forecasts are good for
+    //    the next hour, mediocre for tomorrow afternoon), and
+    //  - a forecast promising air much drier than what is MEASURED right now
+    //    carries extra doubt proportional to the promised change (regression
+    //    toward observation). A genuine föhn passes this test as soon as the
+    //    live measurement itself turns dry — the app refetches every 5 min.
+    function moistureSigma(leadHours, promisedDrop) {
+        return Math.min(1.5, 0.15 + 0.10 * leadHours) + 0.35 * Math.max(0, promisedDrop);
+    }
+    function dewSigma(leadHours, promisedDrop) {
+        return Math.min(1.2, 0.15 + 0.08 * leadHours) + 0.35 * Math.max(0, promisedDrop);
+    }
+
     function simulateVenting(env, maxMinutes) {
         const ach = ACH_BY_TYPE[settings.ventType] || ACH_BY_TYPE.single;
         const volume = settings.floorArea * settings.ceilingHeight;
@@ -968,71 +986,73 @@
         const bufDecay = Math.exp(-stepH / tauBuffer);
         const wallDecay = Math.exp(-stepH / TAU_WALL);
         const reboundK = 1 - Math.exp(-1 / tauBuffer); // 1 h of wall rebound after closing
+        // Measured outside moisture RIGHT NOW — the regression anchor
+        const ahOutMeasured = absoluteHumidity(env.tempOut, env.rhOut);
 
-        let ahMix = ahIn0;
-        let tMix = env.tempIn;
-        let tWall = wallTemp0;
-        let extracted = 0; // L pushed out the window so far (air + what walls re-released), CUMULATIVE
-        const points = [];
-        const record = (minute, o, ahOutNow) => {
-            const tAir = env.tempIn + tempering * (tMix - env.tempIn);
-            const tSettled = env.tempIn + persistence * (tMix - env.tempIn);
-            // Walls re-emit toward this level (warmer damp walls emit more)
-            const ahEq = ahIn0 * absoluteHumidity(tWall, 100) / ahSatWall0;
-            // What you're left with if you close NOW: within ~1 h the walls
-            // pull the air partway back to their equilibrium — a short burst's
-            // dip largely rebounds. Judged at the cellar's normal temperature:
-            // imported moisture doesn't vanish with the transient warmth.
-            const ahAfterRebound = ahEq + (ahMix - ahEq) * (1 - reboundK);
-            points.push({
-                minute,
-                rhDuring: Math.min(100, ahMix / absoluteHumidity(tAir, 100) * 100),
-                rhSettled: Math.min(100, ahAfterRebound / ahSatHome * 100),
-                tAir, tSettled,
-                outTemp: o.temp, outDew: o.dew,
-                ahAir: ahMix, ahOut: ahOutNow,
-                liters: extracted,
-                risk: o.dew >= wallTemp0 - CONDENSATION_MARGIN
-            });
-        };
-        // Measured outside moisture RIGHT NOW — the anchor for warm-hour trust
-        const ahOutNow = absoluteHumidity(env.tempOut, env.rhOut);
-
-        const o0 = outsideConditionsAt(0);
-        record(0, o0, absoluteHumidity(o0.temp, o0.rh));
-        for (let m = PLANNER_STEP; m <= maxMinutes; m += PLANNER_STEP) {
-            const o = outsideConditionsAt(m - PLANNER_STEP / 2); // midpoint conditions
-            let ahOut = absoluteHumidity(o.temp, o.rh);
-            // Hours WARMER than the cellar are moisture-NEUTRAL AT BEST:
-            // they may add water (a wet forecast stands) but are never
-            // credited with drying. Two reasons: forecast afternoon humidity
-            // is the least reliable number in the whole pipeline, and by a
-            // lake the hot air is practically never drier than a cool cellar
-            // — "outside warmer than inside → venting carries water in" is
-            // the house rule. Cooler (night) hours keep the forecast as-is;
-            // that's where the honest drying windows live.
-            if (o.temp > env.tempIn + 1) {
-                ahOut = Math.max(ahOut, ahOutNow, ahIn0 - DRYING_MARGIN);
-                if (Number.isFinite(env.dewOut) && o.dew < env.dewOut) o.dew = env.dewOut;
+        // Three worlds from the same physics: central runs the forecast as
+        // given; pessimistic/optimistic shift the future moisture inputs by
+        // the forecast-error model. Recommendation gates run on the
+        // pessimistic path ("vent only while it helps even if the forecast
+        // is moisture-optimistic"); the chart shows central inside the band.
+        const runPath = (mode) => { // 0 = central, +1 = pessimistic, -1 = optimistic
+            let ahMix = ahIn0;
+            let tMix = env.tempIn;
+            let tWall = wallTemp0;
+            let extracted = 0; // L out the window so far (air + wall re-release), CUMULATIVE
+            const points = [];
+            const record = (minute, o, ahOutNow) => {
+                const tAir = env.tempIn + tempering * (tMix - env.tempIn);
+                const tSettled = env.tempIn + persistence * (tMix - env.tempIn);
+                // Walls re-emit toward this level (warmer damp walls emit more)
+                const ahEq = ahIn0 * absoluteHumidity(tWall, 100) / ahSatWall0;
+                // What you're left with if you close NOW: within ~1 h the walls
+                // pull the air partway back to their equilibrium. Judged at the
+                // cellar's normal temperature: imported moisture doesn't vanish
+                // with the transient warmth.
+                const ahAfterRebound = ahEq + (ahMix - ahEq) * (1 - reboundK);
+                points.push({
+                    minute,
+                    rhDuring: Math.min(100, ahMix / absoluteHumidity(tAir, 100) * 100),
+                    rhSettled: Math.min(100, ahAfterRebound / ahSatHome * 100),
+                    tAir, tSettled,
+                    outTemp: o.temp, outDew: o.dew,
+                    ahAir: ahMix, ahOut: ahOutNow,
+                    liters: extracted,
+                    risk: o.dew >= wallTemp0 - CONDENSATION_MARGIN
+                });
+            };
+            const o0 = outsideConditionsAt(0);
+            record(0, o0, absoluteHumidity(o0.temp, o0.rh));
+            for (let m = PLANNER_STEP; m <= maxMinutes; m += PLANNER_STEP) {
+                const o = outsideConditionsAt(m - PLANNER_STEP / 2); // midpoint conditions
+                let ahOut = absoluteHumidity(o.temp, o.rh);
+                if (mode !== 0) {
+                    const lead = m / 60;
+                    ahOut = Math.max(0, ahOut + mode * moistureSigma(lead, mode > 0 ? ahOutMeasured - ahOut : 0));
+                    if (mode > 0 && Number.isFinite(env.dewOut)) {
+                        o.dew += dewSigma(lead, env.dewOut - o.dew);
+                    }
+                }
+                // 1) Air exchange with outside — the only path water actually
+                //    leaves (or enters) the cellar. Accumulate the hourly flux:
+                //    as the walls keep refilling the air, the window keeps
+                //    extracting — cumulative extraction far exceeds the air box.
+                const ahAfterExchange = ahOut + (ahMix - ahOut) * exDecay;
+                extracted += volume * (ahMix - ahAfterExchange) / 1000;
+                ahMix = ahAfterExchange;
+                // 2) Wall buffering — internal flux: re-release while the air is
+                //    drier than the walls' equilibrium, absorption while wetter
+                const ahEq = ahIn0 * absoluteHumidity(tWall, 100) / ahSatWall0;
+                ahMix = ahEq + (ahMix - ahEq) * bufDecay;
+                // 3) Thermal states: air mix follows outside; fabric warms slowly
+                const tAirNow = env.tempIn + tempering * (tMix - env.tempIn);
+                tMix = o.temp + (tMix - o.temp) * exDecay;
+                tWall = tAirNow + (tWall - tAirNow) * wallDecay;
+                record(m, o, ahOut);
             }
-            // 1) Air exchange with outside — the only path water actually
-            //    leaves (or enters) the cellar. Accumulate the hourly flux:
-            //    as the walls keep refilling the air, the window keeps
-            //    extracting — cumulative extraction far exceeds the air box.
-            const ahAfterExchange = ahOut + (ahMix - ahOut) * exDecay;
-            extracted += volume * (ahMix - ahAfterExchange) / 1000;
-            ahMix = ahAfterExchange;
-            // 2) Wall buffering — internal flux: re-release while the air is
-            //    drier than the walls' equilibrium, absorption while wetter
-            const ahEq = ahIn0 * absoluteHumidity(tWall, 100) / ahSatWall0;
-            ahMix = ahEq + (ahMix - ahEq) * bufDecay;
-            // 3) Thermal states: air mix follows outside; fabric warms slowly
-            const tAirNow = env.tempIn + tempering * (tMix - env.tempIn);
-            tMix = o.temp + (tMix - o.temp) * exDecay;
-            tWall = tAirNow + (tWall - tAirNow) * wallDecay;
-            record(m, o, ahOut);
-        }
-        return points;
+            return points;
+        };
+        return { central: runPath(0), pessimistic: runPath(1), optimistic: runPath(-1) };
     }
 
     // Old ground-coupled masonry lags the seasons: in summer the wall and floor
@@ -1069,18 +1089,20 @@
     // the "now" verdict uses, re-applied at every simulated step against the
     // UPDATED basement state and THAT hour's forecast weather:
     //   1. condensation — outside dew point vs the cold walls
-    //   2. warming     — outside air warmer than the cellar (+1°C)
-    //   3. moisture    — outside air no longer meaningfully drier than the
-    //                    SIMULATED basement air (the margin closes as venting
-    //                    dries the air and/or outside moisture rises)
-    // Keep venting while every gate stays open; recommend exactly that long.
-    // On a good night the walk runs to the horizon (overnight venting); on a
-    // humid summer morning the moisture gate closes it within the hour.
+    //   2. moisture     — outside air no longer meaningfully drier than the
+    //                     SIMULATED basement air (the margin closes as venting
+    //                     dries the air and/or outside moisture rises)
+    // The gates run on the PESSIMISTIC path, so the recommendation covers
+    // only the stretch that helps even if the forecast turns out
+    // moisture-optimistic. No categorical rule about warm hours: a
+    // confidently dry warm hour may recommend (its warming cost is shown
+    // separately); an uncertain "dry afternoon" promise fails the
+    // pessimistic moisture gate on its own. On a good night the walk runs
+    // deep into the night; freezing keeps bursts.
     function recommendDuration(sim, now) {
         const minIdx = Math.round(15 / PLANNER_STEP);
         const gateClosed = q =>
             q.risk ||
-            q.outTemp > now.tempIn + 1 ||
             q.ahOut >= q.ahAir - DRYING_MARGIN;
         let stop = sim.findIndex(gateClosed);
         if (stop === -1) stop = sim.length;
@@ -1191,6 +1213,11 @@
         }
         if (settings.oldWalls && env.rhIn >= 60) {
             out.advice += ' Old masonry re-releases stored moisture after you close up — expect some rebound; several spaced sessions beat one marathon.';
+        }
+        if (rec.blocked || minutes > rec.minutes) {
+            out.advice += ` ${I.alert} ${rec.blocked
+                ? 'No stretch of this session is confidently helpful'
+                : `Only the first ≈${formatDuration(rec.minutes)} are confidently helpful`} — beyond that, the humidity forecast is too uncertain to lean on (the chart shows the central estimate inside the uncertainty band).`;
         }
         return out;
     }
@@ -1517,7 +1544,8 @@
     // --- SESSION PLANNER ---
     // The slider picks a session length; headline numbers and the chart show
     // where humidity/temperature land, simulated against the hourly forecast.
-    let plannerSim = null;          // last simulation (5-min points to PLANNER_MAX)
+    let plannerSim = null;          // last CENTRAL simulation (5-min points to PLANNER_MAX)
+    let plannerBand = null;         // { central, pessimistic, optimistic } paths
     let plannerRecommended = 90;    // recommended minutes from the latest assessment
     let plannerTouched = false;     // user moved the slider this session
     let plannerGeom = null;         // chart geometry for pointer mapping
@@ -1609,8 +1637,10 @@
         // each moment. (Never rhDuring: warm incoming air reads flatteringly
         // low in RH% while carrying more absolute water.)
         const rhs = plannerSim.map(q => q.rhSettled);
-        let lo = Math.max(0, Math.floor(Math.min(...rhs, 50) - 3));
-        let hi = Math.min(100, Math.ceil(Math.max(...rhs, 70) + 3));
+        const bandLo = plannerBand ? plannerBand.optimistic.map(q => q.rhSettled) : rhs;
+        const bandHi = plannerBand ? plannerBand.pessimistic.map(q => q.rhSettled) : rhs;
+        let lo = Math.max(0, Math.floor(Math.min(...rhs, ...bandLo, 50) - 3));
+        let hi = Math.min(100, Math.ceil(Math.max(...rhs, ...bandHi, 70) + 3));
         const y = v => padT + (1 - (v - lo) / (hi - lo)) * (H - padT - padB);
 
         let els = '';
@@ -1646,8 +1676,14 @@
         // Y range labels
         els += `<text x="${padL - 4}" y="${(y(hi) + 7).toFixed(1)}" text-anchor="end" font-size="9" fill="currentColor" opacity="0.55">${hi}%</text>`;
         els += `<text x="${padL - 4}" y="${y(lo).toFixed(1)}" text-anchor="end" font-size="9" fill="currentColor" opacity="0.55">${lo}%</text>`;
-        // Data line (fixed data-series blue, distinct from the reserved status
-        // colors used by bands/thresholds)
+        // Forecast-uncertainty band: optimistic→pessimistic settled humidity
+        if (plannerBand) {
+            const fwd = plannerBand.optimistic.map(q => `${x(q.minute).toFixed(1)},${y(q.rhSettled).toFixed(1)}`);
+            const back = plannerBand.pessimistic.slice().reverse().map(q => `${x(q.minute).toFixed(1)},${y(q.rhSettled).toFixed(1)}`);
+            els += `<polygon points="${fwd.concat(back).join(' ')}" fill="#64b5f6" opacity="0.12"></polygon>`;
+        }
+        // Central estimate (fixed data-series blue, distinct from the reserved
+        // status colors used by bands/thresholds)
         const pts = plannerSim.map(q => `${x(q.minute).toFixed(1)},${y(q.rhSettled).toFixed(1)}`).join(' ');
         els += `<polyline points="${pts}" fill="none" stroke="#64b5f6" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"></polyline>`;
         // Selection marker
@@ -1741,12 +1777,15 @@
         basementAbshumDisplay.textContent = `${now.ahIn.toFixed(1)} g/m³`;
         outsideAbshumDisplay.textContent = `${now.ahOut.toFixed(1)} g/m³`;
 
-        // Simulate against the hourly forecast, derive the recommended duration
-        // from that simulation, and hand everything to the planner: it renders
-        // the headline numbers, the chart AND the recommendation box for the
-        // chosen slider duration (default = recommended until touched)
-        plannerSim = simulateVenting(env, PLANNER_MAX);
-        const rec = recommendDuration(plannerSim, now);
+        // Simulate against the hourly forecast (central + uncertainty paths),
+        // derive the recommended duration from the PESSIMISTIC path, and hand
+        // everything to the planner: it renders the headline numbers, the
+        // chart AND the recommendation box for the chosen slider duration
+        // (default = recommended until touched)
+        const paths = simulateVenting(env, PLANNER_MAX);
+        plannerSim = paths.central;
+        plannerBand = paths;
+        const rec = recommendDuration(paths.pessimistic, now);
         plannerRecommended = rec.minutes;
         if (!plannerTouched) durationSlider.value = rec.minutes;
 

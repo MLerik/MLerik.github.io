@@ -632,6 +632,7 @@
     const ACH_BY_TYPE = { single: 1.5, cross: 4.0 };
     const CONDENSATION_MARGIN = 1.5; // K safety margin between outside dew point and coldest surface
     const DRYING_MARGIN = 0.3;       // g/m³ — outside air must be at least this much drier to help
+    const TEMP_CEILING = 20;         // °C — top of the ideal cellar band (15–20)
     const PLANNER_MAX = 480;         // session planner horizon (minutes)
     const PLANNER_STEP = 5;          // simulation step (minutes)
 
@@ -1093,15 +1094,21 @@
     //                     dries the air and/or outside moisture rises)
     // The gates run on the PESSIMISTIC path, so the recommendation covers
     // only the stretch that helps even if the forecast turns out
-    // moisture-optimistic. No categorical rule about warm hours: a
-    // confidently dry warm hour may recommend (its warming cost is shown
-    // separately); an uncertain "dry afternoon" promise fails the
-    // pessimistic moisture gate on its own. On a good night the walk runs
-    // deep into the night; freezing keeps bursts.
+    // moisture-optimistic. No moisture assumptions about warm hours — but
+    // temperature is an explicit objective in its own right: hours that
+    // would heat the cellar past the ideal band (or heat a cellar that is
+    // already above it) are excluded from the recommendation while staying
+    // fully simulated as what-if. On a good night the walk runs deep into
+    // the night; freezing keeps bursts.
     function recommendDuration(sim, now) {
         const minIdx = Math.round(15 / PLANNER_STEP);
+        // Comfort/storage constraint, not a moisture claim: the moisture
+        // physics for warm hours stays untouched
+        const heats = q => q.outTemp > now.tempIn + 1 &&
+            (now.tempIn >= TEMP_CEILING || q.tSettled > TEMP_CEILING);
         const gateClosed = q =>
             q.risk ||
+            heats(q) ||
             q.ahOut >= q.ahAir - DRYING_MARGIN;
         let stop = sim.findIndex(gateClosed);
         if (stop === -1) stop = sim.length;
@@ -1201,7 +1208,7 @@
         // morning but runs into a hot afternoon must warn too
         const warmedBy = p.tSettled - env.tempIn;
         if (warmedBy >= 0.8) {
-            out.advice += ` ${I.alert} This session would warm the cellar to ≈${p.tSettled.toFixed(1)}°C (settled) — a warmer cellar holds its moisture and condenses more easily when cool humid air returns. Prefer the cooler hours and close before the heat.`;
+            out.advice += ` ${I.alert} This session would warm the cellar to ≈${p.tSettled.toFixed(1)}°C (settled)${env.tempIn >= TEMP_CEILING ? ' — and it is already above the ideal 15–20°C cellar band' : ''} — a warmer cellar holds its moisture and condenses more easily when cool humid air returns. Prefer the cooler hours and close before the heat.`;
         } else if (now.warming) {
             out.advice += ` ${I.alert} Outside is warmer (${Math.round(env.tempOut)}°C vs ${env.tempIn.toFixed(1)}°C): a warmer cellar condenses more easily later — keep it short and close before the day heats up further.`;
         }

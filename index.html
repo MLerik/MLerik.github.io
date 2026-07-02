@@ -974,7 +974,7 @@
         let tWall = wallTemp0;
         let extracted = 0; // L pushed out the window so far (air + what walls re-released), CUMULATIVE
         const points = [];
-        const record = (minute, o) => {
+        const record = (minute, o, ahOutNow) => {
             const tAir = env.tempIn + tempering * (tMix - env.tempIn);
             const tSettled = env.tempIn + persistence * (tMix - env.tempIn);
             // Walls re-emit toward this level (warmer damp walls emit more)
@@ -990,11 +990,13 @@
                 rhSettled: Math.min(100, ahAfterRebound / ahSatHome * 100),
                 tAir, tSettled,
                 outTemp: o.temp, outDew: o.dew,
+                ahAir: ahMix, ahOut: ahOutNow,
                 liters: extracted,
                 risk: o.dew >= wallTemp0 - CONDENSATION_MARGIN
             });
         };
-        record(0, outsideConditionsAt(0));
+        const o0 = outsideConditionsAt(0);
+        record(0, o0, absoluteHumidity(o0.temp, o0.rh));
         for (let m = PLANNER_STEP; m <= maxMinutes; m += PLANNER_STEP) {
             const o = outsideConditionsAt(m - PLANNER_STEP / 2); // midpoint conditions
             const ahOut = absoluteHumidity(o.temp, o.rh);
@@ -1013,7 +1015,7 @@
             const tAirNow = env.tempIn + tempering * (tMix - env.tempIn);
             tMix = o.temp + (tMix - o.temp) * exDecay;
             tWall = tAirNow + (tWall - tAirNow) * wallDecay;
-            record(m, o);
+            record(m, o, ahOut);
         }
         return points;
     }
@@ -1048,61 +1050,41 @@
         };
     }
 
-    // Recommended session length, derived from the simulation: the shortest
-    // duration whose score comes within RECOMMEND_TOL of the best achievable
-    // over the allowed horizon. With wall buffering in the model, settled
-    // humidity stops improving once the air reaches its exchange/buffer
-    // equilibrium — so recommendations naturally land at short sessions
-    // (the walls rebound anyway; repeated bursts beat marathons), extending
-    // only while the forecast genuinely keeps helping. Truncated before any
-    // condensation-risk or cellar-heating stretch; freezing keeps bursts.
-    const RECOMMEND_TOL = 1.5;  // %RH
-    const WARM_PENALTY = 1.5;   // %RH-equivalent per °C the session leaves the cellar warmer
+    // Recommended session length = a walk-forward of the SAME per-hour gates
+    // the "now" verdict uses, re-applied at every simulated step against the
+    // UPDATED basement state and THAT hour's forecast weather:
+    //   1. condensation — outside dew point vs the cold walls
+    //   2. warming     — outside air warmer than the cellar (+1°C)
+    //   3. moisture    — outside air no longer meaningfully drier than the
+    //                    SIMULATED basement air (the margin closes as venting
+    //                    dries the air and/or outside moisture rises)
+    // Keep venting while every gate stays open; recommend exactly that long.
+    // On a good night the walk runs to the horizon (overnight venting); on a
+    // humid summer morning the moisture gate closes it within the hour.
     function recommendDuration(sim, now) {
         const minIdx = Math.round(15 / PLANNER_STEP);
-        let maxIdx = sim.length - 1;
-        let closeBy = null;
-        const firstRisk = sim.findIndex(q => q.risk);
-        if (firstRisk > 0) {
-            maxIdx = Math.min(maxIdx, firstRisk - 1);
-            closeBy = sim[firstRisk].minute;
-        }
-        // Never RECOMMEND venting with air that heats the cellar (outside more
-        // than ~1°C above basement temperature) — the classic cellar rule, and
-        // forecast RH at peak heat is far too unreliable to gamble a long
-        // session on its promised dryness. The planner still simulates those
-        // hours honestly if you choose them by hand.
-        const firstWarm = sim.findIndex(q => q.outTemp > now.tempIn + 1);
-        if (firstWarm > 0) maxIdx = Math.min(maxIdx, firstWarm - 1);
+        const gateClosed = q =>
+            q.risk ||
+            q.outTemp > now.tempIn + 1 ||
+            q.ahOut >= q.ahAir - DRYING_MARGIN;
+        let stop = sim.findIndex(gateClosed);
+        if (stop === -1) stop = sim.length;
+        let maxIdx = stop - 1;
+        const closeBy = stop < sim.length ? sim[stop].minute : null;
         let repeatBursts = false;
         if (now.freezing) {
             const cap = Math.round(30 / PLANNER_STEP);
             if (maxIdx > cap) { maxIdx = cap; repeatBursts = true; }
         }
-        if (firstRisk === 0 || firstWarm === 0 || maxIdx < minIdx) {
-            // Risky or cellar-heating from the very start (or no safe room):
-            // a recommendation is moot — keep a sensible slider default for
-            // what-if exploration
+        if (maxIdx < minIdx) {
+            // Gates closed from the very start: a recommendation is moot —
+            // keep a sensible slider default for what-if exploration
             return { minutes: 30, repeatBursts: false, closeBy, bestRh: null, blocked: true };
         }
-        // Objective: settled humidity PLUS a warming penalty. A session that
-        // leaves the cellar warmer must earn it with extra drying — warm air
-        // shows flattering RH percentages while carrying more absolute water,
-        // so without this term the optimizer extends sessions into hot
-        // afternoons for gains that are partly a temperature artifact.
-        const score = i => sim[i].rhSettled + WARM_PENALTY * Math.max(0, sim[i].tSettled - now.tempIn);
-        let bestScore = Infinity;
-        let bestRh = Infinity;
-        for (let i = minIdx; i <= maxIdx; i++) {
-            bestScore = Math.min(bestScore, score(i));
-            bestRh = Math.min(bestRh, sim[i].rhSettled);
-        }
-        let idx = minIdx;
-        while (idx < maxIdx && score(idx) > bestScore + RECOMMEND_TOL) idx++;
-        // Snap to the slider's 15-min grid without leaving the safe range
-        let minutes = Math.round(sim[idx].minute / 15) * 15;
-        minutes = Math.max(15, Math.min(minutes, Math.floor(sim[maxIdx].minute / 15) * 15));
-        return { minutes, repeatBursts, closeBy, bestRh, blocked: false };
+        // Snap DOWN to the slider's 15-min grid so the recommendation never
+        // reaches past a closed gate
+        const minutes = Math.max(15, Math.floor(sim[maxIdx].minute / 15) * 15);
+        return { minutes, repeatBursts, closeBy, bestRh: sim[maxIdx].rhSettled, blocked: false };
     }
 
     // Verdict + advice for a CHOSEN session length, judged on the simulated net
@@ -1137,19 +1119,22 @@
             return out;
         }
 
-        // 3) No drying benefit over this session
-        if (p.liters < 0.05 && drop < 1) {
+        // 3) No drying benefit over this session — judged on where you END UP,
+        //    never on cumulative liters: early-morning gains that the humid
+        //    afternoon re-imports (or the walls rebound away) don't count
+        if (drop < 1) {
             if (Number.isFinite(env.voc) && env.voc > 500) {
                 out.verdict = 'caution';
                 out.title = 'Air-Quality Flush Only';
                 out.summary = 'Outside air is not drier — keep it short';
                 out.advice = `${I.alert} Outside air (${now.ahOut.toFixed(1)} g/m³) is not drier than your basement (${now.ahIn.toFixed(1)} g/m³), but VOC is high (${env.voc} ppb). A 5–10 min flush improves air quality with minimal moisture gain.`;
             } else {
+                const addsMoisture = p.rhSettled > env.rhIn + 1;
                 out.title = 'Do Not Ventilate';
-                out.summary = p.liters <= -0.05 ? 'This session would add moisture' : 'No drying benefit';
-                out.advice = `${I.x} Over ${formatDuration(minutes)}, venting would ${p.liters <= -0.05 ? `ADD ≈${Math.abs(p.liters).toFixed(1)} L of water` : 'barely change basement moisture'} — outside air holds ${now.ahOut.toFixed(1)} g/m³ vs ${now.ahIn.toFixed(1)} g/m³ inside right now. Absolute moisture is what matters, even when outside RH looks lower.`;
-                if (!rec.blocked && rec.bestRh !== null && env.rhIn - rec.bestRh >= 2 && rec.minutes > minutes) {
-                    out.advice += ` A longer session helps once drier air arrives — try ≈${formatDuration(rec.minutes)}.`;
+                out.summary = addsMoisture ? 'This session would add moisture' : 'No drying benefit';
+                out.advice = `${I.x} A ${formatDuration(minutes)} session ends at ≈${Math.round(p.rhSettled)}% — ${addsMoisture ? 'worse than' : 'no better than'} the ${Math.round(env.rhIn)}% you have now: any early gains get re-imported or rebound out of the walls as conditions turn. Outside air carries ${now.ahOut.toFixed(1)} g/m³ vs ${now.ahIn.toFixed(1)} g/m³ inside right now — absolute moisture is what matters, even when outside RH looks lower.`;
+                if (!rec.blocked && rec.bestRh !== null && env.rhIn - rec.bestRh >= 2 && rec.minutes !== minutes) {
+                    out.advice += ` A ${formatDuration(rec.minutes)} session while the gates are open works better.`;
                 }
             }
             return out;

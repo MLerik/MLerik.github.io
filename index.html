@@ -515,10 +515,11 @@
                              style="position: absolute; top: 4px; pointer-events: none; z-index: 10; white-space: nowrap; font-size: 11px; padding: 4px 8px; border-radius: 8px; background: var(--surface-container-high); border: 1px solid color-mix(in srgb, var(--primary) 30%, transparent 70%); color: var(--on-surface);"></div>
                     </div>
                     <p class="text-xs ventilation-text-secondary mt-2">
-                        The humidity you'd be left with if you closed the windows at each moment, once the cellar
-                        returns to its usual temperature — imported moisture doesn't vanish with the warmth.
-                        Follows the hourly forecast. Red bands = condensation risk on cold walls;
-                        amber bands = outside air warm enough to heat the cellar. Drag the slider or the chart.
+                        The humidity you'd be left with if you closed the windows at each moment — after the walls
+                        have re-released moisture for an hour and the cellar has returned to its usual temperature.
+                        Simulated hour by hour along the forecast, with cumulative extraction through the window.
+                        Red bands = condensation risk on cold walls; amber bands = outside air warm enough to heat
+                        the cellar (never recommended, shown as what-if). Drag the slider or the chart.
                     </p>
                 </div>
 
@@ -595,7 +596,8 @@
             <p class="text-xs ventilation-text-secondary mt-3 leading-relaxed">
                 Cross-ventilation (windows open on opposite sides) exchanges air ≈4×/h; single-sided ≈1.5×/h.
                 “Old, thick walls” assumes ground-coupled masonry surfaces run up to ~2 °C colder than the basement air
-                in summer, which tightens the condensation safety check — recommended for Villa Kunterbunt.
+                in summer (tighter condensation check) and that the damp masonry buffers moisture strongly —
+                re-releasing water into the air within ~2 h of any venting — recommended for Villa Kunterbunt.
             </p>
         </details>
 
@@ -946,41 +948,71 @@
     function simulateVenting(env, maxMinutes) {
         const ach = ACH_BY_TYPE[settings.ventType] || ACH_BY_TYPE.single;
         const volume = settings.floorArea * settings.ceilingHeight;
-        const wallTemp = estimateWallTemp(env.tempIn);
+        const wallTemp0 = estimateWallTemp(env.tempIn);
         const { tempering, persistence } = wallCoupling();
+
+        // TWO-NODE MODEL: air + walls, stepped hour by hour, cumulative.
+        // The air box alone is a rounding error next to 150 m² of old masonry:
+        // the walls hold kilograms of water and actively exchange it with the
+        // room air (buffering). Old damp masonry pulls the air back toward its
+        // own equilibrium within a couple of hours; sealed/painted structures
+        // buffer weakly. The walls also warm slowly during long warm sessions,
+        // and warmer damp masonry re-emits more moisture.
+        const tauBuffer = settings.oldWalls ? 2 : 6; // h — air↔wall moisture relaxation
+        const TAU_WALL = 30;                         // h — fabric thermal time constant
         const ahIn0 = absoluteHumidity(env.tempIn, env.rhIn);
-        const decay = Math.exp(-ach * PLANNER_STEP / 60);
+        const ahSatHome = absoluteHumidity(env.tempIn, 100);
+        const ahSatWall0 = absoluteHumidity(wallTemp0, 100);
+        const stepH = PLANNER_STEP / 60;
+        const exDecay = Math.exp(-ach * stepH);
+        const bufDecay = Math.exp(-stepH / tauBuffer);
+        const wallDecay = Math.exp(-stepH / TAU_WALL);
+        const reboundK = 1 - Math.exp(-1 / tauBuffer); // 1 h of wall rebound after closing
 
         let ahMix = ahIn0;
         let tMix = env.tempIn;
-        // Humidity is judged at the temperature the cellar RETURNS to — the
-        // massive walls always win within a few hours, and imported water does
-        // not leave with the transient warmth. Evaluating RH at the still-warm
-        // 1-h "settled" temperature would launder a hot session's moisture
-        // load into a flattering lower percentage (the hot-day bug: a session
-        // through a 27°C afternoon showed 48% while barely removing any water,
-        // only to climb back as the masonry re-cooled the air).
-        const ahSatHome = absoluteHumidity(env.tempIn, 100);
+        let tWall = wallTemp0;
+        let extracted = 0; // L pushed out the window so far (air + what walls re-released), CUMULATIVE
         const points = [];
         const record = (minute, o) => {
             const tAir = env.tempIn + tempering * (tMix - env.tempIn);
             const tSettled = env.tempIn + persistence * (tMix - env.tempIn);
+            // Walls re-emit toward this level (warmer damp walls emit more)
+            const ahEq = ahIn0 * absoluteHumidity(tWall, 100) / ahSatWall0;
+            // What you're left with if you close NOW: within ~1 h the walls
+            // pull the air partway back to their equilibrium — a short burst's
+            // dip largely rebounds. Judged at the cellar's normal temperature:
+            // imported moisture doesn't vanish with the transient warmth.
+            const ahAfterRebound = ahEq + (ahMix - ahEq) * (1 - reboundK);
             points.push({
                 minute,
                 rhDuring: Math.min(100, ahMix / absoluteHumidity(tAir, 100) * 100),
-                rhSettled: Math.min(100, ahMix / ahSatHome * 100),
+                rhSettled: Math.min(100, ahAfterRebound / ahSatHome * 100),
                 tAir, tSettled,
                 outTemp: o.temp, outDew: o.dew,
-                liters: volume * (ahIn0 - ahMix) / 1000,
-                risk: o.dew >= wallTemp - CONDENSATION_MARGIN
+                liters: extracted,
+                risk: o.dew >= wallTemp0 - CONDENSATION_MARGIN
             });
         };
         record(0, outsideConditionsAt(0));
         for (let m = PLANNER_STEP; m <= maxMinutes; m += PLANNER_STEP) {
             const o = outsideConditionsAt(m - PLANNER_STEP / 2); // midpoint conditions
             const ahOut = absoluteHumidity(o.temp, o.rh);
-            ahMix = ahOut + (ahMix - ahOut) * decay;
-            tMix = o.temp + (tMix - o.temp) * decay;
+            // 1) Air exchange with outside — the only path water actually
+            //    leaves (or enters) the cellar. Accumulate the hourly flux:
+            //    as the walls keep refilling the air, the window keeps
+            //    extracting — cumulative extraction far exceeds the air box.
+            const ahAfterExchange = ahOut + (ahMix - ahOut) * exDecay;
+            extracted += volume * (ahMix - ahAfterExchange) / 1000;
+            ahMix = ahAfterExchange;
+            // 2) Wall buffering — internal flux: re-release while the air is
+            //    drier than the walls' equilibrium, absorption while wetter
+            const ahEq = ahIn0 * absoluteHumidity(tWall, 100) / ahSatWall0;
+            ahMix = ahEq + (ahMix - ahEq) * bufDecay;
+            // 3) Thermal states: air mix follows outside; fabric warms slowly
+            const tAirNow = env.tempIn + tempering * (tMix - env.tempIn);
+            tMix = o.temp + (tMix - o.temp) * exDecay;
+            tWall = tAirNow + (tWall - tAirNow) * wallDecay;
             record(m, o);
         }
         return points;
@@ -1017,12 +1049,13 @@
     }
 
     // Recommended session length, derived from the simulation: the shortest
-    // duration that gets within RECOMMEND_TOL of the best achievable settled
-    // humidity over the whole planner horizon. When the forecast keeps
-    // improving (e.g. a drying summer night), this recommends the long session
-    // the curve deserves; under constant conditions it lands near the classic
-    // ~90%-exchange point, because beyond it extra minutes buy almost nothing.
-    // Truncated before any condensation-risk stretch; freezing keeps bursts.
+    // duration whose score comes within RECOMMEND_TOL of the best achievable
+    // over the allowed horizon. With wall buffering in the model, settled
+    // humidity stops improving once the air reaches its exchange/buffer
+    // equilibrium — so recommendations naturally land at short sessions
+    // (the walls rebound anyway; repeated bursts beat marathons), extending
+    // only while the forecast genuinely keeps helping. Truncated before any
+    // condensation-risk or cellar-heating stretch; freezing keeps bursts.
     const RECOMMEND_TOL = 1.5;  // %RH
     const WARM_PENALTY = 1.5;   // %RH-equivalent per °C the session leaves the cellar warmer
     function recommendDuration(sim, now) {
@@ -1034,14 +1067,22 @@
             maxIdx = Math.min(maxIdx, firstRisk - 1);
             closeBy = sim[firstRisk].minute;
         }
+        // Never RECOMMEND venting with air that heats the cellar (outside more
+        // than ~1°C above basement temperature) — the classic cellar rule, and
+        // forecast RH at peak heat is far too unreliable to gamble a long
+        // session on its promised dryness. The planner still simulates those
+        // hours honestly if you choose them by hand.
+        const firstWarm = sim.findIndex(q => q.outTemp > now.tempIn + 1);
+        if (firstWarm > 0) maxIdx = Math.min(maxIdx, firstWarm - 1);
         let repeatBursts = false;
         if (now.freezing) {
             const cap = Math.round(30 / PLANNER_STEP);
             if (maxIdx > cap) { maxIdx = cap; repeatBursts = true; }
         }
-        if (firstRisk === 0 || maxIdx < minIdx) {
-            // Risky from the very start (or no safe room): a recommendation is
-            // moot — keep a sensible slider default for what-if exploration
+        if (firstRisk === 0 || firstWarm === 0 || maxIdx < minIdx) {
+            // Risky or cellar-heating from the very start (or no safe room):
+            // a recommendation is moot — keep a sensible slider default for
+            // what-if exploration
             return { minutes: 30, repeatBursts: false, closeBy, bestRh: null, blocked: true };
         }
         // Objective: settled humidity PLUS a warming penalty. A session that
@@ -1499,7 +1540,7 @@
 
         const setup = `${Math.round(settings.floorArea * settings.ceilingHeight)} m³ · ${settings.ventType === 'cross' ? 'cross-vent' : 'single-sided'}`;
         waterRemovedDisplay.textContent =
-            p.liters >= 0.05 ? `≈ ${p.liters.toFixed(1)} L water removed · ${setup}` :
+            p.liters >= 0.05 ? `≈ ${p.liters.toFixed(1)} L extracted (air + walls) · ${setup}` :
             p.liters <= -0.05 ? `⚠ adds ≈ ${Math.abs(p.liters).toFixed(1)} L of water · ${setup}` :
             `≈ 0 L — barely any moisture change · ${setup}`;
         tempEstimateDisplay.textContent =

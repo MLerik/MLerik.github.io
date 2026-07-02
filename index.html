@@ -515,8 +515,9 @@
                              style="position: absolute; top: 4px; pointer-events: none; z-index: 10; white-space: nowrap; font-size: 11px; padding: 4px 8px; border-radius: 8px; background: var(--surface-container-high); border: 1px solid color-mix(in srgb, var(--primary) 30%, transparent 70%); color: var(--on-surface);"></div>
                     </div>
                     <p class="text-xs ventilation-text-secondary mt-2">
-                        Predicted basement humidity while the windows are open, following the hourly forecast.
-                        Red bands = condensation risk on cold walls during that stretch. Drag the slider or the chart.
+                        The humidity you'd be left with if you closed the windows at each moment (settled ~1 h later),
+                        following the hourly forecast. Red bands = condensation risk on cold walls;
+                        amber bands = outside air warm enough to heat the cellar. Drag the slider or the chart.
                     </p>
                 </div>
 
@@ -960,6 +961,7 @@
                 rhDuring: Math.min(100, ahMix / absoluteHumidity(tAir, 100) * 100),
                 rhSettled: Math.min(100, ahMix / absoluteHumidity(tSettled, 100) * 100),
                 tAir, tSettled,
+                outTemp: o.temp, outDew: o.dew,
                 liters: volume * (ahIn0 - ahMix) / 1000,
                 risk: o.dew >= wallTemp - CONDENSATION_MARGIN
             });
@@ -1012,7 +1014,8 @@
     // the curve deserves; under constant conditions it lands near the classic
     // ~90%-exchange point, because beyond it extra minutes buy almost nothing.
     // Truncated before any condensation-risk stretch; freezing keeps bursts.
-    const RECOMMEND_TOL = 1.5; // %RH
+    const RECOMMEND_TOL = 1.5;  // %RH
+    const WARM_PENALTY = 1.5;   // %RH-equivalent per °C the session leaves the cellar warmer
     function recommendDuration(sim, now) {
         const minIdx = Math.round(15 / PLANNER_STEP);
         let maxIdx = sim.length - 1;
@@ -1032,10 +1035,20 @@
             // moot — keep a sensible slider default for what-if exploration
             return { minutes: 30, repeatBursts: false, closeBy, bestRh: null, blocked: true };
         }
+        // Objective: settled humidity PLUS a warming penalty. A session that
+        // leaves the cellar warmer must earn it with extra drying — warm air
+        // shows flattering RH percentages while carrying more absolute water,
+        // so without this term the optimizer extends sessions into hot
+        // afternoons for gains that are partly a temperature artifact.
+        const score = i => sim[i].rhSettled + WARM_PENALTY * Math.max(0, sim[i].tSettled - now.tempIn);
+        let bestScore = Infinity;
         let bestRh = Infinity;
-        for (let i = minIdx; i <= maxIdx; i++) bestRh = Math.min(bestRh, sim[i].rhSettled);
+        for (let i = minIdx; i <= maxIdx; i++) {
+            bestScore = Math.min(bestScore, score(i));
+            bestRh = Math.min(bestRh, sim[i].rhSettled);
+        }
         let idx = minIdx;
-        while (idx < maxIdx && sim[idx].rhSettled > bestRh + RECOMMEND_TOL) idx++;
+        while (idx < maxIdx && score(idx) > bestScore + RECOMMEND_TOL) idx++;
         // Snap to the slider's 15-min grid without leaving the safe range
         let minutes = Math.round(sim[idx].minute / 15) * 15;
         minutes = Math.max(15, Math.min(minutes, Math.floor(sim[maxIdx].minute / 15) * 15));
@@ -1050,7 +1063,9 @@
         const p = sim[idx];
         const session = sim.slice(0, idx + 1);
         const drop = env.rhIn - p.rhSettled;
-        const peakRh = Math.max(...session.map(q => q.rhDuring));
+        // Peak of the SETTLED humidity: what you'd be stuck with if you closed
+        // at the worst moment (warm-air RH would flatter this number)
+        const peakRh = Math.max(...session.map(q => q.rhSettled));
         const I = ADVICE_ICONS;
         const out = { verdict: 'bad', title: '', summary: '', advice: '' };
 
@@ -1111,7 +1126,12 @@
         if (peakRh > env.rhIn + 3) {
             out.advice += ` ${I.alert} Humidity rises at first (peaks ≈${Math.round(peakRh)}% before drier air arrives) — don't close early.`;
         }
-        if (now.warming) {
+        // Warming check is SESSION-aware: a session that starts in a cool
+        // morning but runs into a hot afternoon must warn too
+        const warmedBy = p.tSettled - env.tempIn;
+        if (warmedBy >= 0.8) {
+            out.advice += ` ${I.alert} This session would warm the cellar to ≈${p.tSettled.toFixed(1)}°C (settled) — a warmer cellar holds its moisture and condenses more easily when cool humid air returns. Prefer the cooler hours and close before the heat.`;
+        } else if (now.warming) {
             out.advice += ` ${I.alert} Outside is warmer (${Math.round(env.tempOut)}°C vs ${env.tempIn.toFixed(1)}°C): a warmer cellar condenses more easily later — keep it short and close before the day heats up further.`;
         }
         if (now.freezing) {
@@ -1535,23 +1555,32 @@
 
         const maxMin = plannerSim[plannerSim.length - 1].minute;
         const x = m => padL + (m / maxMin) * (W - padL - padR);
-        const rhs = plannerSim.map(q => q.rhDuring);
+        // Plot the SETTLED humidity — what you're left with if you close at
+        // each moment. (Never rhDuring: warm incoming air reads flatteringly
+        // low in RH% while carrying more absolute water.)
+        const rhs = plannerSim.map(q => q.rhSettled);
         let lo = Math.max(0, Math.floor(Math.min(...rhs, 50) - 3));
         let hi = Math.min(100, Math.ceil(Math.max(...rhs, 70) + 3));
         const y = v => padT + (1 - (v - lo) / (hi - lo)) * (H - padT - padB);
 
         let els = '';
-        // Condensation-risk bands (status red, translucent)
-        let bandStart = null;
-        for (let i = 0; i <= plannerSim.length; i++) {
-            const risky = i < plannerSim.length && plannerSim[i].risk;
-            if (risky && bandStart === null) bandStart = plannerSim[i].minute;
-            if (!risky && bandStart !== null) {
-                const endM = i < plannerSim.length ? plannerSim[i].minute : maxMin;
-                els += `<rect x="${x(bandStart).toFixed(1)}" y="${padT}" width="${Math.max(1, x(endM) - x(bandStart)).toFixed(1)}" height="${H - padT - padB}" fill="#f44336" opacity="0.14"></rect>`;
-                bandStart = null;
+        // Translucent time bands: amber = outside warm enough to heat the
+        // cellar, red = condensation risk on cold walls (red wins overlaps)
+        const tempIn = plannerState ? plannerState.env.tempIn : Infinity;
+        const drawBands = (flagFn, color, opacity) => {
+            let bandStart = null;
+            for (let i = 0; i <= plannerSim.length; i++) {
+                const active = i < plannerSim.length && flagFn(plannerSim[i]);
+                if (active && bandStart === null) bandStart = plannerSim[i].minute;
+                if (!active && bandStart !== null) {
+                    const endM = i < plannerSim.length ? plannerSim[i].minute : maxMin;
+                    els += `<rect x="${x(bandStart).toFixed(1)}" y="${padT}" width="${Math.max(1, x(endM) - x(bandStart)).toFixed(1)}" height="${H - padT - padB}" fill="${color}" opacity="${opacity}"></rect>`;
+                    bandStart = null;
+                }
             }
-        }
+        };
+        drawBands(q => !q.risk && q.outTemp > tempIn + 1, '#ff9800', '0.10');
+        drawBands(q => q.risk, '#f44336', '0.14');
         // Humidity threshold guides (only when inside the visible range)
         for (const th of [{ v: 55, c: '#f59e0b' }, { v: 65, c: '#ef4444' }]) {
             if (th.v > lo && th.v < hi) {
@@ -1567,14 +1596,14 @@
         // Y range labels
         els += `<text x="${padL - 4}" y="${(y(hi) + 7).toFixed(1)}" text-anchor="end" font-size="9" fill="currentColor" opacity="0.55">${hi}%</text>`;
         els += `<text x="${padL - 4}" y="${y(lo).toFixed(1)}" text-anchor="end" font-size="9" fill="currentColor" opacity="0.55">${lo}%</text>`;
-        // Data line: basement RH while venting (fixed data-series blue, distinct
-        // from the reserved status colors used by bands/thresholds)
-        const pts = plannerSim.map(q => `${x(q.minute).toFixed(1)},${y(q.rhDuring).toFixed(1)}`).join(' ');
+        // Data line (fixed data-series blue, distinct from the reserved status
+        // colors used by bands/thresholds)
+        const pts = plannerSim.map(q => `${x(q.minute).toFixed(1)},${y(q.rhSettled).toFixed(1)}`).join(' ');
         els += `<polyline points="${pts}" fill="none" stroke="#64b5f6" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"></polyline>`;
         // Selection marker
         const sp = plannerSim[selIdx];
         els += `<line x1="${x(sp.minute).toFixed(1)}" x2="${x(sp.minute).toFixed(1)}" y1="${padT}" y2="${H - padB}" stroke="currentColor" opacity="0.45" stroke-width="1.5"></line>`;
-        els += `<circle cx="${x(sp.minute).toFixed(1)}" cy="${y(sp.rhDuring).toFixed(1)}" r="4.5" fill="#64b5f6" stroke="var(--surface-container)" stroke-width="2"></circle>`;
+        els += `<circle cx="${x(sp.minute).toFixed(1)}" cy="${y(sp.rhSettled).toFixed(1)}" r="4.5" fill="#64b5f6" stroke="var(--surface-container)" stroke-width="2"></circle>`;
 
         plannerChart.innerHTML = els;
         plannerChart.style.color = 'var(--on-surface)';
@@ -1608,7 +1637,8 @@
             renderPlanner();
         }
         const q = plannerSim[Math.min(plannerSim.length - 1, Math.round(m / PLANNER_STEP))];
-        plannerTooltip.textContent = `+${formatDuration(m)} · ${Math.round(q.rhDuring)}%${q.risk ? ' · ⚠ condensation risk' : ''}`;
+        const warmFlag = plannerState && q.outTemp > plannerState.env.tempIn + 1;
+        plannerTooltip.textContent = `+${formatDuration(m)} · close here → ${Math.round(q.rhSettled)}% · ${q.tSettled.toFixed(1)}°C${q.risk ? ' · ⚠ condensation' : warmFlag ? ' · warms cellar' : ''}`;
         plannerTooltip.classList.remove('hidden');
         const wrapRect = plannerChartWrap.getBoundingClientRect();
         const tipW = plannerTooltip.offsetWidth;

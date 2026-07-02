@@ -511,17 +511,20 @@
                     <div id="planner-chart-wrap" class="relative mt-3">
                         <svg id="planner-chart" role="img" aria-label="Predicted basement humidity over the venting session"
                              style="display: block; width: 100%; touch-action: none; cursor: crosshair;"></svg>
+                        <svg id="planner-temp-chart" role="img" aria-label="Predicted settled basement temperature over the venting session"
+                             style="display: block; width: 100%; margin-top: 2px; touch-action: none; cursor: crosshair;"></svg>
                         <div id="planner-tooltip" class="hidden"
                              style="position: absolute; top: 4px; pointer-events: none; z-index: 10; white-space: nowrap; font-size: 11px; padding: 4px 8px; border-radius: 8px; background: var(--surface-container-high); border: 1px solid color-mix(in srgb, var(--primary) 30%, transparent 70%); color: var(--on-surface);"></div>
                     </div>
                     <p class="text-xs ventilation-text-secondary mt-2">
-                        The humidity you'd be left with if you closed the windows at each moment — after the walls
-                        have re-released moisture for an hour and the cellar has returned to its usual temperature.
-                        Simulated hour by hour along the forecast; the shaded band is forecast uncertainty (it grows
-                        with lead time, and grows extra when the forecast promises drier air than is measured right
-                        now). The recommendation covers only the stretch that helps even at the band's pessimistic
-                        edge. Red bands = condensation risk on cold walls; amber = outside air warm enough to heat
-                        the cellar. Drag the slider or the chart.
+                        Top: the humidity you'd be left with if you closed the windows at each moment — after the
+                        walls have re-released moisture for an hour and the cellar has returned to its usual
+                        temperature. The shaded band is forecast uncertainty (it grows with lead time, and grows
+                        extra when the forecast promises drier air than is measured right now); the recommendation
+                        covers only the stretch that helps even at the band's pessimistic edge. Red bands =
+                        condensation risk on cold walls; amber = outside air warm enough to heat the cellar.
+                        Bottom: the settled cellar temperature for the same sessions, against the ideal 15–20 °C
+                        band. Drag the slider or either chart.
                     </p>
                 </div>
 
@@ -727,6 +730,7 @@
     const plannerDurationLabel = document.getElementById('planner-duration-label');
     const plannerRecommendedLabel = document.getElementById('planner-recommended');
     const plannerChart = document.getElementById('planner-chart');
+    const plannerTempChart = document.getElementById('planner-temp-chart');
     const plannerChartWrap = document.getElementById('planner-chart-wrap');
     const plannerTooltip = document.getElementById('planner-tooltip');
     const basementDewpointDisplay = document.getElementById('basement-dewpoint');
@@ -1700,6 +1704,40 @@
         plannerChart.innerHTML = els;
         plannerChart.style.color = 'var(--on-surface)';
         plannerGeom = { W, padL, padR, maxMin };
+
+        // Temperature panel — same session-length axis (small multiple, never
+        // a second y-axis on the humidity chart). One line: the SETTLED cellar
+        // temperature if you close at each moment, against the ideal 15–20°C
+        // band. Temperature is not uncertainty-shifted (only moisture is), so
+        // there is no band around the line.
+        const H2 = 90, padT2 = 8, padB2 = 6;
+        plannerTempChart.setAttribute('viewBox', `0 0 ${W} ${H2}`);
+        plannerTempChart.setAttribute('height', H2);
+        const temps = plannerSim.map(q => q.tSettled);
+        const tLo = Math.floor(Math.min(...temps, 15) - 1);
+        const tHi = Math.ceil(Math.max(...temps, TEMP_CEILING) + 1);
+        const yT = v => padT2 + (1 - (v - tLo) / (tHi - tLo)) * (H2 - padT2 - padB2);
+        let tEls = '';
+        // Ideal cellar band 15–20°C (status green, translucent)
+        tEls += `<rect x="${padL}" y="${yT(TEMP_CEILING).toFixed(1)}" width="${W - padL - padR}" height="${(yT(15) - yT(TEMP_CEILING)).toFixed(1)}" fill="#4caf50" opacity="0.08"></rect>`;
+        tEls += `<line x1="${padL}" x2="${W - padR}" y1="${yT(TEMP_CEILING).toFixed(1)}" y2="${yT(TEMP_CEILING).toFixed(1)}" stroke="#f59e0b" stroke-width="1" stroke-dasharray="4 4" opacity="0.5"></line>`;
+        tEls += `<text x="${W - padR - 2}" y="${(yT(TEMP_CEILING) - 3).toFixed(1)}" text-anchor="end" font-size="9" fill="#f59e0b" opacity="0.85">${TEMP_CEILING}°C</text>`;
+        // Time ticks aligned with the humidity chart above (labels live between the panels)
+        for (let m = 0; m <= maxMin; m += 120) {
+            tEls += `<line x1="${x(m).toFixed(1)}" x2="${x(m).toFixed(1)}" y1="${padT2}" y2="${H2 - padB2}" stroke="currentColor" opacity="0.06"></line>`;
+        }
+        // Y range labels
+        tEls += `<text x="${padL - 4}" y="${(yT(tHi) + 7).toFixed(1)}" text-anchor="end" font-size="9" fill="currentColor" opacity="0.55">${tHi}°</text>`;
+        tEls += `<text x="${padL - 4}" y="${yT(tLo).toFixed(1)}" text-anchor="end" font-size="9" fill="currentColor" opacity="0.55">${tLo}°</text>`;
+        // Settled temperature line (own series color, distinct from the
+        // humidity blue and from the reserved status colors)
+        const tPts = plannerSim.map(q => `${x(q.minute).toFixed(1)},${yT(q.tSettled).toFixed(1)}`).join(' ');
+        tEls += `<polyline points="${tPts}" fill="none" stroke="#ce93d8" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"></polyline>`;
+        // Selection marker synced with the slider
+        tEls += `<line x1="${x(sp.minute).toFixed(1)}" x2="${x(sp.minute).toFixed(1)}" y1="${padT2}" y2="${H2 - padB2}" stroke="currentColor" opacity="0.45" stroke-width="1.5"></line>`;
+        tEls += `<circle cx="${x(sp.minute).toFixed(1)}" cy="${yT(sp.tSettled).toFixed(1)}" r="4" fill="#ce93d8" stroke="var(--surface-container)" stroke-width="2"></circle>`;
+        plannerTempChart.innerHTML = tEls;
+        plannerTempChart.style.color = 'var(--on-surface)';
     }
 
     function plannerMinuteFromEvent(e) {
@@ -1739,6 +1777,10 @@
     plannerChart.addEventListener('pointermove', plannerScrub);
     plannerChart.addEventListener('pointerdown', plannerScrub);
     plannerChart.addEventListener('pointerleave', () => plannerTooltip.classList.add('hidden'));
+    // The temperature panel shares the same x-mapping — scrub works there too
+    plannerTempChart.addEventListener('pointermove', plannerScrub);
+    plannerTempChart.addEventListener('pointerdown', plannerScrub);
+    plannerTempChart.addEventListener('pointerleave', () => plannerTooltip.classList.add('hidden'));
     let plannerResizeTimer = null;
     window.addEventListener('resize', () => {
         clearTimeout(plannerResizeTimer);

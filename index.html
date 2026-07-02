@@ -995,11 +995,26 @@
                 risk: o.dew >= wallTemp0 - CONDENSATION_MARGIN
             });
         };
+        // Measured outside moisture RIGHT NOW — the anchor for warm-hour trust
+        const ahOutNow = absoluteHumidity(env.tempOut, env.rhOut);
+
         const o0 = outsideConditionsAt(0);
         record(0, o0, absoluteHumidity(o0.temp, o0.rh));
         for (let m = PLANNER_STEP; m <= maxMinutes; m += PLANNER_STEP) {
             const o = outsideConditionsAt(m - PLANNER_STEP / 2); // midpoint conditions
-            const ahOut = absoluteHumidity(o.temp, o.rh);
+            let ahOut = absoluteHumidity(o.temp, o.rh);
+            // Hours WARMER than the cellar are moisture-NEUTRAL AT BEST:
+            // they may add water (a wet forecast stands) but are never
+            // credited with drying. Two reasons: forecast afternoon humidity
+            // is the least reliable number in the whole pipeline, and by a
+            // lake the hot air is practically never drier than a cool cellar
+            // — "outside warmer than inside → venting carries water in" is
+            // the house rule. Cooler (night) hours keep the forecast as-is;
+            // that's where the honest drying windows live.
+            if (o.temp > env.tempIn + 1) {
+                ahOut = Math.max(ahOut, ahOutNow, ahIn0 - DRYING_MARGIN);
+                if (Number.isFinite(env.dewOut) && o.dew < env.dewOut) o.dew = env.dewOut;
+            }
             // 1) Air exchange with outside — the only path water actually
             //    leaves (or enters) the cellar. Accumulate the hourly flux:
             //    as the walls keep refilling the air, the window keeps

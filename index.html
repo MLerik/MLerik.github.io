@@ -515,8 +515,9 @@
                              style="position: absolute; top: 4px; pointer-events: none; z-index: 10; white-space: nowrap; font-size: 11px; padding: 4px 8px; border-radius: 8px; background: var(--surface-container-high); border: 1px solid color-mix(in srgb, var(--primary) 30%, transparent 70%); color: var(--on-surface);"></div>
                     </div>
                     <p class="text-xs ventilation-text-secondary mt-2">
-                        The humidity you'd be left with if you closed the windows at each moment (settled ~1 h later),
-                        following the hourly forecast. Red bands = condensation risk on cold walls;
+                        The humidity you'd be left with if you closed the windows at each moment, once the cellar
+                        returns to its usual temperature — imported moisture doesn't vanish with the warmth.
+                        Follows the hourly forecast. Red bands = condensation risk on cold walls;
                         amber bands = outside air warm enough to heat the cellar. Drag the slider or the chart.
                     </p>
                 </div>
@@ -952,6 +953,14 @@
 
         let ahMix = ahIn0;
         let tMix = env.tempIn;
+        // Humidity is judged at the temperature the cellar RETURNS to — the
+        // massive walls always win within a few hours, and imported water does
+        // not leave with the transient warmth. Evaluating RH at the still-warm
+        // 1-h "settled" temperature would launder a hot session's moisture
+        // load into a flattering lower percentage (the hot-day bug: a session
+        // through a 27°C afternoon showed 48% while barely removing any water,
+        // only to climb back as the masonry re-cooled the air).
+        const ahSatHome = absoluteHumidity(env.tempIn, 100);
         const points = [];
         const record = (minute, o) => {
             const tAir = env.tempIn + tempering * (tMix - env.tempIn);
@@ -959,7 +968,7 @@
             points.push({
                 minute,
                 rhDuring: Math.min(100, ahMix / absoluteHumidity(tAir, 100) * 100),
-                rhSettled: Math.min(100, ahMix / absoluteHumidity(tSettled, 100) * 100),
+                rhSettled: Math.min(100, ahMix / ahSatHome * 100),
                 tAir, tSettled,
                 outTemp: o.temp, outDew: o.dew,
                 liters: volume * (ahIn0 - ahMix) / 1000,
